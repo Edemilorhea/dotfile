@@ -4,24 +4,24 @@
 .gitignore_global
 {{- end }}
 
-# Zsh 配置 (只在 Linux/macOS 有效，且需啟用 sync)
+# Zsh 配置
 {{- if or (not .syncZsh) (eq .chezmoi.os "windows") }}
 .zshrc
 .zsh_history
 .oh-my-zsh/**
 {{- end }}
 
-# Neovim 配置 (依 OS 拆分邏輯)
-# 1. 如果不須同步，或是 非 Windows 系統 -> 忽略 Windows 路徑
+# Neovim 配置 - Windows 路徑
 {{- if or (not .syncNvim) (ne .chezmoi.os "windows") }}
 AppData/Local/nvim/**
 {{- end }}
-# 2. 如果不須同步，或是 Windows 系統 -> 忽略 Linux 路徑
+
+# Neovim 配置 - Linux 路徑
 {{- if or (not .syncNvim) (eq .chezmoi.os "windows") }}
 .config/nvim/**
 {{- end }}
 
-# PowerShell 配置 (只在 Windows 有效，且需啟用 sync)
+# PowerShell 配置
 {{- if or (not .syncPowershell) (ne .chezmoi.os "windows") }}
 Documents/PowerShell/**
 {{- end }}
@@ -31,7 +31,7 @@ Documents/PowerShell/**
 .ideavimrc
 {{- end }}
 
-# 全域防呆 (防止 Linux 出現 Windows 專用資料夾結構)
+# 防止 Linux 出現 Windows 資料夾
 {{- if ne .chezmoi.os "windows" }}
 AppData/**
 Documents/**
