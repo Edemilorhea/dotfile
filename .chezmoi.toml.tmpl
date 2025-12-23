@@ -1,14 +1,33 @@
+# 1. 詢問變數 (保留原本的變數名，以免 .chezmoiignore 壞掉)
+{{- $gitName := promptString "git user name" "TC" -}}
+{{- $gitEmail := promptString "git user email" "leon8847@gmail.com" -}}
+
+# 2. 詢問同步開關
+{{- $syncGit := promptBool "sync git config" true -}}
+{{- $syncZsh := promptBool "sync zsh config" false -}}
+{{- $syncNvim := promptBool "sync neovim config" true -}}
+{{- $syncPowershell := promptBool "sync powershell config" true -}}
+
 [git]
     autoCommit = true
     autoPush = true
+    # [新功能] 自動產生 Commit 訊息，包含主機名稱
     commitMessageTemplate = "Update dotfiles: {{ "{{" }} .chezmoi.hostname {{ "}}" }}"
 
 [data]
-    email = "leon8847@gmail.com"
+    gitName = {{ $gitName | quote }}
+    gitEmail = {{ $gitEmail | quote }}
+    
+    # 必須保留這些，不然 .chezmoiignore.tmpl 會失效
+    syncGit = {{ $syncGit }}
+    syncZsh = {{ $syncZsh }}
+    syncNvim = {{ $syncNvim }}
+    syncPowershell = {{ $syncPowershell }}
 
 [update]
     apply = true
 
+# [新功能] 設定 VS Code 為合併工具 (解決衝突用)
 [merge]
     command = "code"
     args = ["--wait", "--diff"]
