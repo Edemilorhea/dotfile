@@ -1,0 +1,14 @@
+[git]
+    autoCommit = true
+    autoPush = true
+    commitMessageTemplate = "Update dotfiles: {{ "{{" }} .chezmoi.hostname {{ "}}" }}"
+
+[data]
+    email = "leon8847@gmail.com"
+
+[update]
+    apply = true
+
+[merge]
+    command = "code"
+    args = ["--wait", "--diff"]
