@@ -1,14 +1,23 @@
+{{- $gitName := promptString "git user name" "TC" -}}
+{{- $gitEmail := promptString "git user email" "leon8847@gmail.com" -}}
+
+# 詢問要同步哪些檔案
+{{- $syncGit := promptBool "sync git config" true -}}
+{{- $syncZsh := promptBool "sync zsh config" false -}}
+{{- $syncNvim := promptBool "sync neovim config" true -}}
+
 [git]
     autoCommit = true
     autoPush = true
-    commitMessageTemplate = "Update dotfiles: {{ "{{" }} .chezmoi.hostname {{ "}}" }}"
 
 [data]
-    email = "leon8847@gmail.com"
+    gitName = {{ $gitName | quote }}
+    gitEmail = {{ $gitEmail | quote }}
+    
+    # 同步選項
+    syncGit = {{ $syncGit }}
+    syncZsh = {{ $syncZsh }}
+    syncNvim = {{ $syncNvim }}
 
 [update]
     apply = true
-
-[merge]
-    command = "code"
-    args = ["--wait", "--diff"]
