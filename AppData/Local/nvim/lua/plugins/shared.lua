@@ -93,8 +93,9 @@ return {
     },
 
     -- mini.comment - 輕量級註解插件（替代 Comment.nvim）
+    -- LazyVim 15.x: mini.comment 倉庫已重命名為 nvim-mini/mini.comment
     {
-        "echasnovski/mini.comment",
+        "nvim-mini/mini.comment",
         event = "VeryLazy",
         vscode = true,
         opts = {

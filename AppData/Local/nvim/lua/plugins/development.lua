@@ -1,5 +1,6 @@
 -- plugins/development.lua
 -- 開發相關插件 (LSP、自動完成、搜尋工具)
+-- 注意：mason 和 mason-lspconfig 已在 lsp.lua 中定義，此處移除避免重複
 
 return {
     -- Plenary - 基礎工具庫 (被依賴時自動載入)
@@ -9,56 +10,20 @@ return {
         vscode = true,
     },
 
-    -- Mason LSP 管理器 (只在 Neovim 中使用)
-    {
-        "williamboman/mason.nvim",
-        cmd = { "Mason", "MasonInstall", "MasonLog" },
-        build = ":MasonUpdate",
-        cond = not vim.g.vscode,
-        opts = {},
-    },
+    -- 注意：mason.nvim 和 mason-lspconfig.nvim 已在 lua/plugins/lsp.lua 中定義
+    -- 避免重複定義，已移除
 
-    {
-        "williamboman/mason-lspconfig.nvim",
-        event = "VeryLazy",
-        cond = not vim.g.vscode,
-        opts = {
-            ensure_installed = {
-                "lua_ls",
-                "jsonls",
-                "ts_ls",
-                "html",
-                "cssls",
-                "volar",
-                "emmet_ls",
-                "eslint",
-                "omnisharp",
-                "pyright",
-                "marksman",
-            },
-        },
-    },
-
-    -- LSP 配置 (只在 Neovim 中使用)
-    {
-        "neovim/nvim-lspconfig",
-        cond = not vim.g.vscode,
-        opts = function()
-            local Keys = require("lazyvim.plugins.lsp.keymaps").get()
-            vim.list_extend(Keys, {
-                { "gd", false },
-                { "gr", false },
-                { "gI", false },
-                { "gy", false },
-            })
-        end,
-    },
+    -- 注意：nvim-lspconfig 已在 lua/plugins/lsp.lua 中定義
+    -- 避免重複定義，已移除
 
     -- 自動完成增強 (按需載入)
+    -- 注意：LazyVim 15.x 預設使用 blink.cmp，nvim-cmp 已被替換
+    -- 如果你需要 nvim-cmp，請啟用 coding.nvim-cmp extra
     {
         "hrsh7th/nvim-cmp",
-        cond = not vim.g.vsocde,
-        event = "InsertEnter", -- 進入插入模式時載入
+        enabled = false, -- LazyVim 15.x 已改用 blink.cmp
+        cond = not vim.g.vscode,
+        event = "InsertEnter",
         dependencies = {
             "hrsh7th/cmp-emoji",
         },

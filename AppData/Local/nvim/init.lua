@@ -66,15 +66,10 @@ end
 require("config.lazy")
 
 -- === 純 Neovim 環境繼續載入 ===
--- 載入 LSP 設定與快捷鍵
-if pcall(require, "plugin.lsp") then
-    local lsp = require("plugin.lsp")
-    if lsp.auto_enable_lsp then
-        lsp.auto_enable_lsp()
-    end
-end
-
 -- 載入按鍵設定
 require("config.keymaps")
+
+-- 注意：plugin.lsp 已停用，改用 LazyVim 原生 LSP 配置
+-- 如需自訂 LSP，請在 lua/plugins/lsp.lua 中設定
 
 vim.notify("🚀 Neovim 完整環境已啟動")

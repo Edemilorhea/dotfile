@@ -228,9 +228,7 @@ return {
         "iamcco/markdown-preview.nvim",
         ft = "markdown",
         cond = not vim.g.vscode,
-        build = function()
-            vim.fn["mkdp#util#install"]()
-        end,
+        build = "cd app && npm install",
         config = function()
             -- 基本設定
             vim.g.mkdp_auto_start = 0

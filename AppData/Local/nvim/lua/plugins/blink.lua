@@ -68,6 +68,12 @@ return {
             },
         },
 
+        -- LazyVim 15.x: 命令列補全設定
+        cmdline = {
+            enabled = true,
+            sources = { "cmdline" },
+        },
+
         -- 簽名幫助
         signature = {
             enabled = true,

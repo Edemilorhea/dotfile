@@ -1,60 +1,15 @@
 -- plugins/neovim-only.lua
 -- 只在 Neovim 中使用的插件
 return {
-    -- 程式碼折疊增強
+    -- 程式碼折疊：已改用 LazyVim 15.x 原生 LSP 折疊
+    -- nvim-ufo 已停用，避免與原生功能衝突
+    -- 如需啟用 nvim-ufo，請在 lua/plugins/lsp.lua 中設定 folds.enabled = false
     {
         "kevinhwang91/nvim-ufo",
+        enabled = false, -- 停用，改用 LazyVim 原生 LSP 折疊
         dependencies = { "kevinhwang91/promise-async" },
         event = "BufReadPost",
         cond = not vim.g.vscode,
-        config = function()
-            require("ufo").setup({
-                provider_selector = function(_, _, _)
-                    return { "treesitter", "indent" }
-                end,
-            })
-
-            vim.o.foldlevel = 99
-            vim.o.foldlevelstart = 99
-            vim.o.foldenable = true
-        end,
-        keys = {
-            {
-                "zR",
-                function()
-                    require("ufo").openAllFolds()
-                end,
-                desc = "打開所有折疊",
-            },
-            {
-                "zM",
-                function()
-                    require("ufo").closeAllFolds()
-                end,
-                desc = "關閉所有折疊",
-            },
-            {
-                "zr",
-                function()
-                    require("ufo").openFoldsExceptKinds()
-                end,
-                desc = "打開一層折疊",
-            },
-            {
-                "zm",
-                function()
-                    require("ufo").closeFoldsWith()
-                end,
-                desc = "關閉一層折疊",
-            },
-            {
-                "zp",
-                function()
-                    require("ufo").peekFoldedLinesUnderCursor()
-                end,
-                desc = "預覽折疊內容",
-            },
-        },
     },
 
     -- Markdown 自動列表
@@ -90,50 +45,18 @@ return {
     },
 
     -- Treesitter 語法高亮和解析
+    -- LazyVim 15.x: 使用 LazyVim 原生的 treesitter 配置
+    -- 不需要自訂配置，LazyVim 會自動處理
     {
         "nvim-treesitter/nvim-treesitter",
-        build = ":TSUpdate",
-        event = { "BufReadPost", "BufNewFile" },
-        cond = not vim.g.vscode,
-        config = function()
-            require("nvim-treesitter.install").prefer_git = true
-            require("nvim-treesitter.install").compilers = { "clang", "gcc", "cl", "zig" }
-
-            require("nvim-treesitter.configs").setup({
-                ensure_installed = {
-                    "lua", "vim", "vimdoc", "query",
-                    "html", "javascript", "vue", "css",
-                    "python", "c_sharp", "typescript",
-                    "sql", "mermaid", "markdown", "bash",
-                },
-                sync_install = false,
-                auto_install = true,
-                ignore_install = {},
-                modules = {},
-                highlight = {
-                    enable = true,
-                    disable = function(lang, buf)
-                        local max_filesize = 100 * 1024 -- 100 KB
-                        local ok, stats = pcall(vim.loop.fs_stat, vim.api.nvim_buf_get_name(buf))
-                        if ok and stats and stats.size > max_filesize then
-                            return true
-                        end
-                    end,
-                },
-                indent = {
-                    enable = true,
-                },
-                incremental_selection = {
-                    enable = true,
-                    keymaps = {
-                        init_selection = "gnn",
-                        node_incremental = "grn",
-                        scope_incremental = "grc",
-                        node_decremental = "grm",
-                    },
-                },
-            })
-        end,
+        opts = {
+            ensure_installed = {
+                "lua", "vim", "vimdoc", "query",
+                "html", "javascript", "vue", "css",
+                "python", "c_sharp", "typescript",
+                "sql", "mermaid", "markdown", "bash",
+            },
+        },
     },
 
     -- LazyGit 整合

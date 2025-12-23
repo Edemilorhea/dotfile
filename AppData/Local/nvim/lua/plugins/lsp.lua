@@ -6,22 +6,33 @@ return {
     cond = function()
       return not vim.g.vscode
     end,
-    opts = function()
-      local Keys = require("lazyvim.plugins.lsp.keymaps").get()
-    -- stylua: ignore
-    vim.list_extend(Keys, {
-      { "gd", false },
-      { "gr", false },
-      { "gI", false },
-      { "gy", false },
-      { "<leader>ss", function() Snacks.picker.lsp_symbols({ filter = LazyVim.config.kind_filter }) end, desc = "LSP Symbols", has = "documentSymbol" },
-      { "<leader>sS", function() Snacks.picker.lsp_workspace_symbols({ filter = LazyVim.config.kind_filter }) end, desc = "LSP Workspace Symbols", has = "workspace/symbols" },
-    })
-    end,
+    opts = {
+      -- LazyVim 15.x: 使用原生 LSP 折疊
+      inlay_hints = { enabled = true },
+      codelens = { enabled = false },
+      document_highlight = { enabled = true },
+      -- 啟用 LazyVim 原生 LSP 折疊功能
+      folds = {
+        enabled = true, -- 改為 true，使用原生功能
+      },
+      -- 語言伺服器設定
+      servers = {
+        -- 全域設定
+        lua_ls = {
+          settings = {
+            Lua = {
+              workspace = { checkThirdParty = false },
+              telemetry = { enable = false },
+              diagnostics = { globals = { "vim" } },
+            },
+          },
+        },
+      },
+    },
   },
   {
-    "williamboman/mason.nvim",
-    version = "^1.0.0",
+    "mason-org/mason.nvim",
+    -- LazyVim 15.x: mason 倉庫已重命名為 mason-org/mason.nvim
     cmd = { "Mason", "MasonInstall", "MasonLog" },
     build = ":MasonUpdate",
     vscode = false,
@@ -32,8 +43,8 @@ return {
     opts = {},
   },
   {
-    "williamboman/mason-lspconfig.nvim",
-    version = "^1.0.0",
+    "mason-org/mason-lspconfig.nvim",
+    -- LazyVim 15.x: mason-lspconfig 倉庫已重命名為 mason-org/mason-lspconfig.nvim
     lazy = true,
     event = "VeryLazy",
     vscode = false,
