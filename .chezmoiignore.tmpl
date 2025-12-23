@@ -26,7 +26,13 @@ AppData/Local/nvim/**
 Documents/PowerShell/**
 {{- end }}
 
+# IdeaVimrc 配置
+{{- if not .syncIdeavimrc }}
+.ideavimrc
+{{- end }}
+
 # 全域防呆 (防止 Linux 出現 Windows 專用資料夾結構)
 {{- if ne .chezmoi.os "windows" }}
 AppData/**
 Documents/**
+{{- end }}

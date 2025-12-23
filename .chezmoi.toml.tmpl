@@ -7,6 +7,7 @@
 {{- $syncZsh := promptBool "sync zsh config" false -}}
 {{- $syncNvim := promptBool "sync neovim config" true -}}
 {{- $syncPowershell := promptBool "sync powershell config" true -}}
+{{- $syncIdeavimrc := promptBool "sync ideavimrc config" true -}}
 
 [git]
     autoCommit = true
@@ -23,6 +24,7 @@
     syncZsh = {{ $syncZsh }}
     syncNvim = {{ $syncNvim }}
     syncPowershell = {{ $syncPowershell }}
+    syncIdeavimrc = {{ $syncIdeavimrc }}
 
 [update]
     apply = true
