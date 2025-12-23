@@ -1,0 +1,124 @@
+" Leader 鍵設定
+let mapleader = "\\"
+let maplocalleader = "\\"
+
+" 基本設定
+set scrolloff=5
+set number
+set relativenumber
+set clipboard=unnamedplus
+set ignorecase
+set smartcase
+set incsearch
+set hlsearch
+set timeoutlen=500
+set visualbell
+
+" Which-Key 設定
+set which-key
+set notimeout
+
+" 插件
+Plug 'machakann/vim-highlightedyank'
+Plug 'tpope/vim-commentary'
+Plug 'tpope/vim-surround'
+set NERDTree
+
+" 標籤頁切換
+nnoremap gt <Nop>
+nnoremap gT <Nop>
+nnoremap <Tab> :action NextTab<CR>
+nnoremap <S-Tab> :action PreviousTab<CR>
+
+" 文字游標移動
+nnoremap H ^
+nnoremap L $
+vnoremap H ^
+vnoremap L $
+
+" Visual 模式跳轉和復原
+vnoremap <C-o> <Esc>:normal! <C-o><CR>
+vnoremap <C-i> <Esc>:normal! <C-i><CR>
+vnoremap <C-r> <Esc>:normal! <C-r><CR>
+
+" Normal 模式新行
+nnoremap o o<Esc>
+nnoremap O O<Esc>
+
+" 刪除到黑洞暫存器
+nnoremap d "_d
+vnoremap d "_d
+nnoremap D "_D
+nnoremap dd "_dd
+
+" Visual 模式貼上
+xnoremap p pgvy
+
+" 搜尋清除
+nnoremap <Esc> :nohlsearch<CR>
+map <C-[> <Esc>
+
+" 插入模式
+imap jj <Esc>
+inoremap <S-Tab> <C-d>
+
+" IDE 跳轉
+nnoremap gd :action GotoDeclaration<CR>
+nnoremap gm :action GotoImplementation<CR>
+nnoremap gy :action GotoTypeDeclaration<CR>
+nnoremap gp :action GotoSuperMethod<CR>
+
+" IDE 左右分割跳轉
+nnoremap <C-h> :action PrevSplitter<CR>
+nnoremap <C-l> :action NextSplitter<CR>
+
+" Flash 搜尋
+nmap s <Action>(flash.search)
+xmap s <Action>(flash.search)
+
+" Visual 大小寫
+vnoremap U gU
+vnoremap u gu
+
+" Close Tab
+nnoremap <leader>cl :action CloseAllToTheLeft<CR>
+nnoremap <leader>cr :action CloseAllToTheRight<CR>
+
+" 展開到指定層級（對應你截圖中的「展開層級 1~5」）
+" 目前區塊：z1 ~ z5
+nnoremap z1 :action ExpandToLevel1<CR>
+nnoremap z2 :action ExpandToLevel2<CR>
+nnoremap z3 :action ExpandToLevel3<CR>
+nnoremap z4 :action ExpandToLevel4<CR>
+nnoremap z5 :action ExpandToLevel5<CR>
+
+" 全檔案：za1 ~ za5
+nnoremap za1 :action ExpandAllToLevel1<CR>
+nnoremap za2 :action ExpandAllToLevel2<CR>
+nnoremap za3 :action ExpandAllToLevel3<CR>
+nnoremap za4 :action ExpandAllToLevel4<CR>
+nnoremap za5 :action ExpandAllToLevel5<CR>
+
+" Leader 快捷鍵
+let g:WhichKeyDesc_find = "<leader>f Find"
+nnoremap <leader>f :action FindInPath<CR>
+
+let g:WhichKeyDesc_refactor = "<leader>r Refactor"
+nnoremap <leader>r :action ReformatCode<CR>
+
+let g:WhichKeyDesc_debug = "<leader>b Breakpoint"
+nnoremap <leader>b :action ToggleLineBreakpoint<CR>
+
+" 格式化
+map Q gq
+
+" 處理器設定
+sethandler <C-V> i:ide n:vim
+
+" 方法跳轉（放在最後）
+nnoremap ]m :action MethodDown<CR>
+nnoremap [m :action MethodUp<CR>
+
+"執行 or debug
+nnoremap <leader>rrm :action ChooseRunConfiguration<CR>
+nnoremap <leader>rdm :action ChooseDebugConfiguration<CR>
