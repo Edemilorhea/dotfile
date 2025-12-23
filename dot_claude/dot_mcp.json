@@ -1,0 +1,35 @@
+{
+  "mcpServers": {
+    "notion": {
+      "type": "http",
+      "url": "https://mcp.notion.com/mcp"
+    },
+    "filesystem": {
+      "type": "stdio",
+      "command": "npx",
+      "args": [
+        "@modelcontextprotocol/server-filesystem",
+        "${USERPROFILE}/.claude"
+      ],
+      "env": {}
+    },
+    "filesystem-docs": {
+      "type": "stdio",
+      "command": "npx",
+      "args": [
+        "@modelcontextprotocol/server-filesystem",
+        "${USERPROFILE}/Documents"
+      ],
+      "env": {}
+    },
+    "context7": {
+      "type": "stdio",
+      "command": "npx",
+      "args": [
+        "@upstash/context7-mcp",
+        "ctx7sk-92e295e4-6568-4776-b334-f6995856731e"
+      ],
+      "env": {}
+    }
+  }
+}
