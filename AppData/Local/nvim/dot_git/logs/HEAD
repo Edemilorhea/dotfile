@@ -1,0 +1,64 @@
+0000000000000000000000000000000000000000 14d84d103b701aeff8e5c72f692f0df7324bcade Edemilorhea <leon8847@gmail.com> 1746885502 +0800	clone: from github.com:Edemilorhea/Neovim-Setting.git
+0000000000000000000000000000000000000000 4fd8234cb74a7329a627261d7c584568a6548beb Edemilorhea <leon8847@gmail.com> 1746886394 +0800	commit (initial): lazyvim init
+4fd8234cb74a7329a627261d7c584568a6548beb 7c21699050b80eca7621252a373903e07283e76d Edemilorhea <leon8847@gmail.com> 1746886396 +0800	commit: lazyvim init
+7c21699050b80eca7621252a373903e07283e76d 14d84d103b701aeff8e5c72f692f0df7324bcade Edemilorhea <leon8847@gmail.com> 1746886416 +0800	checkout: moving from lazyvim to master
+14d84d103b701aeff8e5c72f692f0df7324bcade 7c21699050b80eca7621252a373903e07283e76d Edemilorhea <leon8847@gmail.com> 1746886422 +0800	checkout: moving from master to lazyvim
+7c21699050b80eca7621252a373903e07283e76d 4b9d53fd44bf1ea30739a9602efc36d8970ad398 Edemilorhea <leon8847@gmail.com> 1746895545 +0800	commit: 第一版 但vscode 還不能用
+4b9d53fd44bf1ea30739a9602efc36d8970ad398 1fc3dfccc9e26fd2c139fb0fab939a77bee6d8aa Edemilorhea <leon8847@gmail.com> 1746898119 +0800	commit: 目前可以讓她加載了
+1fc3dfccc9e26fd2c139fb0fab939a77bee6d8aa 14d84d103b701aeff8e5c72f692f0df7324bcade Edemilorhea <leon8847@gmail.com> 1746898302 +0800	checkout: moving from lazyvim to master
+14d84d103b701aeff8e5c72f692f0df7324bcade 412c5c9cb4b0151ef2b2cb5fc7d853ccf2be21f3 Edemilorhea <leon8847@gmail.com> 1746900841 +0800	commit: 更新Packer版
+412c5c9cb4b0151ef2b2cb5fc7d853ccf2be21f3 554b5c57d04b07afbcafa62120e92d32bb8713f8 Edemilorhea <leon8847@gmail.com> 1746901652 +0800	commit: 固定Mason版本在v1 避免跳奇怪通知跟錯誤
+554b5c57d04b07afbcafa62120e92d32bb8713f8 f48b2abcbbb158d03b7439a35434ed673c63cb51 Edemilorhea <leon8847@gmail.com> 1746903070 +0800	commit: 增加懸浮命令框
+f48b2abcbbb158d03b7439a35434ed673c63cb51 0013cdd33a3e80dc6b1cab67eb515ca86f3a38ac Edemilorhea <leon8847@gmail.com> 1746903072 +0800	commit: 懸浮命令框
+0013cdd33a3e80dc6b1cab67eb515ca86f3a38ac f48b2abcbbb158d03b7439a35434ed673c63cb51 Edemilorhea <leon8847@gmail.com> 1746903104 +0800	reset: moving to HEAD~
+f48b2abcbbb158d03b7439a35434ed673c63cb51 f266d77c986bf61794ddd0be4db478b9efe6d1f4 Edemilorhea <leon8847@gmail.com> 1746903208 +0800	commit: add gitignore
+f266d77c986bf61794ddd0be4db478b9efe6d1f4 83c9f75266ac061f30a38acb530350d6e7a716c5 Edemilorhea <leon8847@gmail.com> 1746903819 +0800	commit: 懸浮命令框
+83c9f75266ac061f30a38acb530350d6e7a716c5 bbc4986d1c2588b8e9c3dcdf5df9150e1a68ed48 Edemilorhea <leon8847@gmail.com> 1746903851 +0800	commit: 刪除packer_compiled.lua
+bbc4986d1c2588b8e9c3dcdf5df9150e1a68ed48 1fc3dfccc9e26fd2c139fb0fab939a77bee6d8aa Edemilorhea <leon8847@gmail.com> 1746936471 +0800	checkout: moving from master to lazyvim
+1fc3dfccc9e26fd2c139fb0fab939a77bee6d8aa a088870e8d649fa7e93d508545ace4717ce85e3a Edemilorhea <leon8847@gmail.com> 1746943751 +0800	commit: 可以與vscode共用的方法
+a088870e8d649fa7e93d508545ace4717ce85e3a bbc4986d1c2588b8e9c3dcdf5df9150e1a68ed48 Edemilorhea <leon8847@gmail.com> 1746943863 +0800	checkout: moving from lazyvim to master
+bbc4986d1c2588b8e9c3dcdf5df9150e1a68ed48 a088870e8d649fa7e93d508545ace4717ce85e3a Edemilorhea <leon8847@gmail.com> 1746944002 +0800	checkout: moving from master to lazyvim
+a088870e8d649fa7e93d508545ace4717ce85e3a a088870e8d649fa7e93d508545ace4717ce85e3a Edemilorhea <leon8847@gmail.com> 1746948775 +0800	reset: moving to HEAD
+a088870e8d649fa7e93d508545ace4717ce85e3a a088870e8d649fa7e93d508545ace4717ce85e3a Edemilorhea <leon8847@gmail.com> 1746948861 +0800	reset: moving to HEAD
+a088870e8d649fa7e93d508545ace4717ce85e3a a088870e8d649fa7e93d508545ace4717ce85e3a Edemilorhea <leon8847@gmail.com> 1746948864 +0800	reset: moving to HEAD
+a088870e8d649fa7e93d508545ace4717ce85e3a 55a93abd5c5c05c1f48aa3bc9d6936e06a0a407b Edemilorhea <leon8847@gmail.com> 1746948923 +0800	commit: 更改好cmp快捷選擇
+55a93abd5c5c05c1f48aa3bc9d6936e06a0a407b 5f83afa68feb42fc26ef473710c4843cead34583 Edemilorhea <leon8847@gmail.com> 1746950788 +0800	commit: omnisharp settings
+5f83afa68feb42fc26ef473710c4843cead34583 bbc4986d1c2588b8e9c3dcdf5df9150e1a68ed48 Edemilorhea <leon8847@gmail.com> 1746950808 +0800	checkout: moving from lazyvim to master
+bbc4986d1c2588b8e9c3dcdf5df9150e1a68ed48 5f83afa68feb42fc26ef473710c4843cead34583 Edemilorhea <leon8847@gmail.com> 1746956408 +0800	checkout: moving from master to lazyvim
+5f83afa68feb42fc26ef473710c4843cead34583 d5568683ab29d5795332c1b13a51973acc828eb7 Edemilorhea <leon8847@gmail.com> 1746962956 +0800	commit: 改掉Gd被覆蓋的問題
+d5568683ab29d5795332c1b13a51973acc828eb7 fd9682d04bbe5ccf330511c472895193b4454587 Edemilorhea <leon8847@gmail.com> 1747145687 +0800	pull: Fast-forward
+fd9682d04bbe5ccf330511c472895193b4454587 a17c369ae457b9097d04d00b7e31c7e8c38a0e30 Edemilorhea <leon8847@gmail.com> 1747149864 +0800	commit: 修複Markdown時發生的錯誤、序列時正常補全
+a17c369ae457b9097d04d00b7e31c7e8c38a0e30 6ac1bcc48dfdbdfd2fbef8cf212b4e8ed04cdc8f Edemilorhea <leon8847@gmail.com> 1747309265 +0800	pull: Fast-forward
+6ac1bcc48dfdbdfd2fbef8cf212b4e8ed04cdc8f 51303e1d9df038e6bf43da9c8f5044d7b14b8116 Edemilorhea <leon8847@gmail.com> 1748099418 +0800	pull: Fast-forward
+51303e1d9df038e6bf43da9c8f5044d7b14b8116 d5a4f222b929dec29fe9000aae6eea2f3c487916 Edemilorhea <leon8847@gmail.com> 1748105849 +0800	commit: 更新一些格式化問題，還有快捷鍵
+d5a4f222b929dec29fe9000aae6eea2f3c487916 0e0feefcf85d122b45fafc7a2c6d36df760793c7 Edemilorhea <leon8847@gmail.com> 1748116070 +0800	commit: just
+0e0feefcf85d122b45fafc7a2c6d36df760793c7 d5a4f222b929dec29fe9000aae6eea2f3c487916 Edemilorhea <leon8847@gmail.com> 1748116141 +0800	rebase (start): checkout d5a4f222b929dec29fe9000aae6eea2f3c487916
+d5a4f222b929dec29fe9000aae6eea2f3c487916 0e0feefcf85d122b45fafc7a2c6d36df760793c7 Edemilorhea <leon8847@gmail.com> 1748116141 +0800	rebase: fast-forward
+0e0feefcf85d122b45fafc7a2c6d36df760793c7 0e0feefcf85d122b45fafc7a2c6d36df760793c7 Edemilorhea <leon8847@gmail.com> 1748116154 +0800	rebase (abort): returning to refs/heads/lazyvim
+0e0feefcf85d122b45fafc7a2c6d36df760793c7 d5a4f222b929dec29fe9000aae6eea2f3c487916 Edemilorhea <leon8847@gmail.com> 1748116162 +0800	rebase (start): checkout d5a4f222b929dec29fe9000aae6eea2f3c487916
+d5a4f222b929dec29fe9000aae6eea2f3c487916 d5a4f222b929dec29fe9000aae6eea2f3c487916 Edemilorhea <leon8847@gmail.com> 1748116162 +0800	rebase (finish): returning to refs/heads/lazyvim
+d5a4f222b929dec29fe9000aae6eea2f3c487916 0e0feefcf85d122b45fafc7a2c6d36df760793c7 Edemilorhea <leon8847@gmail.com> 1748116336 +0800	reset: moving to HEAD@{5}
+0e0feefcf85d122b45fafc7a2c6d36df760793c7 26a4a147450418e8d95ccd50ea24f0b580ff4da5 Edemilorhea <leon8847@gmail.com> 1748116448 +0800	commit (amend): Markdown的修改
+26a4a147450418e8d95ccd50ea24f0b580ff4da5 50af6293805a5b095740bf1dfd924878a225324f Edemilorhea <leon8847@gmail.com> 1748187560 +0800	commit: 修改markdown渲染相關設定，以及重新載用markdownPreview
+50af6293805a5b095740bf1dfd924878a225324f 8ec7f6190e4c5ed9bc66fed200f8bc7a5a789b6b Edemilorhea <leon8847@gmail.com> 1748539948 +0800	commit: 修改markdown貼上圖片、快捷鍵、格式
+8ec7f6190e4c5ed9bc66fed200f8bc7a5a789b6b bbc4986d1c2588b8e9c3dcdf5df9150e1a68ed48 Edemilorhea <leon8847@gmail.com> 1748540794 +0800	rebase (start): checkout origin/master
+bbc4986d1c2588b8e9c3dcdf5df9150e1a68ed48 8ec7f6190e4c5ed9bc66fed200f8bc7a5a789b6b Edemilorhea <leon8847@gmail.com> 1748540893 +0800	rebase (abort): returning to refs/heads/lazyvim
+8ec7f6190e4c5ed9bc66fed200f8bc7a5a789b6b bbc4986d1c2588b8e9c3dcdf5df9150e1a68ed48 Edemilorhea <leon8847@gmail.com> 1748541415 +0800	checkout: moving from lazyvim to master
+bbc4986d1c2588b8e9c3dcdf5df9150e1a68ed48 8ec7f6190e4c5ed9bc66fed200f8bc7a5a789b6b Edemilorhea <leon8847@gmail.com> 1748628227 +0800	checkout: moving from master to lazyvim
+8ec7f6190e4c5ed9bc66fed200f8bc7a5a789b6b b49526a31fa36809e16c8f355e18d24f366ba0fb Edemilorhea <leon8847@gmail.com> 1748788066 +0800	commit: 更新obsidian資料夾名稱
+b49526a31fa36809e16c8f355e18d24f366ba0fb 58b93aeef85c56fdb5e7fc78e27a5087a0a07fae Edemilorhea <leon8847@gmail.com> 1748961103 +0800	pull: Fast-forward
+58b93aeef85c56fdb5e7fc78e27a5087a0a07fae 9948fa1058813d8da1c656d8afdea5489c6c4fb6 Edemilorhea <leon8847@gmail.com> 1749377751 +0800	pull --no-edit: Fast-forward
+9948fa1058813d8da1c656d8afdea5489c6c4fb6 e2721646eb914781d535beddf87c36f7381f71f4 Edemilorhea <leon8847@gmail.com> 1749378137 +0800	commit: 新增treesitter的mermaid,sql，關閉markdwon lint
+e2721646eb914781d535beddf87c36f7381f71f4 52c111ca5be8a871c1465e00249d2d9866be8d6a TC <leon8847@gmail.com> 1749827554 +0800	pull --no-edit: Fast-forward
+52c111ca5be8a871c1465e00249d2d9866be8d6a 32b62ef58fd65681e7719a9d346c073f773f2ef6 TC <leon8847@gmail.com> 1749827652 +0800	commit: C-o C-i 也加上ESC
+32b62ef58fd65681e7719a9d346c073f773f2ef6 0ab67f354929ca65eda6a958680824d5d4263f6e TC <leon8847@gmail.com> 1750388935 +0800	commit: im-select
+0ab67f354929ca65eda6a958680824d5d4263f6e b8d6b2390ed0ad77b6623f9e4cc129a2f3aea694 TC <leon8847@gmail.com> 1751381004 +0800	pull --no-edit: Fast-forward
+b8d6b2390ed0ad77b6623f9e4cc129a2f3aea694 9b983a27641703f9bd80d3d57731ccdd2fca1238 TC <leon8847@gmail.com> 1751381231 +0800	commit: 新方法防止某些鍵自己進入visual Mode
+9b983a27641703f9bd80d3d57731ccdd2fca1238 edbb22844cb0ea9c0921d45c42b6313704e333cd TC <leon8847@gmail.com> 1751453768 +0800	pull --no-edit: Fast-forward
+edbb22844cb0ea9c0921d45c42b6313704e333cd 0838dc1e30dc9b30cffe26b5f4965f4d1db565d7 TC <leon8847@gmail.com> 1751694110 +0800	pull --no-edit: Fast-forward
+0838dc1e30dc9b30cffe26b5f4965f4d1db565d7 87589ada08d15f74abf92d3b58dc8f50b9a9f7e8 TC <tc_tseng@gss.com.tw> 1753532434 +0800	checkout: moving from lazyvim to lazyvim_newtry
+87589ada08d15f74abf92d3b58dc8f50b9a9f7e8 a8186b1e27736d2f2be47702b3ff8f29467534a2 TC <tc_tseng@gss.com.tw> 1754196659 +0800	pull --no-edit: Fast-forward
+a8186b1e27736d2f2be47702b3ff8f29467534a2 0d98d30b235e355c984e5b30ada5fe81ff2da8e8 TC <tc_tseng@gss.com.tw> 1755411665 +0800	pull --no-edit: Fast-forward
+0d98d30b235e355c984e5b30ada5fe81ff2da8e8 407c822128564e13325dd8e29a4d8a993da5ac2f TC <tc_tseng@gss.com.tw> 1756549846 +0800	pull: Fast-forward
+407c822128564e13325dd8e29a4d8a993da5ac2f d717560b6aa656517f87cb46247921d36f903c5d TC <tc_tseng@gss.com.tw> 1757828662 +0800	pull --no-edit: Fast-forward
+d717560b6aa656517f87cb46247921d36f903c5d 3c1e4f732c3d793665fd75da203e7d1335c65676 TC <tc_tseng@gss.com.tw> 1760718991 +0800	pull --no-edit: Fast-forward
