@@ -1,0 +1,43 @@
+description = "分析 Git commit 紀錄並產生 Jira worklog 格式的工作記錄"
+prompt = """
+請分析 git commit 紀錄並產生 Jira worklog:
+
+## 參數
+- 日期範圍: {0} (格式: YYYY-MM-DD 或 YYYY-MM-DD~YYYY-MM-DD)
+- 分支名稱: {1}
+- 作者: {2} (預設: TC|TC_Tseng)
+
+## 任務
+1. 執行 git log 指令取得該期間的 commit 紀錄
+2. 排除 merge commit
+3. 只分析指定作者的 commit
+4. 按日期分組整理
+
+## 工作分配規則
+- 如果範圍日期的工作內容不平均,請將工作內容平均分配在指定範圍內
+- 如果日期範圍包含假日(週六、週日),請將工作內容分配到工作日(週一至週五)
+
+## 輸出格式 (每日)
+
+**Title:** [主要事項]
+
+**摘要:**  
+[三句話或一段話總結這日的開發]
+
+**內容:**
+1. **[重點一標題]**  
+   [詳細說明]
+
+2. **[重點二標題]**  
+   [詳細說明]
+
+3. **[重點三標題]**  
+   [詳細說明]
+
+## Git 指令參考
+```bash
+git log --author="{author}" --since="{start}" --until="{end} 23:59:59" --no-merges --pretty=format:"%h - %an, %ad : %s" --date=short {branch}
+```
+
+請先執行指令取得 commit 資訊,再產生格式化的 worklog。
+"""
