@@ -401,40 +401,4 @@ return {
             },
         },
     },
-
-    -- TOC 生成器
-    -- {
-    --     "mzlogin/vim-markdown-toc",
-    --     ft = "markdown",
-    --     cond = not vim.g.vscode,
-    --     config = function()
-    --         vim.g.vmt_auto_update_on_save = 0
-    --         vim.g.vmt_fence_text = "TOC"
-    --         vim.g.vmt_fence_closing_text = "/TOC"
-    --     end,
-    --     keys = {
-    --         { "<leader>mt", ":GenTocGFM<CR>", desc = "Generate Markdown TOC" },
-    --         {
-    --             "<leader>mw",
-    --             function()
-    --                 local lines = vim.api.nvim_buf_get_lines(0, 0, -1, false)
-    --                 local toc = { "<!-- TOC -->" }
-    --
-    --                 for _, line in ipairs(lines) do
-    --                     local level, title = line:match("^(#+)%s+(.+)")
-    --                     if level and title then
-    --                         local indent = string.rep("    ", #level - 1)
-    --                         table.insert(toc, string.format("%s* [[#%s]]", indent, title))
-    --                     end
-    --                 end
-    --
-    --                 table.insert(toc, "<!-- /TOC -->")
-    --                 table.insert(toc, "")
-    --                 vim.api.nvim_buf_set_lines(0, 0, 0, false, toc)
-    --                 print("Wiki TOC 已生成")
-    --             end,
-    --             desc = "Generate Wiki TOC",
-    --         },
-    --     },
-    -- },
 }
