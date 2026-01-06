@@ -24,12 +24,6 @@ Plug 'tpope/vim-commentary'
 Plug 'tpope/vim-surround'
 set NERDTree
 
-" 標籤頁切換
-nnoremap gt <Nop>
-nnoremap gT <Nop>
-nnoremap <Tab> :action NextTab<CR>
-nnoremap <S-Tab> :action PreviousTab<CR>
-
 " 文字游標移動
 nnoremap H ^
 nnoremap L $
@@ -44,6 +38,9 @@ vnoremap <C-r> <Esc>:normal! <C-r><CR>
 " Normal 模式新行
 nnoremap o o<Esc>
 nnoremap O O<Esc>
+
+" 複製修改
+nnoremap Y y$
 
 " 刪除到黑洞暫存器
 nnoremap d "_d
@@ -67,6 +64,12 @@ nnoremap gd :action GotoDeclaration<CR>
 nnoremap gm :action GotoImplementation<CR>
 nnoremap gy :action GotoTypeDeclaration<CR>
 nnoremap gp :action GotoSuperMethod<CR>
+
+"索引標籤
+nnoremap <Tab> :action NextTab<CR>
+nnoremap <S-Tab> :action PreviousTab<CR>
+nnoremap <leader>co :action CloseAllEditorsButActive<CR>
+nnoremap <leader>ct :action CloseAllEditorsButActive<CR>
 
 " IDE 左右分割跳轉
 nnoremap <C-h> :action PrevSplitter<CR>
@@ -122,3 +125,13 @@ nnoremap [m :action MethodUp<CR>
 "執行 or debug
 nnoremap <leader>rrm :action ChooseRunConfiguration<CR>
 nnoremap <leader>rdm :action ChooseDebugConfiguration<CR>
+
+" 中文說明（新增這些）
+let g:WhichKeyDesc_gd = "gd 前往定義"
+let g:WhichKeyDesc_gm = "gm 前往實作"
+let g:WhichKeyDesc_gy = "gy 前往類型宣告" 
+let g:WhichKeyDesc_gp = "gp 前往父方法"
+
+nnoremap <leader>hwa :action HideAllWindows<CR>
+nnoremap <leader>haw :action HideActiveWindow<CR>
+nnoremap <leader>hsw :action HideSideWindows<CR>
