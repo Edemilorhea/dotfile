@@ -49,12 +49,24 @@ return {
     -- 不需要自訂配置，LazyVim 會自動處理
     {
         "nvim-treesitter/nvim-treesitter",
+        event = { "BufReadPost", "BufNewFile" },
         opts = {
             ensure_installed = {
-                "lua", "vim", "vimdoc", "query",
-                "html", "javascript", "vue", "css",
-                "python", "c_sharp", "typescript",
-                "sql", "mermaid", "markdown", "bash",
+                "lua",
+                "vim",
+                "vimdoc",
+                "query",
+                "html",
+                "javascript",
+                "vue",
+                "css",
+                "python",
+                "c_sharp",
+                "typescript",
+                "sql",
+                "mermaid",
+                "markdown",
+                "bash",
             },
         },
     },
@@ -79,3 +91,4 @@ return {
         end,
     },
 }
+
