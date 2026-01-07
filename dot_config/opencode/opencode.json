@@ -65,11 +65,55 @@
     "agent": {
         "build": {
             "permission": {
-                // 一般情況用全域設定就夠，只針對 build 你在意的東西 override
+                "read": {
+                    "*": "allow",
+                    "*.env": "deny",
+                    "*.env.*": "deny",
+                    "*.env.example": "allow"
+                },
+                "list": "allow",
+                "glob": "allow",
+                "grep": "allow",
+                "lsp": "allow",
                 "bash": {
+                    "*": "ask",
+                    // 讀取 
+                    "ls*": "allow",
+                    "pwd": "allow",
+                    "cat *": "allow",
+                    "find *": "allow",
                     "git status*": "allow",
-                    "git push*": "ask"
-                }
+                    "git diff*": "allow",
+                    "git log*": "allow",
+                    // 建置 
+                    "dotnet --info*": "allow",
+                    "dotnet --list-*": "allow",
+                    "dotnet build*": "allow",
+                    "dotnet test*": "allow",
+                    "npm install*": "allow",
+                    "npm run *": "allow",
+                    "pnpm install*": "allow",
+                    "pnpm run *": "allow",
+                    "yarn *": "allow",
+                    // 可能修改檔案或版本庫：先問
+                    "git add *": "ask",
+                    "git commit*": "ask",
+                    "git push*": "ask",
+                    "git merge*": "ask",
+                    "git rebase*": "ask",
+                    "rm *": "deny",
+                    "rm -rf *": "deny",
+                    "mv *": "ask",
+                    "cp *": "ask"
+                },
+                "task": "ask",
+                "todoread": "allow",
+                "todowrite": "ask",
+                "webfetch": "allow",
+                "websearch": "allow",
+                "codesearch": "allow",
+                "external_directory": "ask",
+                "doom_loop": "allow"
             }
         }
     }
