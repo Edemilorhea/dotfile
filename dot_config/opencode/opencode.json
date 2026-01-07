@@ -1,10 +1,11 @@
 {
     "$schema": "https://opencode.ai/config.json",
-    "plugin": ["opencode-gemini-auth@latest"],
+    "plugin": [
+        "opencode-gemini-auth@latest"
+    ],
     "permission": {
         // 1) 全域預設：未知工具一律問
         "*": "ask",
-
         // 2) 檔案相關：讀自動、寫要問
         "read": {
             "*": "allow", // 看任何檔案都可以
@@ -16,14 +17,11 @@
         "glob": "allow", // 找檔案 pattern
         "grep": "allow", // 搜尋內容
         "lsp": "allow", // LSP 查詢
-
         // 3) 檔案修改：一律問
         "edit": "ask", // 所有 edit / write / patch / multiedit 都會問一次
-
         // 4) bash：讀取與常見安全指令自動，修改類問，危險 deny
         "bash": {
             "*": "ask", // 其他未知指令都問
-
             // 讀取 / 查詢類：不用問
             "ls*": "allow",
             "pwd": "allow",
@@ -32,7 +30,6 @@
             "git status*": "allow",
             "git diff*": "allow",
             "git log*": "allow",
-
             // 建置 / 查詢工具：可以自動跑
             "dotnet --info*": "allow",
             "dotnet --list-*": "allow",
@@ -43,21 +40,18 @@
             "pnpm install*": "allow",
             "pnpm run *": "allow",
             "yarn *": "allow",
-
             // 可能修改檔案或版本庫：先問
             "git add *": "ask",
             "git commit*": "ask",
             "git push*": "ask",
             "git merge*": "ask",
             "git rebase*": "ask",
-
             // 危險操作：直接禁止
             "rm *": "deny",
             "rm -rf *": "deny",
             "mv *": "ask", // 覺得太嚴可以改成 allow
             "cp *": "ask"
         },
-
         // 5) 其他工具
         "task": "ask", // 開 subagent 先問
         "todoread": "allow",
@@ -68,13 +62,11 @@
         "external_directory": "ask", // 超出工作目錄就問
         "doom_loop": "allow" // 允許它自動打破 doom loop
     },
-
     "agent": {
         "build": {
             "permission": {
                 // 一般情況用全域設定就夠，只針對 build 你在意的東西 override
                 "bash": {
-                    "*": "ask",
                     "git status*": "allow",
                     "git push*": "ask"
                 }
