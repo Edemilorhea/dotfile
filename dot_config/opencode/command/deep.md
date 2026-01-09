@@ -1,6 +1,5 @@
 ---
 description: Deep Explanation
-agent: build
 subtask: true
 ---
 
