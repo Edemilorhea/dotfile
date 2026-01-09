@@ -60,7 +60,9 @@
     "agent": {
         "plan": {
             "permission": {
-                "edit": "deny"
+                "edit": "deny",
+                "todoread": "allow",
+                "todowrite": "allow"
             }
         }
     },
@@ -154,4 +156,3 @@
         "tips_toggle": "<leader>h"
     }
 }
-
