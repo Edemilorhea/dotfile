@@ -1,8 +1,6 @@
 {
     "$schema": "https://opencode.ai/config.json",
-    "plugin": [
-        "opencode-gemini-auth@latest"
-    ],
+    "plugin": ["opencode-gemini-auth@latest"],
     "permission": {
         "read": {
             "*": "allow", // 看任何檔案都可以
@@ -18,7 +16,6 @@
         "edit": "ask", // 所有 edit / write / patch / multiedit 都會問一次
         // 4) bash：讀取與常見安全指令自動，修改類問，危險 deny
         "bash": {
-            "*": "ask", // 其他未知指令都問
             // 讀取 / 查詢類：不用問
             "ls*": "allow",
             "pwd": "allow",
@@ -47,7 +44,8 @@
             "rm *": "deny",
             "rm -rf *": "deny",
             "mv *": "ask", // 覺得太嚴可以改成 allow
-            "cp *": "ask"
+            "cp *": "ask",
+            "*": "ask" // 其他未知指令都問
         },
         // 5) 其他工具
         "task": "ask", // 開 subagent 先問
@@ -156,3 +154,4 @@
         "tips_toggle": "<leader>h"
     }
 }
+
