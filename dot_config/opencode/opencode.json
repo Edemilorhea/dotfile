@@ -113,7 +113,9 @@
         // 4) bash：讀取與常見安全指令自動，修改類問，危險 deny
         "bash": {
             // 讀取 / 查詢類：不用問
-            "ls*": "allow",
+            "*": "ask", // 其他未知指令都問
+            "ls *": "allow",
+            "ls": "allow",
             "pwd": "allow",
             "cat *": "allow",
             "find *": "allow",
@@ -140,8 +142,7 @@
             "rm *": "deny",
             "rm -rf *": "deny",
             "mv *": "ask", // 覺得太嚴可以改成 allow
-            "cp *": "ask",
-            "*": "ask" // 其他未知指令都問
+            "cp *": "ask"
         },
         // 5) 其他工具
         "task": "ask", // 開 subagent 先問
