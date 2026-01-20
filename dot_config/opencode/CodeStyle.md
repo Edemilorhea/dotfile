@@ -354,3 +354,79 @@
   * 正確性與鲁棒性；
   * 可維護性與演進策略。
 * 在沒有必要澄清的重要資訊缺失時，盡量減少無謂往返和問題式對話，直接給出高質量思考後的結論與實現建議。
+
+---
+
+## 10 · 程式碼風格原則 (垂直留白)
+
+* **實作中程式碼，如果帶有註釋的時候，必須與相對應的實作程式碼在一個區塊，並且與上方不同的程式碼保持一行空行。**
+    * **正確範例**
+      ```csharp
+      Dictionary<int, (string jsonData, string hash)> result = [];
+
+      // 建立查找表：名稱 -> PlanTemplate (假設名稱唯一)
+      // 注意：這裡使用 PlanTemplateName 屬性，它會根據當前語系取得名稱
+      Dictionary<string, PlanTemplate> dbTemplateMapByName = dbPlanTemplates
+          .Where(x => !string.IsNullOrWhiteSpace(x.PlanTemplateName))
+          .GroupBy(x => x.PlanTemplateName)
+          .ToDictionary(g => g.Key, g => g.First());
+
+      // 建立查找表：FormId -> PlanTemplate (用於次要比對)
+      Dictionary<int, PlanTemplate> dbTemplateMapByFormId = dbPlanTemplates
+          .Where(x => x.FormId.HasValue)
+          .GroupBy(x => x.FormId!.Value)
+          .ToDictionary(g => g.Key, g => g.First());
+      ```
+    * **錯誤範例** (雖然只是一個變數處理但是他多行又連在一起，非常難懂)
+      ```csharp
+      Dictionary<int, (string jsonData, string hash)> result = [];
+      // 建立查找表：名稱 -> PlanTemplate (假設名稱唯一)
+      // 注意：這裡使用 PlanTemplateName 屬性，它會根據當前語系取得名稱
+      Dictionary<string, PlanTemplate> dbTemplateMapByName = dbPlanTemplates
+          .Where(x => !string.IsNullOrWhiteSpace(x.PlanTemplateName))
+          .GroupBy(x => x.PlanTemplateName)
+          .ToDictionary(g => g.Key, g => g.First());
+      // 建立查找表：FormId -> PlanTemplate (用於次要比對)
+      Dictionary<int, PlanTemplate> dbTemplateMapByFormId = dbPlanTemplates
+          .Where(x => x.FormId.HasValue)
+          .GroupBy(x => x.FormId!.Value)
+          .ToDictionary(g => g.Key, g => g.First());
+      ```
+
+* **除非上下程式碼是簡潔且帶有一致性（例如 "if/else" 或是 "switch" 類型的程式碼），此類型可以不需要空白。**
+    * **正確範例**
+      ```csharp
+      // 此方法簡潔，易懂可以放在一起
+      private static string ComputeSha256Hash(string rawData)
+      {
+          using SHA256 sha256 = SHA256.Create();
+          byte[] bytes = sha256.ComputeHash(System.Text.Encoding.UTF8.GetBytes(rawData));
+          return Convert.ToBase64String(bytes);
+      }
+
+      // 此方法 if 結構也是相似度極高且排版長度都類似，也可以放一起
+      private async Task ExecuteDatabaseChangesAsync(
+          List<int> toDeleteIds,
+          List<PlanTemplateJson> toInsert,
+          List<PlanTemplateJson> toUpdate,
+          string version,
+          CancellationToken cancellationToken)
+      {
+          if (toDeleteIds.Count > 0)
+          {
+              await planTemplateRepository.DeletePlanTemplateJsonsByIdsAsync(toDeleteIds, cancellationToken);
+              logger.LogInformation("Deleted {Count} PlanTemplateJsons...", toDeleteIds.Count);
+          }
+          if (toInsert.Count > 0)
+          {
+              await planTemplateRepository.AddPlanTemplateJsonsAsync(toInsert, cancellationToken);
+              logger.LogInformation("Inserted {Count} PlanTemplateJsons...", toInsert.Count);
+          }
+          if (toUpdate.Count > 0)
+          {
+              await planTemplateRepository.UpdatePlanTemplateJsonsAsync(toUpdate, cancellationToken);
+              logger.LogInformation("Updated {Count} PlanTemplateJsons...", toUpdate.Count);
+          }
+          logger.LogInformation("Successfully imported PlanTemplateJsons...");
+      }
+      ```
