@@ -58,7 +58,7 @@ return {
                 "ts_ls",
                 "html",
                 "cssls",
-                "vue-language-server",
+                "volar",
                 "emmet_ls",
                 "eslint",
                 "omnisharp",
