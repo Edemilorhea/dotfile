@@ -2,9 +2,14 @@
 {{- $gitName := promptStringOnce . "gitName" "git user name" "TC" -}}
 {{- $gitEmail := promptStringOnce . "gitEmail" "git user email" "leon8847@gmail.com" -}}
 
-# 2. 定義 WezTerm 專案選單
+# 2. 定義 WezTerm 專案選單 (手動實現 Once 邏輯)
 {{- $projectOptions := list "projects_work" "projects_home" "projects_personal" -}}
-{{- $weztermProject := promptChoiceOnce . "weztermProject" "請選擇這台電腦的 WezTerm 專案配置" $projectOptions -}}
+{{- $weztermProject := "" -}}
+{{- if (hasKey . "weztermProject") -}}
+{{-   $weztermProject = .weztermProject -}}
+{{- else -}}
+{{-   $weztermProject = promptChoice "請選擇這台電腦的 WezTerm 專案配置" $projectOptions -}}
+{{- end -}}
 
 # 3. 詢問同步開關 (只問一次)
 {{- $syncGit := promptBoolOnce . "syncGit" "sync git config" true -}}
