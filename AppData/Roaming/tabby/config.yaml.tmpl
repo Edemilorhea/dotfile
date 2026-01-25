@@ -73,7 +73,7 @@ hotkeys:
     - Ctrl-Shift-N
   profile: {}
   profile-selectors: {}
-  group-selectors: {}
+  group-selectors: []
   toggle-fullscreen:
     - F11
     - Alt-Enter
@@ -372,7 +372,8 @@ profiles:
         - '-nologo'
       env:
         WT_SESSION: 0
-      cwd: C:\Users\TC
+      # 關鍵修正：動態路徑與斜線轉義
+      cwd: {{ .chezmoi.homeDir | replace "\\" "\\\\" | quote }}
     id: local:custom:Pwsh:9215613a-dd5a-4924-8406-08871f68b001
 workspaceManager: {}
 titleControl: {}
