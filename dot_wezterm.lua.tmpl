@@ -1,0 +1,114 @@
+local wezterm = require("wezterm")
+local config = wezterm.config_builder()
+local act = wezterm.action
+
+----------------------------------------------------------------
+-- 1. 由 chezmoi 動態注入專案檔
+----------------------------------------------------------------
+-- 注意：這裡的 .weztermProject 來自於你的 .chezmoi.toml.tmpl
+local projects = require("{{ .weztermProject }}")
+local local_workspaces = projects.workspaces or {}
+config.launch_menu = projects.launch_menu or {}
+
+----------------------------------------------------------------
+-- 2. 基礎外觀與系統設定
+----------------------------------------------------------------
+config.initial_cols = 120
+config.initial_rows = 28
+config.font_size = 12
+config.color_scheme = "Ocean (dark) (terminal.sexy)"
+config.default_prog = { "pwsh.exe" } -- 預設使用 PowerShell
+
+config.font = wezterm.font_with_fallback({
+    "Maple Mono Normal CN",
+    "FiraCode Nerd Font Mono ",
+})
+
+-- 設定 Leader Key (Alt + b)
+config.leader = { key = "b", mods = "ALT", timeout_milliseconds = 1000 }
+
+----------------------------------------------------------------
+-- 3. 快捷鍵設定 (含超級入口)
+----------------------------------------------------------------
+config.keys = {
+    -- [通用] 開啟純淨新分頁
+    { key = "w", mods = "ALT", action = act.SpawnCommandInNewTab({ cwd = "~" }) },
+
+    -- [通用] 開啟單一目錄清單 (原本的 Launcher)
+    { key = "l", mods = "ALT", action = act.ShowLauncher },
+
+    -- [核心] 超級入口 (Alt + 9)：自動生成專案套餐選單
+    {
+        key = "9",
+        mods = "ALT",
+        action = act.InputSelector({
+            title = "🚀 工作模式: {{ .weztermProject }} (" .. wezterm.hostname() .. ")",
+            choices = (function()
+                local c = {}
+                -- 自動從專案檔中提取套餐標籤
+                for i, ws in ipairs(local_workspaces) do
+                    table.insert(c, { label = ws.label, id = tostring(i) })
+                end
+                -- 加入開啟單一清單的選項
+                table.insert(c, { label = "📁 展開單一專案列表", id = "menu" })
+                return c
+            end)(),
+            action = wezterm.action_callback(function(window, pane, id, label)
+                if not id then return end
+
+                if id == "menu" then
+                    -- 呼叫 launch_menu 項目
+                    window:perform_action(act.ShowLauncherArgs({ flags = "LAUNCH_MENU_ITEMS" }), pane)
+                else
+                    -- 執行對應套餐的多分頁啟動
+                    local idx = tonumber(id)
+                    local ws = local_workspaces[idx]
+                    local mux_window = window:mux_window()
+                    
+                    for i, t_info in ipairs(ws.tabs) do
+                        local new_tab, _, _ = mux_window:spawn_tab({ cwd = t_info.cwd })
+                        new_tab:set_title(t_info.title)
+                        -- 啟動最後一個分頁時將焦點移過去
+                        if i == #ws.tabs then new_tab:activate() end
+                    end
+                end
+            end),
+        }),
+    },
+
+    -- [Leader] 手動分割與關閉
+    { key = "c", mods = "LEADER", action = act.SpawnTab("CurrentPaneDomain") },
+    { key = "h", mods = "LEADER", action = act.SplitPane({ direction = "Right", size = { Percent = 50 } }) },
+    { key = "v", mods = "LEADER", action = act.SplitPane({ direction = "Down", size = { Percent = 50 } }) },
+    { key = "x", mods = "LEADER", action = act.CloseCurrentPane({ confirm = true }) },
+    { key = "q", mods = "LEADER", action = act.CloseCurrentTab({ confirm = true }) },
+
+    -- [導覽] 分割視窗切換 (Alt + 方向鍵)
+    { key = "LeftArrow",  mods = "ALT", action = act.ActivatePaneDirection("Left") },
+    { key = "RightArrow", mods = "ALT", action = act.ActivatePaneDirection("Right") },
+    { key = "UpArrow",    mods = "ALT", action = act.ActivatePaneDirection("Up") },
+    { key = "DownArrow",  mods = "ALT", action = act.ActivatePaneDirection("Down") },
+
+    -- [比例] 調整視窗大小 (Leader + 方向鍵)
+    { key = "LeftArrow",  mods = "LEADER", action = act.AdjustPaneSize({ "Left", 10 }) },
+    { key = "RightArrow", mods = "LEADER", action = act.AdjustPaneSize({ "Right", 10 }) },
+    { key = "UpArrow",    mods = "LEADER", action = act.AdjustPaneSize({ "Up", 10 }) },
+    { key = "DownArrow",  mods = "LEADER", action = act.AdjustPaneSize({ "Down", 10 }) },
+
+    -- [切換分頁] (Alt + { / })
+    { key = "{", mods = "ALT", action = act.ActivateTabRelative(-1) },
+    { key = "}", mods = "ALT", action = act.ActivateTabRelative(1) },
+}
+
+----------------------------------------------------------------
+-- 4. 快速切換分頁 (Ctrl + Alt + 1~8)
+----------------------------------------------------------------
+for i = 1, 8 do
+    table.insert(config.keys, {
+        key = tostring(i),
+        mods = "CTRL|ALT",
+        action = act.ActivateTab(i - 1),
+    })
+end
+
+return config
