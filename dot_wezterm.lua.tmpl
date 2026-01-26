@@ -3,12 +3,17 @@ local config = wezterm.config_builder()
 local act = wezterm.action
 
 ----------------------------------------------------------------
--- 1. 由 chezmoi 動態注入專案檔
+-- 1. 由 chezmoi 動態注入專案檔 (優雅降級)
 ----------------------------------------------------------------
 -- 注意：這裡的 .weztermProject 來自於你的 .chezmoi.toml.tmpl
-local projects = require("{{ .weztermProject }}")
-local local_workspaces = projects.workspaces or {}
-config.launch_menu = projects.launch_menu or {}
+local ok, projects = pcall(require, "{{ .weztermProject }}")
+local local_workspaces = {}
+if ok and projects then
+    local_workspaces = projects.workspaces or {}
+    config.launch_menu = projects.launch_menu or {}
+else
+    wezterm.log_warn("{{ .weztermProject }} module not found, using empty config")
+end
 
 ----------------------------------------------------------------
 -- 2. 基礎外觀與系統設定
