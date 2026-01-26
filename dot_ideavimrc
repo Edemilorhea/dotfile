@@ -135,3 +135,11 @@ let g:WhichKeyDesc_gp = "gp 前往父方法"
 nnoremap <leader>hwa :action HideAllWindows<CR>
 nnoremap <leader>haw :action HideActiveWindow<CR>
 nnoremap <leader>hsw :action HideSideWindows<CR>
+nnoremap <leader>ot :action ActivateTerminalToolWindow<CR>
+nnoremap <leader>fm :action FileStructurePopup<CR>
+
+let g:WhichKeyDesc_fm = "fm 檔案結構"
+let g:WhichKeyDesc_hwa = "hwa 隱藏所有視窗"
+let g:WhichKeyDesc_haw = "haw 隱藏活動視窗"
+let g:WhichKeyDesc_hsw = "hsw 隱藏側邊視窗"
+let g:WhichKeyDesc_ot = "ot 終端工具視窗"
