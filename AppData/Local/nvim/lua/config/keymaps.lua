@@ -23,5 +23,11 @@ vim.api.nvim_create_autocmd("User", {
         vim.keymap.set("n", "<C-_>", "gcc", { remap = true, desc = "Comment line" })
         vim.keymap.set("v", "<C-/>", "gc", { remap = true, desc = "Comment selection" })
         vim.keymap.set("v", "<C-_>", "gc", { remap = true, desc = "Comment selection" })
+
+        -- 覆蓋 LazyVim 預設的 H/L (buffer 切換)
+        vim.keymap.set("n", "H", "^", { desc = "Go to first non-blank character" })
+        vim.keymap.set("n", "L", "$", { desc = "Go to end of line" })
+        vim.keymap.set("v", "H", "^", { desc = "Go to first non-blank character" })
+        vim.keymap.set("v", "L", "$", { desc = "Go to end of line" })
     end,
 })

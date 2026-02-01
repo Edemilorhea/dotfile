@@ -58,10 +58,6 @@ function M.setup()
     vim.keymap.set("n", "<C-s>", "<cmd>w<cr>", { desc = "Save file" })
     vim.keymap.set("i", "<C-s>", "<Esc><cmd>w<cr>", { desc = "Save file" })
 
-    -- H L 代替跳轉到句首跟句尾
-    vim.keymap.set("n", "L", "$", { desc = "Move to line end", remap = false})
-    vim.keymap.set("n", "H", "^", { desc = "Move to line start", remap = false})
-
     -- LazyVim 配置重載（只在 Neovim 中有效）
     if not vim.g.vscode then
         local function reload_lazyvim()
