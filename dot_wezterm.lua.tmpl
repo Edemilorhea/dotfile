@@ -22,11 +22,35 @@ config.initial_cols = 120
 config.initial_rows = 28
 config.font_size = 12
 config.color_scheme = "Ocean (dark) (terminal.sexy)"
-config.default_prog = { "pwsh.exe" } -- 預設使用 PowerShell
 
+-- 跨平台預設 Shell 設定
+{{- if eq .chezmoi.os "windows" }}
+config.default_prog = { "pwsh.exe" } -- Windows: PowerShell
+{{- else if eq .chezmoi.os "linux" }}
+-- Linux/WSL: 優先使用 Zsh，fallback 到 Bash
+config.default_prog = { "/usr/bin/zsh", "-l" }
+{{- else if eq .chezmoi.os "darwin" }}
+-- macOS: 使用系統預設 Zsh
+config.default_prog = { "/bin/zsh", "-l" }
+{{- else }}
+-- 其他平台: 使用系統預設 shell
+config.default_prog = nil
+{{- end }}
+
+-- 跨平台字型設定
 config.font = wezterm.font_with_fallback({
     "Maple Mono Normal CN",
-    "FiraCode Nerd Font Mono ",
+    "FiraCode Nerd Font Mono",
+{{- if eq .chezmoi.os "windows" }}
+    "Consolas",           -- Windows 備用
+    "Cascadia Code",      -- Windows Terminal 預設
+{{- else if eq .chezmoi.os "darwin" }}
+    "SF Mono",            -- macOS 系統字型
+    "Monaco",             -- macOS 傳統字型
+{{- else if eq .chezmoi.os "linux" }}
+    "DejaVu Sans Mono",   -- Linux 常見字型
+    "Liberation Mono",    -- Linux 備用字型
+{{- end }}
 })
 
 -- 設定 Leader Key (Alt + b)

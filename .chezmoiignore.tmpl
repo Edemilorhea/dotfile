@@ -1,38 +1,161 @@
-# Git 配置
+# ============================================================
+# chezmoi 跨平台配置 - 自動忽略規則
+# 支援平台: Windows, Linux (含 WSL), macOS
+# 根據作業系統 (.chezmoi.os) 和自訂開關 (.syncXxx) 決定
+# ============================================================
+
+# ------------------------------------------------------------
+# 1. Git 配置 (跨平台通用)
+# ------------------------------------------------------------
 {{- if not .syncGit }}
 .gitconfig
 .gitignore_global
 {{- end }}
 
-# Zsh 配置
+# ------------------------------------------------------------
+# 2. Shell 配置 - 依作業系統區分
+# ------------------------------------------------------------
+# Zsh (Linux/macOS 專用)
 {{- if or (not .syncZsh) (eq .chezmoi.os "windows") }}
 .zshrc
 .zsh_history
 .oh-my-zsh/**
+.config/zsh/**
 {{- end }}
 
-# Neovim 配置 - Windows 路徑
-{{- if or (not .syncNvim) (ne .chezmoi.os "windows") }}
+# Bash (Linux/macOS 專用)
+{{- if or (eq .chezmoi.os "windows") }}
+.bashrc
+.bash_profile
+.bash_history
+.profile
+{{- end }}
+
+# Fish (Linux/macOS 專用)
+{{- if or (eq .chezmoi.os "windows") }}
+.config/fish/**
+{{- end }}
+
+# PowerShell (Windows 專用)
+{{- if or (not .syncPowershell) (or (eq .chezmoi.os "linux") (eq .chezmoi.os "darwin")) }}
+Documents/PowerShell/**
+AppData/Roaming/PowerShell/**
+{{- end }}
+
+# ------------------------------------------------------------
+# 3. Neovim 配置 - 依作業系統路徑區分
+# ------------------------------------------------------------
+{{- if not .syncNvim }}
+# 如果不同步 Neovim，則全部忽略
 AppData/Local/nvim/**
-{{- end }}
-
-# Neovim 配置 - Linux 路徑
-{{- if or (not .syncNvim) (eq .chezmoi.os "windows") }}
+.config/nvim/**
+{{- else }}
+# Windows: 使用 AppData/Local/nvim，忽略 .config/nvim
+{{- if eq .chezmoi.os "windows" }}
 .config/nvim/**
 {{- end }}
-
-# PowerShell 配置
-{{- if or (not .syncPowershell) (ne .chezmoi.os "windows") }}
-Documents/PowerShell/**
+# Linux/macOS: 使用 .config/nvim，忽略 AppData
+{{- if or (eq .chezmoi.os "linux") (eq .chezmoi.os "darwin") }}
+AppData/Local/nvim/**
+{{- end }}
 {{- end }}
 
-# IdeaVimrc 配置
+# ------------------------------------------------------------
+# 4. 編輯器配置 (跨平台通用)
+# ------------------------------------------------------------
+# IdeaVim (跨平台通用)
 {{- if not .syncIdeavimrc }}
 .ideavimrc
 {{- end }}
 
-# 防止 Linux 出現 Windows 資料夾
-{{- if ne .chezmoi.os "windows" }}
+# VSCode (跨平台但路徑不同)
+{{- if eq .chezmoi.os "windows" }}
+.config/Code/**
+{{- else if or (eq .chezmoi.os "linux") (eq .chezmoi.os "darwin") }}
+AppData/Roaming/Code/**
+{{- end }}
+
+# ------------------------------------------------------------
+# 5. 終端機配置
+# ------------------------------------------------------------
+# WezTerm 配置檔在 home 目錄 (跨平台通用)
+# .wezterm.lua 不需要忽略，但平台專用的 projects 檔案需要處理
+
+# Linux/macOS 專用 WezTerm 配置目錄
+{{- if eq .chezmoi.os "windows" }}
+.config/wezterm/**
+{{- end }}
+
+# Tabby (主要在 Windows 使用)
+{{- if or (eq .chezmoi.os "linux") (eq .chezmoi.os "darwin") }}
+AppData/Roaming/tabby/**
+{{- end }}
+
+# iTerm2 (macOS 專用)
+{{- if or (eq .chezmoi.os "windows") (eq .chezmoi.os "linux") }}
+.config/iterm2/**
+Library/Preferences/com.googlecode.iterm2.plist
+{{- end }}
+
+# ------------------------------------------------------------
+# 6. AI 工具配置
+# ------------------------------------------------------------
+# Claude/Gemini 在 Windows 放在 home 目錄，跨平台通用
+# 但如果你只在 Windows 使用，可以在其他平台忽略
+{{- if or (eq .chezmoi.os "linux") (eq .chezmoi.os "darwin") }}
+# 如果不想在 Linux/macOS 同步 AI 工具配置，取消註解：
+# .claude/**
+# .gemini/**
+{{- end }}
+
+# OpenCode (統一在 .config 下，跨平台通用)
+# 不需要忽略
+
+# ------------------------------------------------------------
+# 7. 平台專用目錄 - 完全阻擋
+# ------------------------------------------------------------
+# Windows 專用目錄
+{{- if or (eq .chezmoi.os "linux") (eq .chezmoi.os "darwin") }}
 AppData/**
 Documents/**
 {{- end }}
+
+# Linux 專用目錄
+{{- if or (eq .chezmoi.os "windows") (eq .chezmoi.os "darwin") }}
+.config/i3/**
+.config/sway/**
+.config/systemd/**
+{{- end }}
+
+# macOS 專用目錄
+{{- if or (eq .chezmoi.os "windows") (eq .chezmoi.os "linux") }}
+Library/**
+.Trash/**
+{{- end }}
+
+# ------------------------------------------------------------
+# 8. 套件管理器快取和資料
+# ------------------------------------------------------------
+{{- if or (eq .chezmoi.os "linux") (eq .chezmoi.os "darwin") }}
+# Windows 專用套件管理器
+scoop/**
+chocolatey/**
+{{- end }}
+
+{{- if eq .chezmoi.os "windows" }}
+# Linux 專用套件管理器
+.cargo/**
+.npm/**
+.local/share/**
+{{- end }}
+
+# ------------------------------------------------------------
+# 9. 臨時檔案和快取 (全平台忽略)
+# ------------------------------------------------------------
+*.log
+*.tmp
+*.swp
+*~
+.DS_Store
+Thumbs.db
+desktop.ini

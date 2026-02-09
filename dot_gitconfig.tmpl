@@ -1,3 +1,83 @@
+# ============================================================
+# Git 全域配置 (跨平台)
+# 由 chezmoi 自動生成
+# 支援: Windows, Linux (含 WSL), macOS
+# ============================================================
+
 [user]
     name = {{ .gitName }}
     email = {{ .gitEmail }}
+
+[core]
+    # 跨平台換行符號處理
+{{- if eq .chezmoi.os "windows" }}
+    autocrlf = true                # Windows: 自動轉換 CRLF <-> LF
+{{- else if eq .chezmoi.os "linux" }}
+    autocrlf = input               # Linux/WSL: 只在 commit 時轉 LF
+{{- else if eq .chezmoi.os "darwin" }}
+    autocrlf = input               # macOS: 只在 commit 時轉 LF
+{{- else }}
+    autocrlf = input               # 其他平台: 預設為 input
+{{- end }}
+
+    # 編輯器設定
+{{- if eq .chezmoi.os "windows" }}
+    editor = code --wait           # Windows: VS Code
+{{- else if eq .chezmoi.os "linux" }}
+    editor = nvim                  # Linux/WSL: Neovim
+{{- else if eq .chezmoi.os "darwin" }}
+    editor = nvim                  # macOS: Neovim
+{{- else }}
+    editor = vi                    # 其他平台: vi
+{{- end }}
+
+    # 檔案權限處理 (特別針對 WSL)
+{{- if eq .chezmoi.os "linux" }}
+    filemode = true                # Linux: 保留檔案權限
+{{- else if eq .chezmoi.os "windows" }}
+    filemode = false               # Windows: 忽略檔案權限
+{{- else if eq .chezmoi.os "darwin" }}
+    filemode = true                # macOS: 保留檔案權限
+{{- end }}
+
+[init]
+    defaultBranch = main
+
+[pull]
+    rebase = false
+
+[push]
+    autoSetupRemote = true
+
+[diff]
+    # 跨平台 diff 工具
+{{- if eq .chezmoi.os "windows" }}
+    tool = vscode
+{{- else }}
+    tool = vimdiff
+{{- end }}
+
+[merge]
+    # 跨平台 merge 工具
+{{- if eq .chezmoi.os "windows" }}
+    tool = vscode
+{{- else }}
+    tool = vimdiff
+{{- end }}
+
+{{- if eq .chezmoi.os "windows" }}
+[difftool "vscode"]
+    cmd = code --wait --diff $LOCAL $REMOTE
+
+[mergetool "vscode"]
+    cmd = code --wait $MERGED
+{{- end }}
+
+[alias]
+    st = status
+    co = checkout
+    br = branch
+    cm = commit -m
+    lg = log --oneline --graph --decorate --all
+    last = log -1 HEAD
+    unstage = reset HEAD --

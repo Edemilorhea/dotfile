@@ -56,7 +56,7 @@ GitLab Merge Request (MR) Agent 規則
    - 讀取 git 配置：git config user.name 或 git config user.email。
    - 將 MR 指派給此 git 記錄人。
 2. *決定審查者 (Reviewer)*：
-   - 第一優先：GitLab 用戶名 "Oscar"。
+   - 第一優先：GitLab 用戶名 "oscar_chang"。
    - 若找不到 Oscar，可以使用git或是glab工具在倉庫尋找相關的人名，若有兩個以上的結果請與使用者確認，若找不到則提醒使用者手動指定。
 3. 設置合併選項：
    - 關閉 "Remove source branch when merged" (合併後刪除來源分支)。
