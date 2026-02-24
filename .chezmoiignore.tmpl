@@ -43,21 +43,11 @@ AppData/Roaming/PowerShell/**
 {{- end }}
 
 # ------------------------------------------------------------
-# 3. Neovim 配置 - 依作業系統路徑區分
+# 3. Neovim 配置 (跨平台通用位置 .config/nvim)
 # ------------------------------------------------------------
 {{- if not .syncNvim }}
 # 如果不同步 Neovim，則全部忽略
-AppData/Local/nvim/**
 .config/nvim/**
-{{- else }}
-# Windows: 使用 AppData/Local/nvim，忽略 .config/nvim
-{{- if eq .chezmoi.os "windows" }}
-.config/nvim/**
-{{- end }}
-# Linux/macOS: 使用 .config/nvim，忽略 AppData
-{{- if or (eq .chezmoi.os "linux") (eq .chezmoi.os "darwin") }}
-AppData/Local/nvim/**
-{{- end }}
 {{- end }}
 
 # ------------------------------------------------------------
