@@ -93,17 +93,19 @@ function M.setup()
     map("v", "j", function()
         local mode = vim.fn.mode()
         if mode == "\22" then
-            return "j"
+            vim.api.nvim_feedkeys("j", "n", false)
+        else
+            vscode.call("cursorDownSelect")
         end
-        vscode.call("cursorDownSelect")
     end)
 
     map("v", "k", function()
         local mode = vim.fn.mode()
         if mode == "\22" then
-            return "k"
+            vim.api.nvim_feedkeys("k", "n", false)
+        else
+            vscode.call("cursorUpSelect")
         end
-        vscode.call("cursorUpSelect")
     end)
 
     -- -- 進入 V 模式時標記
