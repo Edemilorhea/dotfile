@@ -1,10 +1,11 @@
 -- keymap/vscode.lua
 local M = {}
-local map = vim.keymap.set
 
 function M.setup()
     local vscode = require("vscode")
     local opts = { noremap = true, silent = true }
+    local map = vim.keymap.set
+    local visual_line_mode = false
 
     -- 基本按鍵映射
     vim.keymap.set("i", "<C-[>", "<Esc>", opts)
@@ -66,6 +67,7 @@ function M.setup()
     -- vim.keymap.set("n", "j", visual_line_move("down"), opts)
     -- vim.keymap.set("n", "k", visual_line_move("up"), opts)
 
+    -- Normal Mode
     map("n", "j", function()
         if vim.v.count == 0 then
             vscode.call("cursorDown")
@@ -73,6 +75,12 @@ function M.setup()
             return "j"
         end
     end, { expr = true })
+
+    --[[
+    在Vscode 當中 沒有 Visual-Line 跟 Visual-Block 的狀態，所以沒辦法安全的處理選取摺疊的時候可以多行選取
+    並且想要正常的使用區塊選取只能讓neovim原生處理。
+    解決方案就是 讓一般選取使用vscode的 cursorDownSelect or cursorUpSelect 改成多行就加個 Shirft V 
+    --]]
 
     map("n", "k", function()
         if vim.v.count == 0 then
@@ -82,22 +90,88 @@ function M.setup()
         end
     end, { expr = true })
 
-    -- Visual Mode：使用帶選取的移動命令
     map("v", "j", function()
-        if vim.v.count == 0 then
-            vscode.call("cursorDownSelect")
-        else
+        local mode = vim.fn.mode()
+        if mode == "\22" then -- \22 = <C-v> 區塊選取
             return "j"
         end
+        vim.schedule(function()
+            vscode.call("cursorDownSelect")
+        end)
     end, { expr = true })
 
     map("v", "k", function()
-        if vim.v.count == 0 then
-            vscode.call("cursorUpSelect")
-        else
+        local mode = vim.fn.mode()
+        if mode == "\22" then
             return "k"
         end
+        vim.schedule(function()
+            vscode.call("cursorUpSelect")
+        end)
     end, { expr = true })
+
+    -- -- 進入 V 模式時標記
+    -- map("n", "V", function()
+    --     visual_line_mode = true
+    --     return "V"
+    -- end, { expr = true })
+    --
+    -- -- 離開 Visual 模式時清除
+    -- vim.api.nvim_create_autocmd("ModeChanged", {
+    --     print("ModeChanged"),
+    --     pattern = "*:n",
+    --     callback = function()
+    --         vim.defer_fn(function()
+    --             local mode = vim.fn.mode()
+    --             if mode == "n" then
+    --                 visual_line_mode = false
+    --                 print("V mode: OFF (confirmed normal)")
+    --             end
+    --         end, 100)
+    --     end,
+    -- })
+    --
+    -- -- Visual j
+    -- map("v", "j", function()
+    --     vim.schedule(function()
+    --         print("j - visual_line_mode: " .. tostring(visual_line_mode))
+    --         if visual_line_mode then
+    --             vscode.call("cursorDownSelect")
+    --             print("j - cursorDownSelect done")
+    --             vim.defer_fn(function()
+    --                 vscode.call("cursorEndSelect")
+    --                 print("j - cursorEndSelect done")
+    --             end, 100)
+    --         else
+    --             vscode.call("cursorDownSelect")
+    --             print("j - cursorDownSelect (char mode)")
+    --         end
+    --     end)
+    -- end)
+    --
+    -- -- Visual k
+    -- map("v", "k", function()
+    --     vim.schedule(function()
+    --         print("k - visual_line_mode: " .. tostring(visual_line_mode))
+    --         if visual_line_mode then
+    --             vscode.call("cursorUpSelect")
+    --             print("k - cursorUpSelect done")
+    --             vim.defer_fn(function()
+    --                 -- vscode.call("cursorMove", {
+    --                 --     args = {
+    --                 --         to = "wrappedLineStart",
+    --                 --         select = true,
+    --                 --     },
+    --                 -- })
+    --                 vim.api.nvim_feedkeys("0", "n", false)
+    --                 print("k - feedkeys 0")
+    --             end, 100)
+    --         else
+    --             vscode.call("cursorUpSelect")
+    --             print("k - cursorUpSelect (char mode)")
+    --         end
+    --     end)
+    -- end)
 
     -- 其他功能按鍵
     local other_mappings = {
