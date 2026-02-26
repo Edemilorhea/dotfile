@@ -92,23 +92,19 @@ function M.setup()
 
     map("v", "j", function()
         local mode = vim.fn.mode()
-        if mode == "\22" then -- \22 = <C-v> 區塊選取
+        if mode == "\22" then
             return "j"
         end
-        vim.schedule(function()
-            vscode.call("cursorDownSelect")
-        end)
-    end, { expr = true })
+        vscode.call("cursorDownSelect")
+    end)
 
     map("v", "k", function()
         local mode = vim.fn.mode()
         if mode == "\22" then
             return "k"
         end
-        vim.schedule(function()
-            vscode.call("cursorUpSelect")
-        end)
-    end, { expr = true })
+        vscode.call("cursorUpSelect")
+    end)
 
     -- -- 進入 V 模式時標記
     -- map("n", "V", function()
