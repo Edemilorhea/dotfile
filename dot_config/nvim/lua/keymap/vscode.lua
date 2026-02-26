@@ -1,5 +1,6 @@
 -- keymap/vscode.lua
 local M = {}
+local map = vim.keymap.set
 
 function M.setup()
     local vscode = require("vscode")
@@ -49,21 +50,54 @@ function M.setup()
     end
 
     -- 視覺行移動（優化版）
-    local function visual_line_move(direction)
-        return function()
-            local count = vim.v.count > 0 and vim.v.count or 1
-            vscode.action("cursorMove", {
-                args = {
-                    to = direction,
-                    by = "wrappedLine",
-                    value = count,
-                },
-            })
-        end
-    end
+    -- local function visual_line_move(direction)
+    --     return function()
+    --         local count = vim.v.count > 0 and vim.v.count or 1
+    --         vscode.action("cursorMove", {
+    --             args = {
+    --                 to = direction,
+    --                 by = "wrappedLine",
+    --                 value = count,
+    --             },
+    --         })
+    --     end
+    -- end
+    --
+    -- vim.keymap.set("n", "j", visual_line_move("down"), opts)
+    -- vim.keymap.set("n", "k", visual_line_move("up"), opts)
 
-    vim.keymap.set("n", "j", visual_line_move("down"), opts)
-    vim.keymap.set("n", "k", visual_line_move("up"), opts)
+    map("n", "j", function()
+        if vim.v.count == 0 then
+            vscode.call("cursorDown")
+        else
+            return "j"
+        end
+    end, { expr = true })
+
+    map("n", "k", function()
+        if vim.v.count == 0 then
+            vscode.call("cursorUp")
+        else
+            return "k"
+        end
+    end, { expr = true })
+
+    -- Visual Mode：使用帶選取的移動命令
+    map("v", "j", function()
+        if vim.v.count == 0 then
+            vscode.call("cursorDownSelect")
+        else
+            return "j"
+        end
+    end, { expr = true })
+
+    map("v", "k", function()
+        if vim.v.count == 0 then
+            vscode.call("cursorUpSelect")
+        else
+            return "k"
+        end
+    end, { expr = true })
 
     -- 其他功能按鍵
     local other_mappings = {
