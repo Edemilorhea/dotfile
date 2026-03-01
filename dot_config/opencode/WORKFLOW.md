@@ -200,3 +200,14 @@ $USERPROFILE\Documents\Obsidian_Note\Projects\{專案名}\
     ├── Hooks/
     └── Services/
 ```
+
+## 資料庫相關
+**CRITICAL MANDATE FOR PLAN AGENT:**
+當使用者的需求涉及「資料庫 (Database)」、「資料表結構 (Schema)」、「SQL 語法」、「後端 API 開發」或任何需要知道資料長怎樣的情境時，**你必須 (MUST) 主動使用 MSSQL MCP 提供的工具** 來獲取真實上下文，**絕對不要憑空猜測**資料表結構。
+**規劃與分析時的標準流程 (SOP)：**
+1. **探索階段:** 使用 `mssql_list_tables` 找出相關的資料表。
+2. **理解階段:** 使用 `mssql_describe_table` 獲取精確的欄位名稱與型別。
+3. **關聯階段:** 使用 `mssql_get_foreign_keys` 或 `mssql_get_indexes` 了解主外鍵關聯。
+4. **驗證階段 (可選):** 透過 `mssql_query_database` 撈取 1-3 筆真實資料 (如 `SELECT TOP 3 * FROM ...`) 來確認資料格式與內容。
+為什麼這有效？
+LLM 需要被明確告知「什麼情境下」要觸發「什麼工具」。將工具名稱 (mssql_describe_table 等) 寫出來，能大幅提高它配對到 MCP 工具的機率。
