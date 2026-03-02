@@ -1,0 +1,244 @@
+{
+    "$schema": "https://opencode.ai/config.json",
+    "plugin": [
+        "opencode-antigravity-auth@latest",
+        "opencode-anthropic-auth@latest",
+        "@nick-vi/opencode-type-inject"
+    ],
+    "autoupdate": true,
+
+ "provider": {
+    "google": {
+      "models": {
+        "antigravity-gemini-3-pro": {
+          "name": "Gemini 3 Pro (Antigravity)",
+          "limit": { "context": 1048576, "output": 65535 },
+          "modalities": { "input": ["text", "image", "pdf"], "output": ["text"] },
+          "variants": {
+            "low": { "thinkingLevel": "low" },
+            "high": { "thinkingLevel": "high" }
+          }
+        },
+        "antigravity-gemini-3.1-pro": {
+          "name": "Gemini 3.1 Pro (Antigravity)",
+          "limit": { "context": 1048576, "output": 65535 },
+          "modalities": { "input": ["text", "image", "pdf"], "output": ["text"] },
+          "variants": {
+            "low": { "thinkingLevel": "low" },
+            "high": { "thinkingLevel": "high" }
+          }
+        },
+        "antigravity-gemini-3-flash": {
+          "name": "Gemini 3 Flash (Antigravity)",
+          "limit": { "context": 1048576, "output": 65536 },
+          "modalities": { "input": ["text", "image", "pdf"], "output": ["text"] },
+          "variants": {
+            "minimal": { "thinkingLevel": "minimal" },
+            "low": { "thinkingLevel": "low" },
+            "medium": { "thinkingLevel": "medium" },
+            "high": { "thinkingLevel": "high" }
+          }
+        },
+        "antigravity-claude-sonnet-4-6": {
+          "name": "Claude Sonnet 4.6 (Antigravity)",
+          "limit": { "context": 200000, "output": 64000 },
+          "modalities": { "input": ["text", "image", "pdf"], "output": ["text"] }
+        },
+        "antigravity-claude-opus-4-6-thinking": {
+          "name": "Claude Opus 4.6 Thinking (Antigravity)",
+          "limit": { "context": 200000, "output": 64000 },
+          "modalities": { "input": ["text", "image", "pdf"], "output": ["text"] },
+          "variants": {
+            "low": { "thinkingConfig": { "thinkingBudget": 8192 } },
+            "max": { "thinkingConfig": { "thinkingBudget": 32768 } }
+          }
+        },
+        "gemini-2.5-flash": {
+          "name": "Gemini 2.5 Flash (Gemini CLI)",
+          "limit": { "context": 1048576, "output": 65536 },
+          "modalities": { "input": ["text", "image", "pdf"], "output": ["text"] }
+        },
+        "gemini-2.5-pro": {
+          "name": "Gemini 2.5 Pro (Gemini CLI)",
+          "limit": { "context": 1048576, "output": 65536 },
+          "modalities": { "input": ["text", "image", "pdf"], "output": ["text"] }
+        },
+        "gemini-3-flash-preview": {
+          "name": "Gemini 3 Flash Preview (Gemini CLI)",
+          "limit": { "context": 1048576, "output": 65536 },
+          "modalities": { "input": ["text", "image", "pdf"], "output": ["text"] }
+        },
+        "gemini-3-pro-preview": {
+          "name": "Gemini 3 Pro Preview (Gemini CLI)",
+          "limit": { "context": 1048576, "output": 65535 },
+          "modalities": { "input": ["text", "image", "pdf"], "output": ["text"] }
+        },
+        "gemini-3.1-pro-preview": {
+          "name": "Gemini 3.1 Pro Preview (Gemini CLI)",
+          "limit": { "context": 1048576, "output": 65535 },
+          "modalities": { "input": ["text", "image", "pdf"], "output": ["text"] }
+        },
+        "gemini-3.1-pro-preview-customtools": {
+          "name": "Gemini 3.1 Pro Preview Custom Tools (Gemini CLI)",
+          "limit": { "context": 1048576, "output": 65535 },
+          "modalities": { "input": ["text", "image", "pdf"], "output": ["text"] }
+        }
+      }
+    }
+  },
+
+
+    "permission": {
+        "read": {
+            "*": "allow", // 看任何檔案都可以
+            "*.env": "deny", // 官方預設，避免讀 secrets
+            "*.env.*": "deny",
+            "*.env.example": "allow"
+        },
+        "list": "allow", // ls / 列目錄類，一律 allow
+        "glob": "allow", // 找檔案 pattern
+        "grep": "allow", // 搜尋內容
+        "lsp": "allow", // LSP 查詢
+        // 3) 檔案修改：一律問
+        "edit": "ask", // 所有 edit / write / patch / multiedit 都會問一次
+        // 4) bash：讀取與常見安全指令自動，修改類問，危險 deny
+        "bash": {
+            // 讀取 / 查詢類：不用問
+            "*": "ask", // 其他未知指令都問
+            "ls *": "allow",
+            "ls": "allow",
+            "pwd": "allow",
+            "cat *": "allow",
+            "find *": "allow",
+            "git status*": "allow",
+            "git diff*": "allow",
+            "git log*": "allow",
+            // 建置 / 查詢工具：可以自動跑
+            "dotnet --info*": "allow",
+            "dotnet --list-*": "allow",
+            "dotnet build*": "allow",
+            "dotnet test*": "allow",
+            "npm install*": "allow",
+            "npm run *": "allow",
+            "pnpm install*": "allow",
+            "pnpm run *": "allow",
+            "yarn *": "allow",
+            // 可能修改檔案或版本庫：先問
+            "git add *": "ask",
+            "git commit*": "ask",
+            "git push*": "ask",
+            "git merge*": "ask",
+            "git rebase*": "ask",
+            // 危險操作：直接禁止
+            "rm *": "deny",
+            "rm -rf *": "deny",
+            "mv *": "ask", // 覺得太嚴可以改成 allow
+            "cp *": "ask"
+        },
+        // 5) 其他工具
+        "task": "ask", // 開 subagent 先問
+        "todoread": "allow",
+        "todowrite": "ask",
+        "webfetch": "allow",
+        "websearch": "allow",
+        "codesearch": "allow",
+        "external_directory": "ask", // 超出工作目錄就問
+        "doom_loop": "allow" // 允許它自動打破 doom loop
+    },
+    "agent": {
+        "plan": {
+            "permission": {
+                "edit": "deny"
+            }
+        }
+    },
+    "keybinds": {
+        "leader": "alt+m",
+        "app_exit": "ctrl+c,ctrl+d,<leader>q",
+        "editor_open": "<leader>e",
+        "theme_list": "<leader>t",
+        "sidebar_toggle": "<leader>b",
+        "scrollbar_toggle": "none",
+        "username_toggle": "none",
+        "status_view": "<leader>s",
+        "tool_details": "none",
+        "session_export": "<leader>x",
+        "session_new": "<leader>n",
+        "session_list": "<leader>l",
+        "session_timeline": "<leader>g",
+        "session_fork": "none",
+        "session_rename": "none",
+        "session_share": "none",
+        "session_unshare": "none",
+        "session_interrupt": "escape",
+        "session_compact": "<leader>c",
+        "session_child_cycle": "<leader>right",
+        "session_child_cycle_reverse": "<leader>left",
+        "session_parent": "<leader>up",
+        "messages_page_up": "pageup",
+        "messages_page_down": "pagedown",
+        "messages_half_page_up": "ctrl+alt+u",
+        "messages_half_page_down": "ctrl+alt+d",
+        "messages_first": "ctrl+g,home",
+        "messages_last": "ctrl+alt+g,end",
+        "messages_next": "none",
+        "messages_previous": "none",
+        "messages_copy": "<leader>y",
+        "messages_undo": "<leader>u",
+        "messages_redo": "<leader>r",
+        "messages_last_user": "none",
+        "messages_toggle_conceal": "<leader>h",
+        "model_list": "<leader>m",
+        "model_cycle_recent": "f2",
+        "model_cycle_recent_reverse": "shift+f2",
+        "model_cycle_favorite": "none",
+        "model_cycle_favorite_reverse": "none",
+        "variant_cycle": "ctrl+t",
+        "command_list": "ctrl+p",
+        "agent_list": "<leader>a",
+        "agent_cycle": "tab",
+        "agent_cycle_reverse": "shift+tab",
+        "input_clear": "<leader>d",
+        "input_paste": "ctrl+shift+v",
+        "input_newline": "shift+return,ctrl+return,alt+return,ctrl+j",
+        "input_submit": "return",
+        "input_move_left": "left,ctrl+b",
+        "input_move_right": "right,ctrl+f",
+        "input_move_up": "up",
+        "input_move_down": "down",
+        "input_select_left": "shift+left",
+        "input_select_right": "shift+right",
+        "input_select_up": "shift+up",
+        "input_select_down": "shift+down",
+        "input_line_home": "ctrl+a",
+        "input_line_end": "ctrl+e",
+        "input_select_line_home": "ctrl+shift+a",
+        "input_select_line_end": "ctrl+shift+e",
+        "input_visual_line_home": "alt+a",
+        "input_visual_line_end": "alt+e",
+        "input_select_visual_line_home": "alt+shift+a",
+        "input_select_visual_line_end": "alt+shift+e",
+        "input_buffer_home": "home",
+        "input_buffer_end": "end",
+        "input_select_buffer_home": "shift+home",
+        "input_select_buffer_end": "shift+end",
+        "input_delete_line": "ctrl+shift+d",
+        "input_delete_to_line_end": "ctrl+k",
+        "input_delete_to_line_start": "ctrl+u",
+        "input_backspace": "backspace,shift+backspace",
+        "input_delete": "ctrl+d,delete,shift+delete",
+        "input_undo": "ctrl+-,ctrl+z",
+        "input_redo": "ctrl+.,alt+z",
+        "input_word_forward": "alt+f,alt+right,ctrl+right",
+        "input_word_backward": "alt+b,alt+left,ctrl+left",
+        "input_select_word_forward": "alt+shift+f,alt+shift+right",
+        "input_select_word_backward": "alt+shift+b,alt+shift+left",
+        "input_delete_word_forward": "alt+d,alt+delete,ctrl+delete",
+        "input_delete_word_backward": "ctrl+w,ctrl+backspace,alt+backspace",
+        "history_previous": "up",
+        "history_next": "down",
+        "terminal_suspend": "none",
+        "terminal_title_toggle": "none",
+        "tips_toggle": "<leader>h"
+    }
+}
