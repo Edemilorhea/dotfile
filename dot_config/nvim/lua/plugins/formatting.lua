@@ -60,8 +60,17 @@ return {
           prepend_args = {},
         },
         dprint = {
-          command = "dprint",
-          args = { "fmt", "--config", vim.fn.stdpath("config") .. "/dprint.json", "$FILENAME" },
+          command = vim.fn.expand("~/.dprint/bin/dprint"),
+          args = function(_, ctx)
+            return {
+              "fmt",
+              "--stdin",
+              ctx.filename,
+              "--config",
+              vim.fn.stdpath("config") .. "/dprint.json",
+            }
+          end,
+          stdin = true,
         },
       },
     }

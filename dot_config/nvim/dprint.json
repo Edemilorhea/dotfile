@@ -1,23 +1,23 @@
 {
-  "$schema": "https://dprint.dev/schemas/v0.json",
-  "projectType": "openSource",
-  "incremental": true,
-  "json": {
-    "indentWidth": 4,
-    "useTabs": false,
-    "lineWidth": 120,
-    "preferSingleLine": false,
-    "trailingCommas": "never"
-  },
-  "includes": ["**/*.json", "**/*.jsonc"],
-  "excludes": [
-    "**/node_modules",
-    "**/*-lock.json",
-    "**/dist",
-    "**/build",
-    "**/.git"
-  ],
-  "plugins": [
-    "https://plugins.dprint.dev/json-0.19.3.wasm"
-  ]
+    "$schema": "https://dprint.dev/schemas/v0.json",
+    "projectType": "openSource",
+    "incremental": true,
+    "json": {
+        "indentWidth": 4,
+        "useTabs": false,
+        "lineWidth": 120,
+        "preferSingleLine": false,
+        "trailingCommas": "never"
+    },
+    "includes": ["**/*.json", "**/*.jsonc"],
+    "excludes": [
+        "**/node_modules",
+        "**/*-lock.json",
+        "**/dist",
+        "**/build",
+        "**/.git"
+    ],
+    "plugins": [
+        "https://plugins.dprint.dev/json-0.19.3.wasm"
+    ]
 }
