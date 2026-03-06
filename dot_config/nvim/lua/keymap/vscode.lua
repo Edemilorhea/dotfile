@@ -76,12 +76,6 @@ function M.setup()
         end
     end, { expr = true })
 
-    --[[
-    在Vscode 當中 沒有 Visual-Line 跟 Visual-Block 的狀態，所以沒辦法安全的處理選取摺疊的時候可以多行選取
-    並且想要正常的使用區塊選取只能讓neovim原生處理。
-    解決方案就是 讓一般選取使用vscode的 cursorDownSelect or cursorUpSelect 改成多行就加個 Shirft V 
-    --]]
-
     map("n", "k", function()
         if vim.v.count == 0 then
             vscode.call("cursorUp")
@@ -90,15 +84,21 @@ function M.setup()
         end
     end, { expr = true })
 
-    map("v", "j", function()
-        local mode = vim.fn.mode()
-            vscode.call("cursorDownSelect")
-    end)
+    --[[
+    在Vscode 當中 沒有 Visual-Line 跟 Visual-Block 的狀態，所以沒辦法安全的處理選取摺疊的時候可以多行選取
+    並且想要正常的使用區塊選取只能讓neovim原生處理。
+    解決方案就是 讓一般選取使用vscode的 cursorDownSelect or cursorUpSelect 改成多行就加個 Shirft V 
+    --]]
 
-    map("v", "k", function()
-        local mode = vim.fn.mode()
-            vscode.call("cursorUpSelect")
-    end)
+    -- map("v", "j", function()
+    --     local mode = vim.fn.mode()
+    --     vscode.call("cursorDownSelect")
+    -- end)
+    --
+    -- map("v", "k", function()
+    --     local mode = vim.fn.mode()
+    --     vscode.call("cursorUpSelect")
+    -- end)
 
     -- -- 進入 V 模式時標記
     -- map("n", "V", function()
