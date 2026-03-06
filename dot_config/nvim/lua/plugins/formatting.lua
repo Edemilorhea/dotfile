@@ -10,8 +10,8 @@ return {
         typescript = { "prettier" },
         javascriptreact = { "prettier" },
         typescriptreact = { "prettier" },
-        json = { "prettier" },
-        jsonc = { "prettier" },
+        json = { "dprint" },
+        jsonc = { "dprint" },
         yaml = { "prettier" },
         html = { "prettier" },
         css = { "prettier" },
@@ -58,6 +58,10 @@ return {
         },
         fish_indent = {
           prepend_args = {},
+        },
+        dprint = {
+          command = "dprint",
+          args = { "fmt", "--config", vim.fn.stdpath("config") .. "/dprint.json", "$FILENAME" },
         },
       },
     }
