@@ -105,3 +105,5 @@ Set-PSReadLineKeyHandler -Key RightArrow -Function ForwardWord
 Set-PSReadLineKeyHandler -Key Ctrl+RightArrow -Function AcceptNextSuggestionWord
 Set-PSReadLineKeyHandler -Key Alt+F -Function AcceptSuggestion
 Set-PSReadLineKeyHandler -Key F2 -Function SwitchPredictionView
+
+Set-Alias bunx "bun"

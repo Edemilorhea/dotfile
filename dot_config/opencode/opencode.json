@@ -1,322 +1,77 @@
 {
     "$schema": "https://opencode.ai/config.json",
     "plugin": [
-        "opencode-antigravity-auth@beta",
+        "opencode-gemini-auth@latest",
         "opencode-anthropic-auth@latest",
         "@franlol/opencode-md-table-formatter@latest",
-        "@nick-vi/opencode-type-inject",
+        "opencode-pty",
+        // "@daytonaio/opencode",
+        // "opencode-helicone-session",
+        // "@nick-vi/opencode-type-inject",
+        "@mohak34/opencode-notifier@latest"
+        // "@plannotator/opencode@latest",
+        // "opencode-supermemory@latest"
     ],
-    "autoupdate": false,
-
-    // "provider": {
-    //     "google": {
-    //         "npm": "@ai-sdk/google",
-    //         "models": {
-    //             "gemini-3-pro-preview": {
-    //                 "id": "gemini-3-pro-preview",
-    //                 "name": "Gemini 3 Pro",
-    //                 "release_date": "2025-11-18",
-    //                 "reasoning": true,
-    //                 "limit": { "context": 1000000, "output": 64000 },
-    //                 "cost": { "input": 2, "output": 12, "cache_read": 0.2 },
-    //                 "modalities": {
-    //                     "input": ["text", "image", "video", "audio", "pdf"],
-    //                     "output": ["text"]
-    //                 },
-    //                 "variants": {
-    //                     "low": {
-    //                         "options": {
-    //                             "thinkingConfig": {
-    //                                 "thinkingLevel": "low",
-    //                                 "includeThoughts": true
-    //                             }
-    //                         }
-    //                     },
-    //                     "medium": {
-    //                         "options": {
-    //                             "thinkingConfig": {
-    //                                 "thinkingLevel": "medium",
-    //                                 "includeThoughts": true
-    //                             }
-    //                         }
-    //                     },
-    //                     "high": {
-    //                         "options": {
-    //                             "thinkingConfig": {
-    //                                 "thinkingLevel": "high",
-    //                                 "includeThoughts": true
-    //                             }
-    //                         }
-    //                     }
-    //                 }
-    //             },
-    //             "gemini-3-flash": {
-    //                 "id": "gemini-3-flash",
-    //                 "name": "Gemini 3 Flash",
-    //                 "release_date": "2025-12-17",
-    //                 "reasoning": true,
-    //                 "limit": { "context": 1048576, "output": 65536 },
-    //                 "cost": { "input": 0.5, "output": 3, "cache_read": 0.05 },
-    //                 "modalities": {
-    //                     "input": ["text", "image", "video", "audio", "pdf"],
-    //                     "output": ["text"]
-    //                 },
-    //                 "variants": {
-    //                     "minimal": {
-    //                         "options": {
-    //                             "thinkingConfig": {
-    //                                 "thinkingLevel": "minimal",
-    //                                 "includeThoughts": true
-    //                             }
-    //                         }
-    //                     },
-    //                     "low": {
-    //                         "options": {
-    //                             "thinkingConfig": {
-    //                                 "thinkingLevel": "low",
-    //                                 "includeThoughts": true
-    //                             }
-    //                         }
-    //                     },
-    //                     "medium": {
-    //                         "options": {
-    //                             "thinkingConfig": {
-    //                                 "thinkingLevel": "medium",
-    //                                 "includeThoughts": true
-    //                             }
-    //                         }
-    //                     },
-    //                     "high": {
-    //                         "options": {
-    //                             "thinkingConfig": {
-    //                                 "thinkingLevel": "high",
-    //                                 "includeThoughts": true
-    //                             }
-    //                         }
-    //                     }
-    //                 }
-    //             },
-    //             "gemini-2.5-flash-lite": {
-    //                 "id": "gemini-2.5-flash-lite",
-    //                 "name": "Gemini 2.5 Flash Lite",
-    //                 "reasoning": false
-    //             },
-    //             "gemini-claude-sonnet-4-5-thinking": {
-    //                 "id": "gemini-claude-sonnet-4-5-thinking (Google)",
-    //                 "name": "Claude Sonnet 4.5",
-    //                 "reasoning": true,
-    //                 "limit": { "context": 200000, "output": 64000 },
-    //                 "modalities": {
-    //                     "input": ["text", "image", "pdf"],
-    //                     "output": ["text"]
-    //                 },
-    //                 "variants": {
-    //                     "none": {
-    //                         "reasoning": false,
-    //                         "options": {
-    //                             "thinkingConfig": { "includeThoughts": false }
-    //                         }
-    //                     },
-    //                     "low": {
-    //                         "options": {
-    //                             "thinkingConfig": {
-    //                                 "thinkingBudget": 4000,
-    //                                 "includeThoughts": true
-    //                             }
-    //                         }
-    //                     },
-    //                     "medium": {
-    //                         "options": {
-    //                             "thinkingConfig": {
-    //                                 "thinkingBudget": 16000,
-    //                                 "includeThoughts": true
-    //                             }
-    //                         }
-    //                     },
-    //                     "high": {
-    //                         "options": {
-    //                             "thinkingConfig": {
-    //                                 "thinkingBudget": 32000,
-    //                                 "includeThoughts": true
-    //                             }
-    //                         }
-    //                     }
-    //                 }
-    //             },
-    //             "gemini-claude-opus-4-5-thinking": {
-    //                 "id": "gemini-claude-opus-4-5-thinking",
-    //                 "name": "Claude Opus 4.5 (Google)",
-    //                 "release_date": "2025-11-24",
-    //                 "reasoning": true,
-    //                 "limit": { "context": 200000, "output": 64000 },
-    //                 "modalities": {
-    //                     "input": ["text", "image", "pdf"],
-    //                     "output": ["text"]
-    //                 },
-    //                 "variants": {
-    //                     "low": {
-    //                         "options": {
-    //                             "thinkingConfig": {
-    //                                 "thinkingBudget": 4000,
-    //                                 "includeThoughts": true
-    //                             }
-    //                         }
-    //                     },
-    //                     "medium": {
-    //                         "options": {
-    //                             "thinkingConfig": {
-    //                                 "thinkingBudget": 16000,
-    //                                 "includeThoughts": true
-    //                             }
-    //                         }
-    //                     },
-    //                     "high": {
-    //                         "options": {
-    //                             "thinkingConfig": {
-    //                                 "thinkingBudget": 32000,
-    //                                 "includeThoughts": true
-    //                             }
-    //                         }
-    //                     }
-    //                 }
-    //             },
-    //             "gemini-claude-sonnet-4-5": {
-    //                 "id": "gemini-claude-sonnet-4-5",
-    //                 "name": "Claude Sonnet 4.5 (No Thinking Google)",
-    //                 "reasoning": false,
-    //                 "modalities": {
-    //                     "input": ["text", "image", "pdf"],
-    //                     "output": ["text"]
-    //                 }
-    //             },
-    //             "gemini-claude-opus-4-5": {
-    //                 "id": "gemini-claude-opus-4-5",
-    //                 "name": "Claude Opus 4.5 (No Thinking Google)",
-    //                 "reasoning": false,
-    //                 "modalities": {
-    //                     "input": ["text", "image", "pdf"],
-    //                     "output": ["text"]
-    //                 }
-    //             }
-    //         }
-    //     }
-    // },
-
+    "instructions": [
+        "~/.config/opencode/plugin/shell-strategy/shell_strategy.md"
+    ],
+    "autoupdate": true,
+    "default_agent": "OpenAgent",
     "provider": {
         "google": {
-            "npm": "@ai-sdk/google",
+            "options": {
+                "projectId": "gen-lang-client-0877567430"
+            },
             "models": {
-                "antigravity-gemini-3-pro": {
-                    "name": "Gemini 3 Pro (Antigravity)",
-                    "limit": { "context": 1048576, "output": 65535 },
-                    "modalities": {
-                        "input": ["text", "image", "pdf"],
-                        "output": ["text"]
-                    },
-                    "variants": {
-                        "low": { "thinkingLevel": "low" },
-                        "high": { "thinkingLevel": "high" }
-                    }
-                },
-                "antigravity-gemini-3-flash": {
-                    "name": "Gemini 3 Flash (Antigravity)",
-                    "limit": { "context": 1048576, "output": 65536 },
-                    "modalities": {
-                        "input": ["text", "image", "pdf"],
-                        "output": ["text"]
-                    },
-                    "variants": {
-                        "minimal": { "thinkingLevel": "minimal" },
-                        "low": { "thinkingLevel": "low" },
-                        "medium": { "thinkingLevel": "medium" },
-                        "high": { "thinkingLevel": "high" }
-                    }
-                },
-                "antigravity-claude-sonnet-4-5": {
-                    "name": "Claude Sonnet 4.5 (Antigravity)",
-                    "limit": { "context": 200000, "output": 64000 },
-                    "modalities": {
-                        "input": ["text", "image", "pdf"],
-                        "output": ["text"]
-                    }
-                },
-                "antigravity-claude-sonnet-4-5-thinking": {
-                    "name": "Claude Sonnet 4.5 Thinking (Antigravity)",
-                    "limit": { "context": 200000, "output": 64000 },
-                    "modalities": {
-                        "input": ["text", "image", "pdf"],
-                        "output": ["text"]
-                    },
-                    "variants": {
-                        "low": { "thinkingConfig": { "thinkingBudget": 8192 } },
-                        "max": { "thinkingConfig": { "thinkingBudget": 32768 } }
-                    }
-                },
-                "antigravity-claude-opus-4-5-thinking": {
-                    "name": "Claude Opus 4.5 Thinking (Antigravity)",
-                    "limit": { "context": 200000, "output": 64000 },
-                    "modalities": {
-                        "input": ["text", "image", "pdf"],
-                        "output": ["text"]
-                    },
-                    "variants": {
-                        "low": { "thinkingConfig": { "thinkingBudget": 8192 } },
-                        "max": { "thinkingConfig": { "thinkingBudget": 32768 } }
-                    }
-                },
                 "gemini-2.5-flash": {
-                    "name": "Gemini 2.5 Flash (Gemini CLI)",
-                    "limit": { "context": 1048576, "output": 65536 },
-                    "modalities": {
-                        "input": ["text", "image", "pdf"],
-                        "output": ["text"]
+                    "options": {
+                        "thinkingConfig": {
+                            "thinkingBudget": 8192,
+                            "includeThoughts": true
+                        }
                     }
                 },
                 "gemini-2.5-pro": {
-                    "name": "Gemini 2.5 Pro (Gemini CLI)",
-                    "limit": { "context": 1048576, "output": 65536 },
-                    "modalities": {
-                        "input": ["text", "image", "pdf"],
-                        "output": ["text"]
+                    "options": {
+                        "thinkingConfig": {
+                            "thinkingBudget": 8192,
+                            "includeThoughts": true
+                        }
                     }
                 },
                 "gemini-3-flash-preview": {
-                    "name": "Gemini 3 Flash Preview (Gemini CLI)",
-                    "limit": { "context": 1048576, "output": 65536 },
-                    "modalities": {
-                        "input": ["text", "image", "pdf"],
-                        "output": ["text"]
+                    "options": {
+                        "thinkingConfig": {
+                            "thinkingLevel": "high",
+                            "includeThoughts": true
+                        }
                     }
                 },
                 "gemini-3-pro-preview": {
-                    "name": "Gemini 3 Pro Preview (Gemini CLI)",
-                    "limit": { "context": 1048576, "output": 65535 },
-                    "modalities": {
-                        "input": ["text", "image", "pdf"],
-                        "output": ["text"]
+                    "options": {
+                        "thinkingConfig": {
+                            "thinkingLevel": "high",
+                            "includeThoughts": true
+                        }
                     }
                 }
             }
         }
     },
-
     "permission": {
         "read": {
-            "*": "allow", // 看任何檔案都可以
-            "*.env": "deny", // 官方預設，避免讀 secrets
+            "*": "allow",
+            "*.env": "deny",
             "*.env.*": "deny",
             "*.env.example": "allow"
         },
-        "list": "allow", // ls / 列目錄類，一律 allow
-        "glob": "allow", // 找檔案 pattern
-        "grep": "allow", // 搜尋內容
-        "lsp": "allow", // LSP 查詢
-        // 3) 檔案修改：一律問
-        "edit": "ask", // 所有 edit / write / patch / multiedit 都會問一次
-        // 4) bash：讀取與常見安全指令自動，修改類問，危險 deny
+        "list": "allow",
+        "glob": "allow",
+        "grep": "allow",
+        "lsp": "allow",
+        "edit": "ask",
         "bash": {
-            // 讀取 / 查詢類：不用問
-            "*": "ask", // 其他未知指令都問
+            "*": "ask",
             "ls *": "allow",
             "ls": "allow",
             "pwd": "allow",
@@ -325,7 +80,6 @@
             "git status*": "allow",
             "git diff*": "allow",
             "git log*": "allow",
-            // 建置 / 查詢工具：可以自動跑
             "dotnet --info*": "allow",
             "dotnet --list-*": "allow",
             "dotnet build*": "allow",
@@ -335,122 +89,58 @@
             "pnpm install*": "allow",
             "pnpm run *": "allow",
             "yarn *": "allow",
-            // 可能修改檔案或版本庫：先問
             "git add *": "ask",
             "git commit*": "ask",
             "git push*": "ask",
             "git merge*": "ask",
             "git rebase*": "ask",
-            // 危險操作：直接禁止
             "rm *": "deny",
             "rm -rf *": "deny",
-            "mv *": "ask", // 覺得太嚴可以改成 allow
+            "mv *": "ask",
             "cp *": "ask"
         },
-        // 5) 其他工具
-        "task": "ask", // 開 subagent 先問
+        "task": "ask",
         "todoread": "allow",
         "todowrite": "ask",
         "webfetch": "allow",
         "websearch": "allow",
         "codesearch": "allow",
-        "external_directory": "ask", // 超出工作目錄就問
-        "doom_loop": "allow" // 允許它自動打破 doom loop
+        "external_directory": "ask",
+        "doom_loop": "allow"
     },
     "agent": {
         "plan": {
             "permission": {
                 "edit": "deny"
             }
+        },
+        "OpenAgent": {
+            "permission": {
+                "edit": "deny"
+            }
         }
     },
-    "keybinds": {
-        "leader": "alt+m",
-        "app_exit": "ctrl+c,ctrl+d,<leader>q",
-        "editor_open": "<leader>e",
-        "theme_list": "<leader>t",
-        "sidebar_toggle": "<leader>b",
-        "scrollbar_toggle": "none",
-        "username_toggle": "none",
-        "status_view": "<leader>s",
-        "tool_details": "none",
-        "session_export": "<leader>x",
-        "session_new": "<leader>n",
-        "session_list": "<leader>l",
-        "session_timeline": "<leader>g",
-        "session_fork": "none",
-        "session_rename": "none",
-        "session_share": "none",
-        "session_unshare": "none",
-        "session_interrupt": "escape",
-        "session_compact": "<leader>c",
-        "session_child_cycle": "<leader>right",
-        "session_child_cycle_reverse": "<leader>left",
-        "session_parent": "<leader>up",
-        "messages_page_up": "pageup",
-        "messages_page_down": "pagedown",
-        "messages_half_page_up": "ctrl+alt+u",
-        "messages_half_page_down": "ctrl+alt+d",
-        "messages_first": "ctrl+g,home",
-        "messages_last": "ctrl+alt+g,end",
-        "messages_next": "none",
-        "messages_previous": "none",
-        "messages_copy": "<leader>y",
-        "messages_undo": "<leader>u",
-        "messages_redo": "<leader>r",
-        "messages_last_user": "none",
-        "messages_toggle_conceal": "<leader>h",
-        "model_list": "<leader>m",
-        "model_cycle_recent": "f2",
-        "model_cycle_recent_reverse": "shift+f2",
-        "model_cycle_favorite": "none",
-        "model_cycle_favorite_reverse": "none",
-        "variant_cycle": "ctrl+t",
-        "command_list": "ctrl+p",
-        "agent_list": "<leader>a",
-        "agent_cycle": "tab",
-        "agent_cycle_reverse": "shift+tab",
-        "input_clear": "<leader>d",
-        "input_paste": "ctrl+shift+v",
-        "input_newline": "shift+return,ctrl+return,alt+return,ctrl+j",
-        "input_submit": "return",
-        "input_move_left": "left,ctrl+b",
-        "input_move_right": "right,ctrl+f",
-        "input_move_up": "up",
-        "input_move_down": "down",
-        "input_select_left": "shift+left",
-        "input_select_right": "shift+right",
-        "input_select_up": "shift+up",
-        "input_select_down": "shift+down",
-        "input_line_home": "ctrl+a",
-        "input_line_end": "ctrl+e",
-        "input_select_line_home": "ctrl+shift+a",
-        "input_select_line_end": "ctrl+shift+e",
-        "input_visual_line_home": "alt+a",
-        "input_visual_line_end": "alt+e",
-        "input_select_visual_line_home": "alt+shift+a",
-        "input_select_visual_line_end": "alt+shift+e",
-        "input_buffer_home": "home",
-        "input_buffer_end": "end",
-        "input_select_buffer_home": "shift+home",
-        "input_select_buffer_end": "shift+end",
-        "input_delete_line": "ctrl+shift+d",
-        "input_delete_to_line_end": "ctrl+k",
-        "input_delete_to_line_start": "ctrl+u",
-        "input_backspace": "backspace,shift+backspace",
-        "input_delete": "ctrl+d,delete,shift+delete",
-        "input_undo": "ctrl+-,ctrl+z",
-        "input_redo": "ctrl+.,alt+z",
-        "input_word_forward": "alt+f,alt+right,ctrl+right",
-        "input_word_backward": "alt+b,alt+left,ctrl+left",
-        "input_select_word_forward": "alt+shift+f,alt+shift+right",
-        "input_select_word_backward": "alt+shift+b,alt+shift+left",
-        "input_delete_word_forward": "alt+d,alt+delete,ctrl+delete",
-        "input_delete_word_backward": "ctrl+w,ctrl+backspace,alt+backspace",
-        "history_previous": "up",
-        "history_next": "down",
-        "terminal_suspend": "none",
-        "terminal_title_toggle": "none",
-        "tips_toggle": "<leader>h"
+    "mcp": {
+        "notebooklm": {
+            "type": "local",
+            "command": [
+                "npx",
+                "-y",
+                "notebooklm-mcp@latest"
+            ],
+            "enabled": true
+        },
+        "linear": {
+            "type": "remote",
+            "url": "https://mcp.linear.app/mcp",
+            // "command": [
+            //     "npx",
+            //     "-y",
+            //     "mcp-remote",
+            //     "https://mcp.linear.app/mcp"
+            // ],
+            "enabled": true,
+            "timeout": 5000
+        }
     }
 }
