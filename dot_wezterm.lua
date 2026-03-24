@@ -41,6 +41,9 @@ config.use_fancy_tab_bar = false
 config.status_update_interval = 1000
 config.tab_bar_at_bottom = false
 
+config.use_ime = true
+config.disable_default_key_bindings = false
+
 -- 設定 Leader Key (Alt + a)
 config.leader = { key = "a", mods = "ALT", timeout_milliseconds = 1000 }
 
