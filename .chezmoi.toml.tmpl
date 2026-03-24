@@ -18,6 +18,9 @@
 {{- $syncPowershell := promptBoolOnce . "syncPowershell" "sync powershell config" true }}
 {{- $syncIdeavimrc := promptBoolOnce . "syncIdeavimrc" "sync ideavimrc config" true }}
 
+[edit]
+    command = "nvim"
+
 [git]
     autoCommit = true
     autoPush = true
