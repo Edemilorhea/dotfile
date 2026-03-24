@@ -7,7 +7,7 @@ local act = wezterm.action
 ----------------------------------------------------------------
 config.initial_cols = 120
 config.initial_rows = 28
-config.font_size = 14
+config.font_size = 12
 config.color_scheme = "Ocean (dark) (terminal.sexy)"
 
 -- 跨平台預設 Shell 設定
