@@ -1,6 +1,7 @@
 local wezterm = require("wezterm")
 local config = wezterm.config_builder()
 local act = wezterm.action
+local mux = wezterm.mux
 
 ----------------------------------------------------------------
 -- 2. 基礎外觀與系統設定
@@ -9,6 +10,7 @@ config.initial_cols = 120
 config.initial_rows = 28
 config.font_size = 12
 config.color_scheme = "Ocean (dark) (terminal.sexy)"
+config.front_end = "WebGpu"
 
 -- 跨平台預設 Shell 設定
 config.default_prog = { "pwsh.exe" } -- Windows: PowerShell
@@ -77,6 +79,20 @@ config.keys = {
             action = wezterm.action_callback(function(window, pane, line)
                 if line then
                     window:active_tab():set_title(line)
+                end
+            end),
+        }),
+    },
+
+    {
+        mods = "LEADER|SHIFT",
+        key = "$",
+        action = act.PromptInputLine({
+            description = "Rename current workspace",
+            action = wezterm.action_callback(function(window, pane, line)
+                if line and #line > 0 then
+                    local old = mux.get_active_workspace()
+                    mux.rename_workspace(old, line)
                 end
             end),
         }),
