@@ -4,6 +4,25 @@ local act = wezterm.action
 local mux = wezterm.mux
 
 ----------------------------------------------------------------
+-- 1. Resurrect 插件設定 (Session 狀態管理)
+----------------------------------------------------------------
+local resurrect = wezterm.plugin.require("https://github.com/MLFlexer/resurrect.wezterm")
+
+-- 設定狀態檔案儲存目錄 (Windows 必須設定)
+local state_dir = wezterm.home_dir .. "\\Desktop\\wezterm_state\\"
+resurrect.state_manager.change_state_save_dir(state_dir)
+wezterm.log_info("📁 Resurrect 狀態目錄: " .. state_dir)
+
+-- 啟用自動定期儲存 (每 15 分鐘)
+resurrect.state_manager.periodic_save({
+    interval_seconds = 900, -- 15 分鐘 = 900 秒
+    save_workspaces = true,
+    save_windows = true,
+    save_tabs = false, -- 不單獨儲存 tab (已包含在 workspace 中)
+})
+wezterm.log_info("✅ Resurrect 自動儲存已啟用 (每 15 分鐘)")
+
+----------------------------------------------------------------
 -- 2. 基礎外觀與系統設定
 ----------------------------------------------------------------
 config.initial_cols = 120
@@ -47,9 +66,80 @@ config.tab_bar_at_bottom = false
 config.leader = { key = "a", mods = "ALT", timeout_milliseconds = 1000 }
 
 ----------------------------------------------------------------
--- 3. 快捷鍵設定 (含超級入口)
+-- 3. 快捷鍵速查表功能 (使用 InputSelector 彈出式選單)
+----------------------------------------------------------------
+local function show_keybindings_help()
+    local keybindings = {
+        { label = "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━", id = "header" },
+        { label = "                    🎯 WezTerm 快捷鍵速查表                    ", id = "title" },
+        { label = "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━", id = "divider1" },
+        { label = "", id = "space1" },
+        { label = "📌 通用快捷鍵", id = "section1" },
+        { label = "  Alt + ?              顯示此快捷鍵速查表", id = "key1" },
+        { label = "  Alt + W              開啟新分頁 (Home 目錄)", id = "key2" },
+        { label = "  Alt + L              開啟目錄清單 (Launcher)", id = "key3" },
+        { label = "  Alt + S              Workspace 切換器", id = "key4" },
+        { label = "  Alt + T              顯示所有分頁", id = "key5" },
+        { label = "  Alt + { / }          切換上/下一個分頁", id = "key6" },
+        { label = "  Alt + 方向鍵         切換分割視窗", id = "key7" },
+        { label = "", id = "space2" },
+        { label = "🔄 Session 狀態管理 (Resurrect)", id = "section2" },
+        { label = "  Alt + Shift + W      儲存當前 Workspace 狀態", id = "key8" },
+        { label = "  Alt + Shift + R      載入當前 Workspace 的已儲存狀態", id = "key9" },
+        { label = "", id = "space3" },
+        { label = "🎮 Leader 模式 (先按 Alt + A，再按以下按鍵)", id = "section3" },
+        { label = "", id = "space4" },
+        { label = "📑 Tab 管理", id = "section4" },
+        { label = "  c                    建立新分頁", id = "key11" },
+        { label = "  n / p                下一個/上一個分頁", id = "key12" },
+        { label = "  q                    關閉當前分頁", id = "key13" },
+        { label = "  e                    重命名分頁", id = "key14" },
+        { label = "  1~9                  快速切換到第 N 個分頁", id = "key15" },
+        { label = "  Shift + $            重命名 Workspace", id = "key16" },
+        { label = "", id = "space5" },
+        { label = "🪟 Workspace 管理", id = "section5" },
+        { label = "  w                    切換到指定 Workspace", id = "key17" },
+        { label = "", id = "space6" },
+        { label = "✂️  Pane 分割", id = "section6" },
+        { label = "  Shift + \"            水平分割 (上下)", id = "key18" },
+        { label = "  Shift + %            垂直分割 (左右)", id = "key19" },
+        { label = "  x                    關閉當前 Pane", id = "key20" },
+        { label = "  z                    最大化/還原當前 Pane", id = "key21" },
+        { label = "  o                    旋轉 Pane 佈局", id = "key22" },
+        { label = "", id = "space7" },
+        { label = "🧭 Pane 導航 (Vim 風格)", id = "section7" },
+        { label = "  h / j / k / l        左/下/上/右切換 Pane", id = "key23" },
+        { label = "", id = "space8" },
+        { label = "📏 Pane 調整大小", id = "section8" },
+        { label = "  r                    進入 Resize 模式 (h/j/k/l 調整，Esc 退出)", id = "key24" },
+        { label = "", id = "space9" },
+        { label = "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━", id = "divider2" },
+        { label = "💡 提示: Leader Key = Alt + A (1 秒內按下後續按鍵)", id = "tip" },
+        { label = "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━", id = "divider3" },
+    }
+
+    return act.InputSelector({
+        title = "⌨️  快捷鍵速查表",
+        choices = keybindings,
+        fuzzy = true,
+        description = "按 Esc 或 Ctrl+C 關閉 | 按 / 搜尋",
+        action = wezterm.action_callback(function(window, pane, id, label)
+            -- 不執行任何動作，只是顯示
+        end),
+    })
+end
+
+----------------------------------------------------------------
+-- 4. 快捷鍵設定 (含超級入口)
 ----------------------------------------------------------------
 config.keys = {
+    -- [通用] 顯示快捷鍵速查表 (Alt + ?)
+    {
+        key = "?",
+        mods = "ALT|SHIFT",
+        action = show_keybindings_help(),
+    },
+
     -- [通用] 開啟純淨新分頁
     { key = "w", mods = "ALT", action = act.SpawnCommandInNewTab({ cwd = "~" }) },
 
@@ -162,6 +252,49 @@ config.keys = {
     -- [切換分頁] (Alt + { / })
     { key = "{", mods = "ALT", action = act.ActivateTabRelative(-1) },
     { key = "}", mods = "ALT", action = act.ActivateTabRelative(1) },
+
+    ----------------------------------------------------------------
+    -- [Resurrect] Session 狀態管理
+    ----------------------------------------------------------------
+    -- 儲存當前 Workspace 狀態 (Alt + Shift + W)
+    {
+        key = "W",
+        mods = "ALT|SHIFT",
+        action = wezterm.action_callback(function(win, pane)
+            local workspace = mux.get_active_workspace()
+            resurrect.state_manager.save_state(resurrect.workspace_state.get_workspace_state())
+            
+            -- 顯示通知
+            win:toast_notification("WezTerm - Resurrect", "✅ Workspace 已儲存: " .. workspace, nil, 3000)
+            wezterm.log_info("✅ Workspace 狀態已儲存: " .. workspace)
+        end),
+    },
+
+    -- 載入最近儲存的 Workspace 狀態 (Alt + Shift + R)
+    {
+        key = "R",
+        mods = "ALT|SHIFT",
+        action = wezterm.action_callback(function(win, pane)
+            local workspace = mux.get_active_workspace()
+            local success, state = pcall(function()
+                return resurrect.state_manager.load_state(workspace, "workspace")
+            end)
+            
+            if success and state then
+                local opts = {
+                    relative = true,
+                    restore_text = true,
+                    on_pane_restore = resurrect.tab_state.default_on_pane_restore,
+                }
+                resurrect.workspace_state.restore_workspace(state, opts)
+                win:toast_notification("WezTerm - Resurrect", "✅ Workspace 已恢復: " .. workspace, nil, 3000)
+                wezterm.log_info("✅ Workspace 已恢復: " .. workspace)
+            else
+                win:toast_notification("WezTerm - Resurrect", "❌ 找不到已儲存的狀態: " .. workspace, nil, 3000)
+                wezterm.log_warn("❌ 找不到已儲存的狀態: " .. workspace)
+            end
+        end),
+    },
 }
 
 ----------------------------------------------------------------
@@ -242,6 +375,15 @@ wezterm.on("update-status", function(window, pane)
         { Text = wezterm.nerdfonts.md_clock .. "  " .. time },
         { Text = "  " },
     }))
+end)
+
+----------------------------------------------------------------
+-- 7. Resurrect 啟動時自動恢復
+----------------------------------------------------------------
+wezterm.on("gui-startup", function(cmd)
+    -- 先執行預設的啟動行為
+    resurrect.state_manager.resurrect_on_gui_startup(cmd)
+    wezterm.log_info("🔄 已嘗試恢復上次的 Workspace 狀態")
 end)
 
 ----------------------------------------------------------------
