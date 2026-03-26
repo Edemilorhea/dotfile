@@ -29,7 +29,7 @@ config.initial_cols = 120
 config.initial_rows = 28
 config.font_size = 12
 config.color_scheme = "Ocean (dark) (terminal.sexy)"
-config.front_end = "WebGpu"
+config.front_end = "OpenGL"
 
 -- 跨平台預設 Shell 設定
 config.default_prog = { "pwsh.exe" } -- Windows: PowerShell
@@ -70,9 +70,15 @@ config.leader = { key = "a", mods = "ALT", timeout_milliseconds = 1000 }
 ----------------------------------------------------------------
 local function show_keybindings_help()
     local keybindings = {
-        { label = "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━", id = "header" },
+        {
+            label = "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━",
+            id = "header",
+        },
         { label = "                    🎯 WezTerm 快捷鍵速查表                    ", id = "title" },
-        { label = "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━", id = "divider1" },
+        {
+            label = "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━",
+            id = "divider1",
+        },
         { label = "", id = "space1" },
         { label = "📌 通用快捷鍵", id = "section1" },
         { label = "  Alt + ?              顯示此快捷鍵速查表", id = "key1" },
@@ -101,7 +107,7 @@ local function show_keybindings_help()
         { label = "  w                    切換到指定 Workspace", id = "key17" },
         { label = "", id = "space6" },
         { label = "✂️  Pane 分割", id = "section6" },
-        { label = "  Shift + \"            水平分割 (上下)", id = "key18" },
+        { label = '  Shift + "            水平分割 (上下)', id = "key18" },
         { label = "  Shift + %            垂直分割 (左右)", id = "key19" },
         { label = "  x                    關閉當前 Pane", id = "key20" },
         { label = "  z                    最大化/還原當前 Pane", id = "key21" },
@@ -113,9 +119,15 @@ local function show_keybindings_help()
         { label = "📏 Pane 調整大小", id = "section8" },
         { label = "  r                    進入 Resize 模式 (h/j/k/l 調整，Esc 退出)", id = "key24" },
         { label = "", id = "space9" },
-        { label = "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━", id = "divider2" },
+        {
+            label = "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━",
+            id = "divider2",
+        },
         { label = "💡 提示: Leader Key = Alt + A (1 秒內按下後續按鍵)", id = "tip" },
-        { label = "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━", id = "divider3" },
+        {
+            label = "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━",
+            id = "divider3",
+        },
     }
 
     return act.InputSelector({
@@ -263,7 +275,7 @@ config.keys = {
         action = wezterm.action_callback(function(win, pane)
             local workspace = mux.get_active_workspace()
             resurrect.state_manager.save_state(resurrect.workspace_state.get_workspace_state())
-            
+
             -- 顯示通知
             win:toast_notification("WezTerm - Resurrect", "✅ Workspace 已儲存: " .. workspace, nil, 3000)
             wezterm.log_info("✅ Workspace 狀態已儲存: " .. workspace)
@@ -279,7 +291,7 @@ config.keys = {
             local success, state = pcall(function()
                 return resurrect.state_manager.load_state(workspace, "workspace")
             end)
-            
+
             if success and state then
                 local opts = {
                     relative = true,
@@ -290,7 +302,12 @@ config.keys = {
                 win:toast_notification("WezTerm - Resurrect", "✅ Workspace 已恢復: " .. workspace, nil, 3000)
                 wezterm.log_info("✅ Workspace 已恢復: " .. workspace)
             else
-                win:toast_notification("WezTerm - Resurrect", "❌ 找不到已儲存的狀態: " .. workspace, nil, 3000)
+                win:toast_notification(
+                    "WezTerm - Resurrect",
+                    "❌ 找不到已儲存的狀態: " .. workspace,
+                    nil,
+                    3000
+                )
                 wezterm.log_warn("❌ 找不到已儲存的狀態: " .. workspace)
             end
         end),
