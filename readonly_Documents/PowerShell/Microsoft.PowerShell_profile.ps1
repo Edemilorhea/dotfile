@@ -1,8 +1,10 @@
 # ================================
 # 🚀 模組載入
 # ================================
+Import-Module PSReadLine
 Import-Module PSFzf
 Import-Module Terminal-Icons
+Import-Module PSEverything
 
 # ================================
 # 🌈 Oh My Posh 主題設定
@@ -85,13 +87,36 @@ Set-Alias tl tldr
 Set-Alias nav navi
 
 
+$env:PATH += ";$env:USERPROFILE\.config"
+
 # ================================
 # ✨ 環境設定 (確保 UTF-8 輸出，移除重複和錯誤行)
 # ================================
 # 設定控制台輸出編碼為 UTF-8 (若 PowerShell 7+ 預設已是，此行可選)
 [Console]::OutputEncoding = [System.Text.UTF8Encoding]::new()
 
-# (已移除 $env:PYTHONWARNINGS = "" 和其他重複/錯誤的編碼設定行)
+
+#快速搜尋所有路徑
+$global:EverythingFolderCache = $null
+
+function fcd-refresh {
+    $global:EverythingFolderCache = Search-Everything -Filter "folder:" -Global
+    Write-Host "✅ 快取已更新：$($global:EverythingFolderCache.Count) 個資料夾"
+}
+
+function fcd {
+    if (-not $global:EverythingFolderCache) {
+        Write-Host "⏳ 首次載入中..."
+        fcd-refresh
+    }
+
+    $selected = $global:EverythingFolderCache | fzf --prompt "跳轉到 > "
+
+    if ($selected) {
+        Set-Location $selected
+        Write-Host "`n✅ 已切換到：$selected`n"
+    }
+}
 
 
 # 預測選項
