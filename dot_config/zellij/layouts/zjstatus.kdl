@@ -1,0 +1,98 @@
+// zjstatus 狀態列配置
+// 使用說明: zellij --layout zjstatus
+
+layout {
+    default_tab_template {
+        pane size=1 borderless=true {
+            plugin location="https://github.com/dj95/zjstatus/releases/latest/download/zjstatus.wasm" {
+                // ═══════════════════════════════════════
+                // 格式配置 (Format Configuration)
+                // ═══════════════════════════════════════
+                format_left   "{mode} #[fg=$blue,bold]{session} {command_git_branch}"
+                format_center "{tabs}"
+                format_right  "{datetime}"
+                format_space  "#[bg=$bg]"
+
+                // 避免重疊時自動隱藏部分 (優先級: left > center > right)
+                format_hide_on_overlength "true"
+                format_precedence         "lrc"
+
+                // ═══════════════════════════════════════
+                // 顏色定義 (Color Aliases)
+                // ═══════════════════════════════════════
+                color_bg        "#1e1e2e"
+                color_fg        "#cdd6f4"
+                color_fg_dim    "#6c7086"
+                color_blue      "#89b4fa"
+                color_green     "#a6e3a1"
+                color_yellow    "#f9e2af"
+                color_orange    "#fab387"
+                color_red       "#f38ba8"
+                color_mauve     "#cba6f7"
+
+                // ═══════════════════════════════════════
+                // 邊框設定 (Border Configuration)
+                // ═══════════════════════════════════════
+                border_enabled  "false"
+                border_char     "─"
+                border_format   "#[fg=$fg_dim]{char}"
+                border_position "top"
+
+                // ═══════════════════════════════════════
+                // Pane 邊框控制 (Pane Frame Control)
+                // ═══════════════════════════════════════
+                hide_frame_for_single_pane "false"
+
+                // ═══════════════════════════════════════
+                // 模式樣式 (Mode Styling)
+                // ═══════════════════════════════════════
+                mode_normal        "#[bg=$blue,fg=$bg,bold] NORMAL "
+                mode_locked        "#[bg=$red,fg=$bg,bold] LOCKED "
+                mode_resize        "#[bg=$orange,fg=$bg,bold] RESIZE "
+                mode_pane          "#[bg=$green,fg=$bg,bold] PANE "
+                mode_tab           "#[bg=$mauve,fg=$bg,bold] TAB "
+                mode_scroll        "#[bg=$yellow,fg=$bg,bold] SCROLL "
+                mode_enter_search  "#[bg=$orange,fg=$bg,bold] SEARCH "
+                mode_search        "#[bg=$orange,fg=$bg,bold] SEARCH "
+                mode_rename_tab    "#[bg=$mauve,fg=$bg,bold] RENAME "
+                mode_rename_pane   "#[bg=$green,fg=$bg,bold] RENAME "
+                mode_session       "#[bg=$blue,fg=$bg,bold] SESSION "
+                mode_move          "#[bg=$green,fg=$bg,bold] MOVE "
+                mode_prompt        "#[bg=$yellow,fg=$bg,bold] PROMPT "
+                mode_tmux          "#[bg=$orange,fg=$bg,bold] TMUX "
+
+                // ═══════════════════════════════════════
+                // 會話名稱 (Session Name)
+                // ═══════════════════════════════════════
+                session "#[fg=$blue,bg=$bg,bold] {name} "
+
+                // ═══════════════════════════════════════
+                // 標籤樣式 (Tab Styling)
+                // ═══════════════════════════════════════
+                tab_normal              "#[fg=$fg_dim,bg=$bg] {index}:{name} "
+                tab_active              "#[fg=$blue,bg=$bg,bold,italic] {index}:{name} "
+                tab_separator           "#[fg=$fg_dim,bg=$bg]│"
+                
+                // 同步標籤特殊樣式
+                tab_sync_tab_is_active  "true"
+                tab_sync_tab            "#[fg=$red,bg=$bg,bold] {index}:{name} [SYNC]"
+
+                // ═══════════════════════════════════════
+                // Git 分支顯示 (Git Branch)
+                // ═══════════════════════════════════════
+                command_git_branch_command     "git rev-parse --abbrev-ref HEAD"
+                command_git_branch_format      "#[fg=$green,bg=$bg] {stdout} "
+                command_git_branch_interval    "10"
+                command_git_branch_rendermode  "static"
+
+                // ═══════════════════════════════════════
+                // 日期時間 (DateTime)
+                // ═══════════════════════════════════════
+                datetime          "#[fg=$fg,bg=$bg,bold] {format} "
+                datetime_format   "%Y-%m-%d %H:%M:%S"
+                datetime_timezone "Asia/Taipei"
+            }
+        }
+        children
+    }
+}

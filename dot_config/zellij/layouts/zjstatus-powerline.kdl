@@ -1,0 +1,59 @@
+// zjstatus Powerline 風格配置
+// 使用說明: zellij --layout zjstatus-powerline
+
+layout {
+    default_tab_template {
+        pane size=1 borderless=true {
+            plugin location="file:C:/Users/tc_tseng/.local/share/zellij/plugins/zjstatus.wasm" {
+                // Powerline 風格格式
+                format_left   "{mode}{session}{command_git_branch}"
+                format_center "{tabs}"
+                format_right  "{datetime}"
+                format_space  "#[bg=$bg]"
+
+                // 顏色定義 (Catppuccin Mocha)
+                color_bg        "#1e1e2e"
+                color_fg        "#cdd6f4"
+                color_blue      "#89b4fa"
+                color_green     "#a6e3a1"
+                color_yellow    "#f9e2af"
+                color_orange    "#fab387"
+                color_red       "#f38ba8"
+                color_mauve     "#cba6f7"
+
+                // Pane 邊框
+                border_enabled "false"
+                hide_frame_for_single_pane "true"
+
+                // Powerline 模式樣式 (使用  分隔符)
+                mode_normal        "#[bg=$blue,fg=$bg,bold]  #[bg=$bg,fg=$blue]"
+                mode_locked        "#[bg=$red,fg=$bg,bold]  #[bg=$bg,fg=$red]"
+                mode_resize        "#[bg=$orange,fg=$bg,bold]  #[bg=$bg,fg=$orange]"
+                mode_pane          "#[bg=$green,fg=$bg,bold]  #[bg=$bg,fg=$green]"
+                mode_tab           "#[bg=$mauve,fg=$bg,bold]  #[bg=$bg,fg=$mauve]"
+                mode_scroll        "#[bg=$yellow,fg=$bg,bold]  #[bg=$bg,fg=$yellow]"
+                mode_search        "#[bg=$orange,fg=$bg,bold]  #[bg=$bg,fg=$orange]"
+                mode_tmux          "#[bg=$orange,fg=$bg,bold]  #[bg=$bg,fg=$orange]"
+
+                // Powerline 會話名稱
+                session "#[bg=$blue,fg=$bg,bold] {name} #[bg=$bg,fg=$blue]"
+
+                // Powerline 標籤樣式
+                tab_normal              "#[fg=$fg_dim,bg=$bg] {index}:{name} "
+                tab_active              "#[bg=$blue,fg=$bg,bold] {index}:{name} #[bg=$bg,fg=$blue]"
+                
+                // Git 分支 (Powerline 風格)
+                command_git_branch_command     "git rev-parse --abbrev-ref HEAD"
+                command_git_branch_format      "#[bg=$green,fg=$bg,bold]  {stdout} #[bg=$bg,fg=$green]"
+                command_git_branch_interval    "10"
+                command_git_branch_rendermode  "static"
+
+                // Powerline 時間
+                datetime          "#[fg=$blue]#[bg=$blue,fg=$bg,bold] {format} "
+                datetime_format   "%H:%M"
+                datetime_timezone "Asia/Taipei"
+            }
+        }
+        children
+    }
+}

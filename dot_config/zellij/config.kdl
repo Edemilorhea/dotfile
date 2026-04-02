@@ -1,0 +1,381 @@
+// ================================================================
+// Zellij 配置檔案 - 優化 CJK 字體顯示
+// ================================================================
+// 配置版本: Zellij v0.44.0
+// 最後更新: 2026-04-01
+// Leader Key: Alt+A
+// 主要改進: 簡化配置，不干預字體渲染，避免 CJK 空白方塊
+// ================================================================
+
+// ================================================================
+// 1. 基礎設定
+// ================================================================
+
+default_shell "pwsh.exe"
+default_mode "normal"
+mouse_mode true
+copy_clipboard "primary"
+copy_on_select true
+scrollback_editor "nvim"
+auto_layout true
+
+// ============================================================
+// CJK 優化設定 - 關鍵配置
+// ============================================================
+// 禁用 pane_frames 和 styled_underlines 避免渲染問題
+pane_frames false
+simplified_ui true
+
+options {
+  // 禁用樣式化底線 - 避免在 Alacritty 中產生條紋 artifact
+  styled_underlines false
+  
+  // 禁用 session metadata - 減少 CJK 渲染問題
+  disable_session_metadata true
+  
+  // 強制退出時直接關閉
+  on_force_close "quit"
+}
+
+// 使用 compact layout - 減少 UI 元素，降低 CJK 渲染問題
+default_layout "zjstatus"
+
+// ================================================================
+// 2. 主題設定
+// ================================================================
+theme "dracula"
+
+// ================================================================
+// 3. 快捷鍵設定 (精確對應 WezTerm)
+// ================================================================
+
+keybinds {
+    
+    // ============================================================
+    // Normal 模式
+    // ============================================================
+    normal {
+        // --------------------------------------------------------
+        // 通用快捷鍵
+        // --------------------------------------------------------
+        
+        // Alt+T: 顯示所有分頁
+        bind "Alt t" {
+            SwitchToMode "tab"
+        }
+        
+        // Alt+S: Session 管理
+        bind "Alt s" {
+            SwitchToMode "session"
+        }
+        
+        // Alt+L: Launcher
+        bind "Alt l" {
+            LaunchOrFocusPlugin "session-manager" {
+                floating true
+            }
+        }
+        
+        // --------------------------------------------------------
+        // Pane 導航 (Alt+方向鍵)
+        // --------------------------------------------------------
+        bind "Alt Left" { MoveFocus "Left"; }
+        bind "Alt Right" { MoveFocus "Right"; }
+        bind "Alt Up" { MoveFocus "Up"; }
+        bind "Alt Down" { MoveFocus "Down"; }
+        
+        // --------------------------------------------------------
+        // 切換分頁 (Alt+{ / Alt+})
+        // --------------------------------------------------------
+        bind "Alt Shift [" { GoToPreviousTab; }
+        bind "Alt Shift ]" { GoToNextTab; }
+        
+        // --------------------------------------------------------
+        // Leader 模式 (Alt+A)
+        // --------------------------------------------------------
+        bind "Alt a" {
+            SwitchToMode "tmux"
+        }
+        
+        // --------------------------------------------------------
+        // 系統快捷鍵
+        // --------------------------------------------------------
+        bind "Ctrl q" { Quit; }
+        bind "Ctrl s" { SwitchToMode "search"; }
+        bind "Ctrl g" { SwitchToMode "locked"; }
+    }
+    
+    // ============================================================
+    // Tmux 模式 (Leader 模式)
+    // ============================================================
+    tmux {
+        // --------------------------------------------------------
+        // Tab 管理
+        // --------------------------------------------------------
+        bind "c" {
+            NewTab {
+                cwd "~"
+            }
+            SwitchToMode "normal"
+        }
+        bind "n" { GoToNextTab; SwitchToMode "normal"; }
+        bind "p" { GoToPreviousTab; SwitchToMode "normal"; }
+        bind "q" { CloseTab; SwitchToMode "normal"; }
+        bind "," {
+            SwitchToMode "renametab"
+        }
+        bind "Shift ," { MoveTab "Left"; SwitchToMode "normal"; }
+        bind "Shift ." { MoveTab "Right"; SwitchToMode "normal"; }
+        
+        // --------------------------------------------------------
+        // 快速切換分頁
+        // --------------------------------------------------------
+        bind "1" { GoToTab 1; SwitchToMode "normal"; }
+        bind "2" { GoToTab 2; SwitchToMode "normal"; }
+        bind "3" { GoToTab 3; SwitchToMode "normal"; }
+        bind "4" { GoToTab 4; SwitchToMode "normal"; }
+        bind "5" { GoToTab 5; SwitchToMode "normal"; }
+        bind "6" { GoToTab 6; SwitchToMode "normal"; }
+        bind "7" { GoToTab 7; SwitchToMode "normal"; }
+        bind "8" { GoToTab 8; SwitchToMode "normal"; }
+        bind "9" { GoToTab 9; SwitchToMode "normal"; }
+        
+        // --------------------------------------------------------
+        // Pane 分割
+        // --------------------------------------------------------
+        bind "Shift '" {
+            NewPane "Down"
+            SwitchToMode "normal"
+        }
+        bind "Shift 5" {
+            NewPane "Right"
+            SwitchToMode "normal"
+        }
+        bind "Shift p" { NewPane; SwitchToMode "normal"; }
+        bind "x" { CloseFocus; SwitchToMode "normal"; }
+        bind "z" { ToggleFocusFullscreen; SwitchToMode "normal"; }
+        bind "f" { ToggleFocusFullscreen; SwitchToMode "normal"; }
+        bind "o" { 
+            MoveFocus "Right"
+        }
+        bind "Shift o" { TogglePaneFrames; SwitchToMode "normal"; }
+        
+        // --------------------------------------------------------
+        // Pane 導航 (Vim 風格)
+        // --------------------------------------------------------
+        bind "h" { MoveFocus "Left"; SwitchToMode "normal"; }
+        bind "j" { MoveFocus "Down"; SwitchToMode "normal"; }
+        bind "k" { MoveFocus "Up"; SwitchToMode "normal"; }
+        bind "l" { MoveFocus "Right"; SwitchToMode "normal"; }
+        
+        // --------------------------------------------------------
+        // Pane 調整大小
+        // --------------------------------------------------------
+        bind "r" { SwitchToMode "resize"; }
+        bind "Shift h" { Resize "Increase Left"; }
+        bind "Shift j" { Resize "Increase Down"; }
+        bind "Shift k" { Resize "Increase Up"; }
+        bind "Shift l" { Resize "Increase Right"; }
+        
+        // --------------------------------------------------------
+        // Pane 移動
+        // --------------------------------------------------------
+        bind "m" { SwitchToMode "move"; }
+        
+        // --------------------------------------------------------
+        // Session 管理
+        // --------------------------------------------------------
+        bind "s" {
+            LaunchOrFocusPlugin "session-manager" {
+                floating true
+                move_to_focused_tab true
+            }
+            SwitchToMode "normal"
+        }
+        bind "d" { Detach; SwitchToMode "normal"; }
+        bind "w" { SwitchToMode "session"; }
+        
+        // --------------------------------------------------------
+        // 搜尋與工具
+        // --------------------------------------------------------
+        bind "/" { SwitchToMode "search"; }
+        bind "F1" {
+            LaunchOrFocusPlugin "configuration" {
+                floating true
+                move_to_focused_tab true
+            }
+            SwitchToMode "normal"
+        }
+        
+        // --------------------------------------------------------
+        // 退出 Tmux 模式
+        // --------------------------------------------------------
+        bind "Esc" { SwitchToMode "normal"; }
+        bind "Ctrl [" { SwitchToMode "normal"; }
+        bind "Enter" { SwitchToMode "normal"; }
+    }
+    
+    // ============================================================
+    // Resize 模式
+    // ============================================================
+    resize {
+        bind "h" { Resize "Increase Left"; }
+        bind "j" { Resize "Increase Down"; }
+        bind "k" { Resize "Increase Up"; }
+        bind "l" { Resize "Increase Right"; }
+        bind "Left" { Resize "Increase Left"; }
+        bind "Down" { Resize "Increase Down"; }
+        bind "Up" { Resize "Increase Up"; }
+        bind "Right" { Resize "Increase Right"; }
+        bind "Esc" { SwitchToMode "normal"; }
+        bind "Enter" { SwitchToMode "normal"; }
+    }
+    
+    // ============================================================
+    // Pane 模式
+    // ============================================================
+    pane {
+        bind "n" { NewPane; }
+        bind "h" { NewPane "Left"; }
+        bind "j" { NewPane "Down"; }
+        bind "k" { NewPane "Up"; }
+        bind "l" { NewPane "Right"; }
+        bind "x" { CloseFocus; SwitchToMode "normal"; }
+        bind "f" { ToggleFocusFullscreen; SwitchToMode "normal"; }
+        bind "Esc" { SwitchToMode "normal"; }
+    }
+    
+    // ============================================================
+    // Tab 模式
+    // ============================================================
+    tab {
+        bind "n" { NewTab; SwitchToMode "normal"; }
+        bind "h" { GoToPreviousTab; }
+        bind "l" { GoToNextTab; }
+        bind "Left" { GoToPreviousTab; }
+        bind "Right" { GoToNextTab; }
+        bind "x" { CloseTab; SwitchToMode "normal"; }
+        bind "r" { SwitchToMode "renametab"; }
+        bind "Esc" { SwitchToMode "normal"; }
+    }
+    
+    // ============================================================
+    // Session 模式
+    // ============================================================
+    session {
+        bind "w" {
+            LaunchOrFocusPlugin "session-manager" {
+                floating true
+                move_to_focused_tab true
+            }
+            SwitchToMode "normal"
+        }
+        bind "c" {
+            LaunchOrFocusPlugin "configuration" {
+                floating true
+                move_to_focused_tab true
+            }
+            SwitchToMode "normal"
+        }
+        bind "d" { 
+            Detach
+            SwitchToMode "normal"
+        }
+        bind "Esc" { SwitchToMode "normal"; }
+        bind "Enter" { SwitchToMode "normal"; }
+    }
+    
+    // ============================================================
+    // Search 模式
+    // ============================================================
+    search {
+        bind "n" { Search "down"; }
+        bind "p" { Search "up"; }
+        bind "Esc" { SwitchToMode "normal"; }
+        bind "Enter" { SwitchToMode "normal"; }
+    }
+    
+    // ============================================================
+    // RenameTab 模式
+    // ============================================================
+    renametab {
+        bind "Esc" { SwitchToMode "normal"; }
+        bind "Enter" { SwitchToMode "normal"; }
+    }
+    
+    // ============================================================
+    // Locked 模式
+    // ============================================================
+    locked {
+        bind "Ctrl g" { SwitchToMode "normal"; }
+    }
+    
+    // ============================================================
+    // Move 模式
+    // ============================================================
+    move {
+        bind "h" { MovePane "Left"; }
+        bind "j" { MovePane "Down"; }
+        bind "k" { MovePane "Up"; }
+        bind "l" { MovePane "Right"; }
+        bind "Esc" { SwitchToMode "normal"; }
+    }
+}
+
+// ================================================================
+// 快捷鍵對應表
+// ================================================================
+// 
+// 【通用快捷鍵】
+// Alt+L              → Launcher
+// Alt+S              → Session 切換
+// Alt+T              → 顯示所有分頁
+// Alt+{ / Alt+}      → 切換上/下一個分頁
+// Alt+方向鍵         → 切換 Pane
+// 
+// 【Leader 模式】(先按 Alt+A)
+// 
+// Tab 管理:
+// c                  → 建立新分頁
+// n / p              → 下一個/上一個分頁
+// q                  → 關閉當前分頁
+// ,                  → 重命名分頁
+// 1~9                → 快速切換到第 N 個分頁
+// 
+// Pane 分割:
+// Shift+'            → 水平分割 (上下)
+// Shift+5            → 垂直分割 (左右)
+// x                  → 關閉當前 Pane
+// z / f              → 最大化/還原當前 Pane
+// 
+// Pane 導航:
+// h / j / k / l      → 左/下/上/右切換 Pane
+// 
+// Pane 調整:
+// r                  → 進入 Resize 模式
+// 
+// Session:
+// s                  → Session 列表
+// d                  → Detach
+// 
+// ================================================================
+// 
+// 💡 CJK 顯示優化說明:
+// 
+// 1. pane_frames = false
+//    - 禁用 pane 邊框，避免與 CJK 字元衝突
+// 
+// 2. simplified_ui = true
+//    - 簡化 UI，減少渲染複雜度
+// 
+// 3. styled_underlines = false
+//    - 禁用樣式化底線，避免在 Alacritty 產生條紋
+// 
+// 4. disable_session_metadata = true
+//    - 禁用 session metadata，減少 ANSI 樣式衝突
+// 
+// 5. 字體由 Alacritty 控制
+//    - Zellij 不干預字體設定
+//    - 所有字體配置在 alacritty.toml 中完成
+// 
+// ================================================================

@@ -1,0 +1,11 @@
+// 超簡化測試配置
+layout {
+    default_tab_template {
+        children
+        pane size=1 borderless=true {
+            plugin location="file:C:/Users/tc_tseng/.local/share/zellij/plugins/zjstatus.wasm" {
+                format_left "TEST"
+            }
+        }
+    }
+}

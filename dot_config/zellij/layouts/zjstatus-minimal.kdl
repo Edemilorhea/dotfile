@@ -1,0 +1,38 @@
+// zjstatus 簡約風格配置
+// 使用說明: zellij --layout zjstatus-minimal
+
+layout {
+    default_tab_template {
+        pane size=1 borderless=true {
+            plugin location="file:C:/Users/tc_tseng/.local/share/zellij/plugins/zjstatus.wasm" {
+                // 簡約格式 - 只顯示核心資訊
+                format_left   "{mode} {session}"
+                format_center "{tabs}"
+                format_right  "{datetime}"
+                format_space  ""
+
+                // 顏色定義
+                color_bg      "#1e1e2e"
+                color_fg      "#cdd6f4"
+                color_blue    "#89b4fa"
+
+                // 不顯示邊框
+                border_enabled "false"
+                hide_frame_for_single_pane "true"
+
+                // 簡潔模式樣式
+                mode_normal  "#[bg=$blue,fg=$bg,bold]  "
+                mode_tmux    "#[bg=$blue,fg=$bg,bold]  "
+
+                // 簡潔標籤
+                tab_normal   "#[fg=$fg] {name} "
+                tab_active   "#[fg=$blue,bold] {name} "
+
+                // 簡短時間
+                datetime        "#[fg=$fg] {format}"
+                datetime_format "%H:%M"
+            }
+        }
+        children
+    }
+}

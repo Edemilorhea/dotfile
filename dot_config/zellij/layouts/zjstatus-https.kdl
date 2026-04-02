@@ -1,0 +1,50 @@
+// zjstatus 配置 - 使用 HTTPS 自動下載
+layout {
+    default_tab_template {
+        children
+        pane size=1 borderless=true {
+            plugin location="https://github.com/dj95/zjstatus/releases/latest/download/zjstatus.wasm" {
+                // 格式配置
+                format_left   "{mode} #[fg=$blue,bold]{session}"
+                format_center "{tabs}"
+                format_right  "{datetime}"
+                format_space  "#[bg=$bg]"
+
+                // 顏色定義
+                color_bg        "#1e1e2e"
+                color_fg        "#cdd6f4"
+                color_blue      "#89b4fa"
+                color_green     "#a6e3a1"
+                color_orange    "#fab387"
+                color_red       "#f38ba8"
+                color_mauve     "#cba6f7"
+
+                // 邊框設定
+                border_enabled "false"
+                hide_frame_for_single_pane "true"
+
+                // 模式樣式
+                mode_normal        "#[bg=$blue,fg=$bg,bold] NORMAL "
+                mode_locked        "#[bg=$red,fg=$bg,bold] LOCKED "
+                mode_resize        "#[bg=$orange,fg=$bg,bold] RESIZE "
+                mode_pane          "#[bg=$green,fg=$bg,bold] PANE "
+                mode_tab           "#[bg=$mauve,fg=$bg,bold] TAB "
+                mode_scroll        "#[bg=$orange,fg=$bg,bold] SCROLL "
+                mode_search        "#[bg=$orange,fg=$bg,bold] SEARCH "
+                mode_tmux          "#[bg=$orange,fg=$bg,bold] TMUX "
+
+                // 會話名稱
+                session "#[fg=$blue,bg=$bg,bold] {name} "
+
+                // 標籤樣式
+                tab_normal   "#[fg=$fg,bg=$bg] {index}:{name} "
+                tab_active   "#[fg=$blue,bg=$bg,bold] {index}:{name} "
+
+                // 日期時間
+                datetime          "#[fg=$fg,bg=$bg,bold] {format} "
+                datetime_format   "%H:%M:%S"
+                datetime_timezone "Asia/Taipei"
+            }
+        }
+    }
+}
