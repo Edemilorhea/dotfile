@@ -1,0 +1,292 @@
+# ================================================================
+# Alacritty 配置檔案 - 優化 CJK 字體顯示
+# ================================================================
+# 配置版本: Alacritty v0.13+
+# 最後更新: 2026-04-01
+# 主要改進: 修復 Zellij + OpenCode 的 CJK 空白方塊問題
+# ================================================================
+
+# ================================================================
+# 1. 視窗設定 (Window Configuration)
+# ================================================================
+[window]
+# 視窗大小
+dimensions = { columns = 120, lines = 28 }
+
+# 視窗內邊距
+padding = { x = 4, y = 4 }
+
+# 視窗裝飾
+decorations = "Full"
+
+# 透明度設定 (1.0 = 完全不透明)
+opacity = 0.95
+
+# 動態標題
+dynamic_title = true
+
+# 啟動模式
+startup_mode = "Maximized"
+
+# Windows 毛玻璃效果
+blur = true
+
+# ================================================================
+# 2. 字型設定 (Font Configuration) - CJK 優化
+# ================================================================
+[font]
+# 字型大小
+size = 12.0
+
+# ============================================================
+# 主字型: Sarasa Mono TC (更紗黑體 - 推薦)
+# ============================================================
+# 優點: 專為 CJK 程式設計師設計，等寬字體，完美支援中日韓
+# 安裝: https://github.com/be5invis/Sarasa-Gothic/releases
+# ============================================================
+#normal = { family = "Sarasa Term TC", style = "Regular" }
+#bold = { family = "Sarasa Term TC", style = "Bold" }
+#italic = { family = "Sarasa Term TC", style = "Italic" }
+#bold_italic = { family = "Sarasa Term TC", style = "Bold Italic" }
+
+# ============================================================
+# 備用方案 1: 保留原本的 Maple Mono NF CN
+# ============================================================
+# 如果 Sarasa 顯示有問題，取消下面註解，註解掉上面的 Sarasa
+ normal = { family = "Maple Mono NF CN", style = "Regular" }
+ bold = { family = "Maple Mono NF CN", style = "Bold" }
+ italic = { family = "Maple Mono NF CN", style = "Italic" }
+ bold_italic = { family = "Maple Mono NF CN", style = "Bold Italic" }
+
+# ============================================================
+# 備用方案 2: Windows 內建字體 (不需安裝)
+# ============================================================
+# normal = { family = "Consolas", style = "Regular" }
+# bold = { family = "Consolas", style = "Bold" }
+# italic = { family = "Consolas", style = "Italic" }
+# bold_italic = { family = "Consolas", style = "Bold Italic" }
+
+# 字型偏移調整
+offset = { x = 0, y = 0 }
+
+# 字形間距
+glyph_offset = { x = 0, y = 0 }
+
+# 字型渲染設定 - 使用內建字元繪製框線 (更清晰、無條紋)
+builtin_box_drawing = true
+
+# ================================================================
+# 3. 配色方案 (Colors) - Ocean Dark
+# ================================================================
+[colors]
+# 主要顏色
+[colors.primary]
+background = "#1c1f24"
+foreground = "#c0c5ce"
+
+# 游標顏色
+[colors.cursor]
+text = "#1c1f24"
+cursor = "#c0c5ce"
+
+# 選取顏色
+[colors.selection]
+text = "CellForeground"
+background = "#4f5b66"
+
+# 標準顏色
+[colors.normal]
+black = "#343d46"
+red = "#bf616a"
+green = "#a3be8c"
+yellow = "#ebcb8b"
+blue = "#8fa1b3"
+magenta = "#b48ead"
+cyan = "#96b5b4"
+white = "#c0c5ce"
+
+[colors.bright]
+black = "#65737e"
+red = "#bf616a"
+green = "#a3be8c"
+yellow = "#ebcb8b"
+blue = "#8fa1b3"
+magenta = "#b48ead"
+cyan = "#96b5b4"
+white = "#eff1f5"
+
+# ================================================================
+# 4. 終端與 Shell 設定 (Terminal & Shell)
+# ================================================================
+[terminal]
+# Shell 設定
+[terminal.shell]
+program = "pwsh.exe"
+args = ["-NoLogo", "-NoExit", "-Command", "zellij"]
+
+# ================================================================
+# 5. 捲動設定 (Scrolling)
+# ================================================================
+[scrolling]
+# 歷史記錄行數
+history = 10000
+
+# 每次捲動的行數
+multiplier = 3
+
+# ================================================================
+# 6. 游標設定 (Cursor)
+# ================================================================
+[cursor]
+# 游標樣式
+style = { shape = "Block", blinking = "On" }
+
+# 閃爍間隔 (毫秒)
+blink_interval = 750
+
+# 未聚焦時的游標樣式
+unfocused_hollow = true
+
+# ================================================================
+# 7. 快捷鍵設定 (Keyboard Bindings)
+# ================================================================
+[[keyboard.bindings]]
+key = "C"
+mods = "Control|Shift"
+action = "Copy"
+
+[[keyboard.bindings]]
+key = "V"
+mods = "Control|Shift"
+action = "Paste"
+
+[[keyboard.bindings]]
+key = "Equals"
+mods = "Control"
+action = "IncreaseFontSize"
+
+[[keyboard.bindings]]
+key = "Minus"
+mods = "Control"
+action = "DecreaseFontSize"
+
+[[keyboard.bindings]]
+key = "Key0"
+mods = "Control"
+action = "ResetFontSize"
+
+[[keyboard.bindings]]
+key = "L"
+mods = "Control"
+action = "ClearHistory"
+
+[[keyboard.bindings]]
+key = "F"
+mods = "Control|Shift"
+action = "SearchForward"
+
+[[keyboard.bindings]]
+key = "N"
+mods = "Control|Shift"
+action = "SpawnNewInstance"
+
+# ================================================================
+# 8. 滑鼠設定 (Mouse)
+# ================================================================
+[mouse]
+hide_when_typing = true
+
+# ================================================================
+# 9. 選取設定 (Selection)
+# ================================================================
+[selection]
+save_to_clipboard = true
+
+# ================================================================
+# 10. 環境變數 (Environment) - CJK 優化
+# ================================================================
+[env]
+# 設定終端類型
+TERM = "xterm-256color"
+
+# Windows IME 中文輸入優化
+WINIT_X11_SCALE_FACTOR = "1"
+
+# 強制 UTF-8 編碼 (解決 CJK 字元顯示問題)
+LANG = "zh_TW.UTF-8"
+LC_ALL = "zh_TW.UTF-8"
+
+# ================================================================
+# 11. 渲染器設定 (Renderer) - Windows 優化
+# ================================================================
+# Windows 11 推薦使用 dx12，Windows 10 使用 gl
+
+# ================================================================
+# 12. 偵錯設定 (Debug)
+# ================================================================
+[debug]
+# 如果遇到問題，可以啟用 debug 模式
+# log_level = "debug"
+# persistent_logging = true
+
+# ================================================================
+# 📦 Sarasa Gothic 字體安裝指引
+# ================================================================
+# 
+# 如果看到空白方塊，請按照以下步驟安裝 Sarasa Gothic:
+# 
+# 1. 下載字體:
+#    https://github.com/be5invis/Sarasa-Gothic/releases
+#    - 下載最新版本的 sarasa-gothic-ttc-*.7z
+# 
+# 2. 解壓縮後，找到以下檔案:
+#    - sarasa-mono-tc-regular.ttf
+#    - sarasa-mono-tc-bold.ttf
+#    - sarasa-mono-tc-italic.ttf
+#    - sarasa-mono-tc-bolditalic.ttf
+# 
+# 3. 安裝字體:
+#    - 右鍵點擊 .ttf 檔案
+#    - 選擇「為所有使用者安裝」
+#    - 安裝全部 4 個檔案
+# 
+# 4. 重新啟動 Alacritty
+# 
+# 5. 測試 CJK 顯示:
+#    echo "測試 CJK: 中文 日本語 한국어 ✓"
+# 
+# ================================================================
+# 🔧 如果 Sarasa 無法使用
+# ================================================================
+# 
+# 方案 1: 使用原本的 Maple Mono NF CN
+# - 取消註解第 48-51 行
+# - 註解掉第 42-45 行
+# 
+# 方案 2: 使用 Windows 內建 Consolas
+# - 取消註解第 57-60 行
+# - 註解掉第 42-45 行
+# - 注意: Consolas 的 CJK 支援較差
+# 
+# ================================================================
+# 🎯 問題排查
+# ================================================================
+# 
+# 如果還是看到空白方塊:
+# 
+# 1. 確認字體已安裝:
+#    PowerShell 執行:
+#    [System.Drawing.Text.InstalledFontCollection]::new().Families | 
+#      Where-Object { $_.Name -match "Sarasa" }
+# 
+# 2. 確認 Zellij 配置正確 (不干預字體)
+# 
+# 3. 確認 OpenCode 沒有覆蓋字體設定
+# 
+# 4. 重新啟動整個 terminal stack:
+#    - 關閉所有 Alacritty 視窗
+#    - 重新開啟 Alacritty
+#    - 啟動 Zellij
+#    - 啟動 OpenCode
+# 
+# ================================================================
