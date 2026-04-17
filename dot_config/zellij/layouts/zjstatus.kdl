@@ -1,25 +1,21 @@
-// zjstatus 狀態列配置
+// zjstatus 狀態列配置 - 雙排版本
 // 使用說明: zellij --layout zjstatus
+// 第一排（上方）：快捷鍵提示
+// 第二排（下方）：模式 + Session + Tabs + 時間
 
 layout {
     default_tab_template {
+        // ═══════════════════════════════════════
+        // 第一排：快捷鍵提示（上方）
+        // ═══════════════════════════════════════
         pane size=1 borderless=true {
-            plugin location="https://github.com/dj95/zjstatus/releases/latest/download/zjstatus.wasm" {
-                // ═══════════════════════════════════════
-                // 格式配置 (Format Configuration)
-                // ═══════════════════════════════════════
-                format_left   "{mode} #[fg=$blue,bold]{session} {command_git_branch}"
-                format_center "{tabs}"
-                format_right  "{datetime}"
+            plugin location="file:C:/Users/tc_tseng/.config/zellij/plugins/zjstatus.wasm" {
+                format_left   "{mode}"
+                format_center ""
+                format_right  ""
                 format_space  "#[bg=$bg]"
 
-                // 避免重疊時自動隱藏部分 (優先級: left > center > right)
-                format_hide_on_overlength "true"
-                format_precedence         "lrc"
-
-                // ═══════════════════════════════════════
-                // 顏色定義 (Color Aliases)
-                // ═══════════════════════════════════════
+                // 顏色定義
                 color_bg        "#1e1e2e"
                 color_fg        "#cdd6f4"
                 color_fg_dim    "#6c7086"
@@ -30,45 +26,84 @@ layout {
                 color_red       "#f38ba8"
                 color_mauve     "#cba6f7"
 
-                // ═══════════════════════════════════════
-                // 邊框設定 (Border Configuration)
-                // ═══════════════════════════════════════
+                // 快捷鍵提示樣式（根據模式顯示不同內容）
+                mode_normal        "#[fg=$blue,bg=$bg] Alt+hjkl:移動 Alt+n:新增Pane Alt+f:浮動 Alt+Shift+[]:切Tab #[fg=$fg_dim]│#[fg=$blue] Ctrl+p:Pane Ctrl+t:Tab Ctrl+s:搜尋 Ctrl+b:Tmux Ctrl+g:鎖定 Ctrl+q:退出"
+                mode_locked        "#[fg=$red,bg=$bg] Ctrl+g:解鎖"
+                mode_pane          "#[fg=$green,bg=$bg] n:新增 d:下 r:右 s:堆疊 hjkl:方向新增 #[fg=$fg_dim]│#[fg=$green] x:關閉 f:全螢幕 w:浮動 e:嵌入切換 z:邊框 c:重命名 i:釘選 p:切換焦點 #[fg=$fg_dim]│#[fg=$green] Ctrl+p/Esc:返回"
+                mode_tab           "#[fg=$mauve,bg=$bg] n:新增 x:關閉 r:重命名 #[fg=$fg_dim]│#[fg=$mauve] hjkl:切換 1-9:跳轉 Tab:上一個 #[fg=$fg_dim]│#[fg=$mauve] []:移Pane左右 b:分離 s:同步 #[fg=$fg_dim]│#[fg=$mauve] Ctrl+t/Esc:返回"
+                mode_resize        "#[fg=$orange,bg=$bg] hjkl/方向鍵:增加大小 HJKL:減少大小 #[fg=$fg_dim]│#[fg=$orange] +/=:整體放大 -:整體縮小 #[fg=$fg_dim]│#[fg=$orange] Ctrl+n/Esc:返回"
+                mode_move          "#[fg=$green,bg=$bg] hjkl/方向鍵:移動Pane #[fg=$fg_dim]│#[fg=$green] n/Tab:循環移動 p:反向移動 #[fg=$fg_dim]│#[fg=$green] Ctrl+h/Esc:返回"
+                mode_scroll        "#[fg=$yellow,bg=$bg] jk/方向鍵:上下捲動 u:半頁上 d:半頁下 #[fg=$fg_dim]│#[fg=$yellow] Ctrl+b/h:整頁上 Ctrl+f/l:整頁下 #[fg=$fg_dim]│#[fg=$yellow] s:搜尋 e:編輯器開啟 #[fg=$fg_dim]│#[fg=$yellow] Ctrl+c:底部 Ctrl+s:返回"
+                mode_enter_search  "#[fg=$orange,bg=$bg] 輸入搜尋關鍵字... #[fg=$fg_dim]│#[fg=$orange] Enter:確認搜尋 #[fg=$fg_dim]│#[fg=$orange] Esc/Ctrl+c:取消"
+                mode_search        "#[fg=$orange,bg=$bg] n:下一個 p:上一個 #[fg=$fg_dim]│#[fg=$orange] c:大小寫切換 w:Wrap切換 o:整字匹配 #[fg=$fg_dim]│#[fg=$orange] Enter/Esc:返回"
+                mode_session       "#[fg=$blue,bg=$bg] w:SessionMgr c:設定 p:插件管理 l:Layout管理 #[fg=$fg_dim]│#[fg=$blue] a:關於 s:分享 d:Detach分離 #[fg=$fg_dim]│#[fg=$blue] Ctrl+o/Esc:返回"
+                mode_tmux          "#[fg=$orange,bg=$bg] c:新Tab \":下分 %:右分 #[fg=$fg_dim]│#[fg=$orange] hjkl:移動 HJKL:調大小 #[fg=$fg_dim]│#[fg=$orange] np:切Tab 1-9:跳轉 z:全螢幕 x:關閉 #[fg=$fg_dim]│#[fg=$orange] d:Detach s:Session /:搜尋 [:捲動 #[fg=$fg_dim]│#[fg=$orange] Ctrl+[:返回"
+                mode_rename_tab    "#[fg=$mauve,bg=$bg] 輸入新的 Tab 名稱... #[fg=$fg_dim]│#[fg=$mauve] Enter:確認 #[fg=$fg_dim]│#[fg=$mauve] Ctrl+c:取消"
+                mode_rename_pane   "#[fg=$green,bg=$bg] 輸入新的 Pane 名稱... #[fg=$fg_dim]│#[fg=$green] Enter:確認 #[fg=$fg_dim]│#[fg=$green] Esc/Ctrl+c:取消"
+                mode_prompt        "#[fg=$yellow,bg=$bg] 輸入中..."
+            }
+        }
+
+        // ═══════════════════════════════════════
+        // 主要內容區域
+        // ═══════════════════════════════════════
+        children
+
+        // ═══════════════════════════════════════
+        // 第二排：模式 + Session + Tabs + 時間（下方）
+        // ═══════════════════════════════════════
+        pane size=1 borderless=true {
+            plugin location="file:C:/Users/tc_tseng/.config/zellij/plugins/zjstatus.wasm" {
+                // 格式配置
+                format_left   "{mode} #[fg=$blue,bold]{session} {command_git_branch}"
+                format_center "{tabs}"
+                format_right  "{datetime}"
+                format_space  "#[bg=$bg]"
+
+                // 避免重疊時自動隱藏部分
+                format_hide_on_overlength "true"
+                format_precedence         "lrc"
+
+                // 顏色定義
+                color_bg        "#1e1e2e"
+                color_fg        "#cdd6f4"
+                color_fg_dim    "#6c7086"
+                color_blue      "#89b4fa"
+                color_green     "#a6e3a1"
+                color_yellow    "#f9e2af"
+                color_orange    "#fab387"
+                color_red       "#f38ba8"
+                color_mauve     "#cba6f7"
+
+                // 邊框設定
                 border_enabled  "false"
                 border_char     "─"
                 border_format   "#[fg=$fg_dim]{char}"
                 border_position "top"
 
-                // ═══════════════════════════════════════
-                // Pane 邊框控制 (Pane Frame Control)
-                // ═══════════════════════════════════════
+                // Pane 邊框控制
                 hide_frame_for_single_pane "false"
 
-                // ═══════════════════════════════════════
-                // 模式樣式 (Mode Styling)
-                // ═══════════════════════════════════════
+                // 模式樣式（簡潔版，只顯示模式名稱）
                 mode_normal        "#[bg=$blue,fg=$bg,bold] NORMAL "
                 mode_locked        "#[bg=$red,fg=$bg,bold] LOCKED "
-                mode_resize        "#[bg=$orange,fg=$bg,bold] RESIZE "
                 mode_pane          "#[bg=$green,fg=$bg,bold] PANE "
                 mode_tab           "#[bg=$mauve,fg=$bg,bold] TAB "
+                mode_resize        "#[bg=$orange,fg=$bg,bold] RESIZE "
+                mode_move          "#[bg=$green,fg=$bg,bold] MOVE "
                 mode_scroll        "#[bg=$yellow,fg=$bg,bold] SCROLL "
                 mode_enter_search  "#[bg=$orange,fg=$bg,bold] SEARCH "
                 mode_search        "#[bg=$orange,fg=$bg,bold] SEARCH "
+                mode_session       "#[bg=$blue,fg=$bg,bold] SESSION "
+                mode_tmux          "#[bg=$orange,fg=$bg,bold] TMUX "
                 mode_rename_tab    "#[bg=$mauve,fg=$bg,bold] RENAME "
                 mode_rename_pane   "#[bg=$green,fg=$bg,bold] RENAME "
-                mode_session       "#[bg=$blue,fg=$bg,bold] SESSION "
-                mode_move          "#[bg=$green,fg=$bg,bold] MOVE "
                 mode_prompt        "#[bg=$yellow,fg=$bg,bold] PROMPT "
-                mode_tmux          "#[bg=$orange,fg=$bg,bold] TMUX "
 
-                // ═══════════════════════════════════════
-                // 會話名稱 (Session Name)
-                // ═══════════════════════════════════════
+                // 會話名稱
                 session "#[fg=$blue,bg=$bg,bold] {name} "
 
-                // ═══════════════════════════════════════
-                // 標籤樣式 (Tab Styling)
-                // ═══════════════════════════════════════
+                // 標籤樣式
                 tab_normal              "#[fg=$fg_dim,bg=$bg] {index}:{name} "
                 tab_active              "#[fg=$blue,bg=$bg,bold,italic] {index}:{name} "
                 tab_separator           "#[fg=$fg_dim,bg=$bg]│"
@@ -77,22 +112,17 @@ layout {
                 tab_sync_tab_is_active  "true"
                 tab_sync_tab            "#[fg=$red,bg=$bg,bold] {index}:{name} [SYNC]"
 
-                // ═══════════════════════════════════════
-                // Git 分支顯示 (Git Branch)
-                // ═══════════════════════════════════════
+                // Git 分支顯示
                 command_git_branch_command     "git rev-parse --abbrev-ref HEAD"
                 command_git_branch_format      "#[fg=$green,bg=$bg] {stdout} "
                 command_git_branch_interval    "10"
                 command_git_branch_rendermode  "static"
 
-                // ═══════════════════════════════════════
-                // 日期時間 (DateTime)
-                // ═══════════════════════════════════════
+                // 日期時間
                 datetime          "#[fg=$fg,bg=$bg,bold] {format} "
                 datetime_format   "%Y-%m-%d %H:%M:%S"
                 datetime_timezone "Asia/Taipei"
             }
         }
-        children
     }
 }

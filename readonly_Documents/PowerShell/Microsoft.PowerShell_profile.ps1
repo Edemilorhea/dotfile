@@ -6,11 +6,11 @@ Import-Module PSFzf
 Import-Module Terminal-Icons
 Import-Module PSEverything
 
+
 # ================================
 # 🌈 Oh My Posh 主題設定
 # ================================
-oh-my-posh init pwsh --config "$env:POSH_THEMES_PATH\M365Princess.omp.json" | Invoke-Expression
-
+oh-my-posh init pwsh --config 'C:\Users\tc_tseng\AppData\Local\Programs\oh-my-posh\themes\M365Princess.omp.json' | Invoke-Expression  # [omp-manager]
 # ================================
 # 🧩 WinGet 指令不存在提示
 # ================================
@@ -26,10 +26,22 @@ Invoke-Expression (& { (zoxide init powershell) -join "`n" })
 # ================================
 # ⌨️ PSReadLine + fzf 查歷史
 # ================================
-Set-PSReadLineKeyHandler -Key Ctrl+r -ScriptBlock {
-    $line = fzf (Get-History | ForEach-Object { $_.CommandLine })
-    if ($line) { [Microsoft.PowerShell.PSConsoleReadLine]::Insert($line) }
-}
+# Set-PSReadLineKeyHandler -Key Ctrl+r -ScriptBlock {
+#     $line = fzf (Get-History | ForEach-Object { $_.CommandLine })
+#     if ($line) { [Microsoft.PowerShell.PSConsoleReadLine]::Insert($line) }
+# }
+Set-PsFzfOption `
+    -EnableAliasFuzzyEdit `
+    -EnableAliasFuzzyHistory `
+    -EnableAliasFuzzyKillProcess `
+    -EnableAliasFuzzySetLocation `
+    -EnableAliasFuzzyZLocation `
+    -EnableAliasFuzzyScoop `
+    -GitKeyBindings `
+    -PSReadlineChordProvider 'Ctrl+f' `
+    -PSReadlineChordReverseHistory 'Ctrl+r' `
+    -PSReadlineChordSetLocation 'Alt+c'
+
 
 # ================================
 # 📂 GUI 選擇資料夾
@@ -86,7 +98,7 @@ Set-Alias tlzh tldrzhtw
 Set-Alias tl tldr
 Set-Alias nav navi
 
-
+$env:WEZTERM_LOG = "debug"
 $env:PATH += ";$env:USERPROFILE\.config"
 
 # ================================
@@ -130,5 +142,8 @@ Set-PSReadLineKeyHandler -Key RightArrow -Function ForwardWord
 Set-PSReadLineKeyHandler -Key Ctrl+RightArrow -Function AcceptNextSuggestionWord
 Set-PSReadLineKeyHandler -Key Alt+F -Function AcceptSuggestion
 Set-PSReadLineKeyHandler -Key F2 -Function SwitchPredictionView
+
+# 移除 Alt+A 綁定 (讓 Zellij Leader 鍵生效)
+Remove-PSReadLineKeyHandler -Chord "Alt+a"
 
 Set-Alias bunx "bun"

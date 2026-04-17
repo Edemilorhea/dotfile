@@ -72,4 +72,8 @@ require("config.keymaps")
 -- 注意：plugin.lsp 已停用，改用 LazyVim 原生 LSP 配置
 -- 如需自訂 LSP，請在 lua/plugins/lsp.lua 中設定
 
+-- 載入 LSP 診斷工具
+require("config.lsp-diagnostic")
+require("config.lsp-performance")
+
 vim.notify("🚀 Neovim 完整環境已啟動")

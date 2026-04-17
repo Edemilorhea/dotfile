@@ -241,7 +241,7 @@ return {
             vim.g.mkdp_open_to_the_world = 0
 
             -- CSS 檔案路徑 (確保檔案存在)
-            local css_dir = vim.fn.expand("~/dotfiles/nvim/lua/customfile")
+            local css_dir = vim.fn.expand("~/.config/nvim/lua/customfile/")
             local markdown_css = css_dir .. "github-markdown-dark.min.css"
             local highlight_css = css_dir .. "tomorrow-night-eighties.css"
 
@@ -276,50 +276,50 @@ return {
                 toc = {},
             }
 
-            -- 創建主題切換指令
-            vim.api.nvim_create_user_command("MarkdownThemeDark", function()
-                vim.g.mkdp_theme = "dark"
-                vim.notify("Markdown Preview 主題已切換為：Dark", vim.log.levels.INFO)
-            end, { desc = "切換到深色主題" })
+            -- 創建主題切換指令 (已註解 - 暫時不使用)
+            -- vim.api.nvim_create_user_command("MarkdownThemeDark", function()
+            --     vim.g.mkdp_theme = "dark"
+            --     vim.notify("Markdown Preview 主題已切換為：Dark", vim.log.levels.INFO)
+            -- end, { desc = "切換到深色主題" })
 
-            vim.api.nvim_create_user_command("MarkdownThemeLight", function()
-                vim.g.mkdp_theme = "light"
-                vim.notify("Markdown Preview 主題已切換為：Light", vim.log.levels.INFO)
-            end, { desc = "切換到淺色主題" })
+            -- vim.api.nvim_create_user_command("MarkdownThemeLight", function()
+            --     vim.g.mkdp_theme = "light"
+            --     vim.notify("Markdown Preview 主題已切換為：Light", vim.log.levels.INFO)
+            -- end, { desc = "切換到淺色主題" })
 
-            -- 切換自訂 CSS 主題的指令
-            vim.api.nvim_create_user_command("MarkdownThemeCustom", function()
-                if vim.fn.filereadable(markdown_css) == 1 then
-                    vim.g.mkdp_markdown_css = markdown_css
-                    vim.g.mkdp_highlight_css = highlight_css
-                    vim.notify("已啟用自訂 CSS 主題", vim.log.levels.INFO)
-                else
-                    vim.notify("自訂 CSS 檔案不存在，請先下載到: " .. css_dir, vim.log.levels.ERROR)
-                end
-            end, { desc = "啟用自訂 CSS 主題" })
+            -- 切換自訂 CSS 主題的指令 (已註解 - 暫時不使用)
+            -- vim.api.nvim_create_user_command("MarkdownThemeCustom", function()
+            --     if vim.fn.filereadable(markdown_css) == 1 then
+            --         vim.g.mkdp_markdown_css = markdown_css
+            --         vim.g.mkdp_highlight_css = highlight_css
+            --         vim.notify("已啟用自訂 CSS 主題", vim.log.levels.INFO)
+            --     else
+            --         vim.notify("自訂 CSS 檔案不存在，請先下載到: " .. css_dir, vim.log.levels.ERROR)
+            --     end
+            -- end, { desc = "啟用自訂 CSS 主題" })
 
-            vim.api.nvim_create_user_command("MarkdownThemeDefault", function()
-                vim.g.mkdp_markdown_css = ""
-                vim.g.mkdp_highlight_css = ""
-                vim.notify("已重置為預設主題", vim.log.levels.INFO)
-            end, { desc = "重置為預設主題" })
+            -- vim.api.nvim_create_user_command("MarkdownThemeDefault", function()
+            --     vim.g.mkdp_markdown_css = ""
+            --     vim.g.mkdp_highlight_css = ""
+            --     vim.notify("已重置為預設主題", vim.log.levels.INFO)
+            -- end, { desc = "重置為預設主題" })
 
-            -- 建立 CSS 目錄的指令
-            vim.api.nvim_create_user_command("MarkdownSetupCSS", function()
-                vim.fn.system("mkdir -p " .. css_dir)
-                vim.notify("CSS 目錄已建立: " .. css_dir, vim.log.levels.INFO)
-                vim.notify("請手動下載 CSS 檔案到此目錄", vim.log.levels.INFO)
-            end, { desc = "建立 CSS 目錄" })
+            -- 建立 CSS 目錄的指令 (已註解 - 暫時不使用)
+            -- vim.api.nvim_create_user_command("MarkdownSetupCSS", function()
+            --     vim.fn.system("mkdir -p " .. css_dir)
+            --     vim.notify("CSS 目錄已建立: " .. css_dir, vim.log.levels.INFO)
+            --     vim.notify("請手動下載 CSS 檔案到此目錄", vim.log.levels.INFO)
+            -- end, { desc = "建立 CSS 目錄" })
         end,
         keys = {
             { "<leader>mpp", "<cmd>MarkdownPreview<cr>", desc = "Markdown Preview" },
             { "<leader>ms", "<cmd>MarkdownPreviewStop<cr>", desc = "Stop Preview" },
             { "<leader>mt", "<cmd>MarkdownPreviewToggle<cr>", desc = "Toggle Preview" },
-            -- 主題切換快捷鍵
-            { "<leader>mtd", "<cmd>MarkdownThemeDark<cr>", desc = "Dark Theme" },
-            { "<leader>mtl", "<cmd>MarkdownThemeLight<cr>", desc = "Light Theme" },
-            { "<leader>mtc", "<cmd>MarkdownThemeCustom<cr>", desc = "Custom CSS Theme" },
-            { "<leader>mtr", "<cmd>MarkdownThemeDefault<cr>", desc = "Reset Theme" },
+            -- 主題切換快捷鍵 (已註解 - 暫時不使用)
+            -- { "<leader>mtd", "<cmd>MarkdownThemeDark<cr>", desc = "Dark Theme" },
+            -- { "<leader>mtl", "<cmd>MarkdownThemeLight<cr>", desc = "Light Theme" },
+            -- { "<leader>mtc", "<cmd>MarkdownThemeCustom<cr>", desc = "Custom CSS Theme" },
+            -- { "<leader>mtr", "<cmd>MarkdownThemeDefault<cr>", desc = "Reset Theme" },
         },
     },
 

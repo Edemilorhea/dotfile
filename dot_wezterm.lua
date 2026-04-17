@@ -6,21 +6,21 @@ local mux = wezterm.mux
 ----------------------------------------------------------------
 -- 1. Resurrect 插件設定 (Session 狀態管理)
 ----------------------------------------------------------------
-local resurrect = wezterm.plugin.require("https://github.com/MLFlexer/resurrect.wezterm")
+-- local resurrect = wezterm.plugin.require("https://github.com/MLFlexer/resurrect.wezterm")
 
 -- 設定狀態檔案儲存目錄 (Windows 必須設定)
-local state_dir = wezterm.home_dir .. "\\Desktop\\wezterm_state\\"
-resurrect.state_manager.change_state_save_dir(state_dir)
-wezterm.log_info("📁 Resurrect 狀態目錄: " .. state_dir)
+-- local state_dir = wezterm.home_dir .. "\\Desktop\\wezterm_state\\"
+-- resurrect.state_manager.change_state_save_dir(state_dir)
+-- wezterm.log_info("📁 Resurrect 狀態目錄: " .. state_dir)
 
 -- 啟用自動定期儲存 (每 15 分鐘)
-resurrect.state_manager.periodic_save({
-    interval_seconds = 900, -- 15 分鐘 = 900 秒
-    save_workspaces = true,
-    save_windows = true,
-    save_tabs = false, -- 不單獨儲存 tab (已包含在 workspace 中)
-})
-wezterm.log_info("✅ Resurrect 自動儲存已啟用 (每 15 分鐘)")
+-- resurrect.state_manager.periodic_save({
+--     interval_seconds = 900, -- 15 分鐘 = 900 秒
+--     save_workspaces = true,
+--     save_windows = true,
+--     save_tabs = false, -- 不單獨儲存 tab (已包含在 workspace 中)
+-- })
+-- wezterm.log_info("✅ Resurrect 自動儲存已啟用 (每 15 分鐘)")
 
 ----------------------------------------------------------------
 -- 2. 基礎外觀與系統設定
@@ -29,10 +29,64 @@ config.initial_cols = 120
 config.initial_rows = 28
 config.font_size = 12
 config.color_scheme = "Ocean (dark) (terminal.sexy)"
-config.front_end = "OpenGL"
+
+----------------------------------------------------------------
+-- 渲染器設定 (OpenGL 對 IME 相容性較佳)
+----------------------------------------------------------------
+-- OpenGL  - 傳統渲染器,IME 相容性最佳 (推薦用於中文輸入法)
+-- WebGpu  - 新一代渲染器,效能較好但可能與 IME 衝突
+-- Software - 軟體渲染,最慢但最穩定
+config.front_end = "Software"
+
+-- ===== 輸入法相關設定 =====
+-- ===== Windows 穩定性設定 =====
+if wezterm.target_triple == "x86_64-pc-windows-msvc" then
+    config.front_end = "OpenGL"
+    config.max_fps = 60
+    config.animation_fps = 30
+end
+
+----------------------------------------------------------------
+-- IME 輸入法支援設定 (修復無蝦米/注音等輸入法 Shift 切換問題)
+----------------------------------------------------------------
+-- 核心設定: 啟用 IME 支援
+-- config.use_ime = true
+config.use_ime = false
+
+-- IME 預覽文字渲染模式
+-- "System"   - 使用系統原生輸入法預覽視窗 (推薦,相容性最佳)
+-- "Builtin"  - 使用 WezTerm 內建渲染 (可能與某些輸入法衝突)
+-- "None"     - 不顯示預覽 (不推薦)
+-- config.ime_preedit_rendering = "Builtin"
+config.ime_preedit_rendering = "System"
+
+-- 防止 Alt 鍵干擾輸入法組合鍵
+-- 設為 false 可避免 Alt 鍵被 WezTerm 攔截,讓輸入法正常運作
+config.send_composed_key_when_left_alt_is_pressed = false
+config.send_composed_key_when_right_alt_is_pressed = false
+
+-- 禁用死鍵處理 (Dead Keys)
+-- 死鍵是用於輸入重音符號的機制,可能干擾中文輸入法
+config.use_dead_keys = false
+
+-- 禁用 Kitty 鍵盤協議
+-- Kitty 協議會改變按鍵事件處理方式,可能導致 IME 事件被攔截
+config.enable_kitty_keyboard = false
+
+-- 說明:
+-- 1. front_end = "OpenGL" - 切換到相容性更好的渲染器
+-- 2. use_ime = true - 啟用 Windows IME 支援
+-- 3. ime_preedit_rendering = "System" - 使用系統原生輸入法視窗
+-- 4. use_dead_keys = false - 避免死鍵機制干擾
+-- 5. enable_kitty_keyboard = false - 避免按鍵協議衝突
+--
+-- 如果仍無效,可能需要:
+-- - 檢查 Windows 設定 > 時間與語言 > 語言 > 進階鍵盤設定
+-- - 確認「切換輸入法」快速鍵設定為 Shift
+-- - 嘗試重新安裝無蝦米輸入法
 
 -- 跨平台預設 Shell 設定
-config.default_prog = { "pwsh.exe" } -- Windows: PowerShell
+config.default_prog = { "pwsh.exe", "-NoLogo" }
 
 -- 跨平台字型設定
 config.font = wezterm.font_with_fallback({
@@ -145,11 +199,31 @@ end
 -- 4. 快捷鍵設定 (含超級入口)
 ----------------------------------------------------------------
 config.keys = {
+    ----------------------------------------------------------------
+    -- [IME 支援] Shift 鍵穿透設定 - 讓輸入法接管 Shift 鍵
+    ----------------------------------------------------------------
+    -- 明確告訴 WezTerm 不要處理單獨的 Shift 鍵,讓 Windows IME 接管
+    -- 這樣無蝦米/注音等輸入法才能正常使用 Shift 切換中英文
+    {
+        key = "Shift",
+        action = act.DisableDefaultAssignment, -- 禁用預設行為,讓系統處理
+    },
+    {
+        key = "LeftShift",
+        action = act.DisableDefaultAssignment,
+    },
+    {
+        key = "RightShift",
+        action = act.DisableDefaultAssignment,
+    },
+
     -- [通用] 顯示快捷鍵速查表 (Alt + ?)
     {
         key = "?",
         mods = "ALT|SHIFT",
-        action = show_keybindings_help(),
+        action = wezterm.action_callback(function(window, pane)
+            window:perform_action(show_keybindings_help(), pane)
+        end),
     },
 
     -- [通用] 開啟純淨新分頁
@@ -269,50 +343,51 @@ config.keys = {
     -- [Resurrect] Session 狀態管理
     ----------------------------------------------------------------
     -- 儲存當前 Workspace 狀態 (Alt + Shift + W)
-    {
-        key = "W",
-        mods = "ALT|SHIFT",
-        action = wezterm.action_callback(function(win, pane)
-            local workspace = mux.get_active_workspace()
-            resurrect.state_manager.save_state(resurrect.workspace_state.get_workspace_state())
-
-            -- 顯示通知
-            win:toast_notification("WezTerm - Resurrect", "✅ Workspace 已儲存: " .. workspace, nil, 3000)
-            wezterm.log_info("✅ Workspace 狀態已儲存: " .. workspace)
-        end),
-    },
+    -- {
+    --     key = "W",
+    --     mods = "ALT|SHIFT",
+    --     action = wezterm.action_callback(function(win, pane)
+    --         local workspace = mux.get_active_workspace()
+    --         resurrect.state_manager.save_state(resurrect.workspace_state.get_workspace_state())
+    --
+    --         -- 顯示通知
+    --         win:toast_notification("WezTerm - Resurrect", "✅ Workspace 已儲存: " .. workspace, nil, 3000)
+    --         wezterm.log_info("✅ Workspace 狀態已儲存: " .. workspace)
+    --     end),
+    -- },
 
     -- 載入最近儲存的 Workspace 狀態 (Alt + Shift + R)
-    {
-        key = "R",
-        mods = "ALT|SHIFT",
-        action = wezterm.action_callback(function(win, pane)
-            local workspace = mux.get_active_workspace()
-            local success, state = pcall(function()
-                return resurrect.state_manager.load_state(workspace, "workspace")
-            end)
-
-            if success and state then
-                local opts = {
-                    relative = true,
-                    restore_text = true,
-                    on_pane_restore = resurrect.tab_state.default_on_pane_restore,
-                }
-                resurrect.workspace_state.restore_workspace(state, opts)
-                win:toast_notification("WezTerm - Resurrect", "✅ Workspace 已恢復: " .. workspace, nil, 3000)
-                wezterm.log_info("✅ Workspace 已恢復: " .. workspace)
-            else
-                win:toast_notification(
-                    "WezTerm - Resurrect",
-                    "❌ 找不到已儲存的狀態: " .. workspace,
-                    nil,
-                    3000
-                )
-                wezterm.log_warn("❌ 找不到已儲存的狀態: " .. workspace)
-            end
-        end),
-    },
-}
+    --     {
+    --         key = "R",
+    --         mods = "ALT|SHIFT",
+    --         action = wezterm.action_callback(function(win, pane)
+    --             local workspace = mux.get_active_workspace()
+    --             local success, state = pcall(function()
+    --                 return resurrect.state_manager.load_state(workspace, "workspace")
+    --             end)
+    --
+    --             if success and state then
+    --                 local opts = {
+    --                     relative = true,
+    --                     restore_text = true,
+    --                     on_pane_restore = resurrect.tab_state.default_on_pane_restore,
+    --                 }
+    --                 resurrect.workspace_state.restore_workspace(state, opts)
+    --                 win:toast_notification("WezTerm - Resurrect", "✅ Workspace 已恢復: " .. workspace, nil, 3000)
+    --                 wezterm.log_info("✅ Workspace 已恢復: " .. workspace)
+    --             else
+    --                 win:toast_notification(
+    --                     "WezTerm - Resurrect",
+    --                     "❌ 找不到已儲存的狀態: " .. workspace,
+    --                     nil,
+    --                     3000
+    --                 )
+    --                 wezterm.log_warn("❌ 找不到已儲存的狀態: " .. workspace)
+    --             end
+    --         end),
+    --     },
+    -- }
+} -- 結束 config.keys
 
 ----------------------------------------------------------------
 -- 4. 快速切換分頁 (Leader + 1~9)
@@ -397,22 +472,24 @@ end)
 ----------------------------------------------------------------
 -- 7. Resurrect 啟動時自動恢復
 ----------------------------------------------------------------
-wezterm.on("gui-startup", function(cmd)
-    -- 先執行預設的啟動行為
-    resurrect.state_manager.resurrect_on_gui_startup(cmd)
-    wezterm.log_info("🔄 已嘗試恢復上次的 Workspace 狀態")
-end)
+-- wezterm.on("gui-startup", function(cmd)
+--     -- 先執行預設的啟動行為
+--     resurrect.state_manager.resurrect_on_gui_startup(cmd)
+--     wezterm.log_info("🔄 已嘗試恢復上次的 Workspace 狀態")
+-- end)
 
 ----------------------------------------------------------------
 -- 路徑管理: 動態偵測 + 本機配置
 ----------------------------------------------------------------
 -- 輔助函數: 檢查路徑是否存在 (改良版，支援目錄檢查)
 local function path_exists(path)
-    -- 使用 wezterm 內建函數檢查目錄
-    local success = pcall(function()
-        wezterm.read_dir(path)
-    end)
-    return success
+    -- 使用 io.open 快速檢查路徑 (避免讀取整個目錄)
+    local f = io.open(path, "r")
+    if f then
+        f:close()
+        return true
+    end
+    return false
 end
 
 -- 輔助函數: 找到第一個存在的路徑

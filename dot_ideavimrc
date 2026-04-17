@@ -86,6 +86,7 @@ vnoremap u gu
 " Close Tab
 nnoremap <leader>cl :action CloseAllToTheLeft<CR>
 nnoremap <leader>cr :action CloseAllToTheRight<CR>
+nnoremap <leader>cua :action CloseAllUnpinnedEditors<CR>
 
 " 展開到指定層級（對應你截圖中的「展開層級 1~5」）
 " 目前區塊：z1 ~ z5
@@ -111,6 +112,8 @@ nnoremap <leader>r :action ReformatCode<CR>
 
 let g:WhichKeyDesc_debug = "<leader>b Breakpoint"
 nnoremap <leader>b :action ToggleLineBreakpoint<CR>
+
+nnoremap <leader>yfn : action CopyFileName<CR>
 
 " 格式化
 map Q gq
