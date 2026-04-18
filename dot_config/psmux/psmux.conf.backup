@@ -1,0 +1,430 @@
+# ================================================================
+# psmux 配置檔案 - 基於 Alacritty 和 Zellij zjstatus 配置
+# ================================================================
+# 配置版本: psmux v1.0
+# 最後更新: 2026-04-02
+# 配置格式: tmux 語法
+# 主要特色: zjstatus 風格狀態列、Ocean Dark 配色、CJK 優化
+# ================================================================
+
+# ================================================================
+# 1. 基礎設定 (Basic Settings)
+# ================================================================
+
+# 預設 Shell (對應 Alacritty)
+set -g default-shell "pwsh.exe"
+set -g default-command "pwsh.exe -NoLogo"
+
+# 終端類型 (支援 256 色)
+set -g default-terminal "xterm-256color"
+
+# 啟用 RGB 顏色支援
+set -ga terminal-overrides ",xterm-256color:Tc"
+
+# 滑鼠支援
+set -g mouse on
+
+# 複製模式使用 vi 按鍵
+set -g mode-keys vi
+
+# 歷史記錄行數 (對應 Alacritty 的 10000)
+set -g history-limit 10000
+
+# 視窗索引從 1 開始 (更直覺)
+set -g base-index 1
+set -g pane-base-index 1
+
+# 重新編號視窗 (關閉視窗後自動調整編號)
+set -g renumber-windows on
+
+# 訊息顯示時間 (毫秒)
+set -g display-time 2000
+
+# Pane 編號顯示時間 (毫秒)
+set -g display-panes-time 2000
+
+# 啟用焦點事件
+set -g focus-events on
+
+# 減少 Escape 延遲 (改善 Vim 體驗)
+set -sg escape-time 0
+
+# ================================================================
+# 2. 狀態列設定 (Status Bar) - zjstatus 風格
+# ================================================================
+
+# 啟用狀態列
+set -g status on
+
+# 狀態列位置 (bottom 或 top)
+set -g status-position bottom
+
+# 狀態列更新間隔 (秒)
+set -g status-interval 1
+
+# 狀態列對齊方式 (left, centre, right)
+set -g status-justify centre
+
+# ============================================================
+# 狀態列樣式 - Ocean Dark 配色
+# ============================================================
+# 背景: #1c1f24 (Ocean Dark)
+# 前景: #c0c5ce (Ocean Dark)
+
+set -g status-style "bg=#1c1f24,fg=#c0c5ce"
+
+# ============================================================
+# 左側狀態列 (Left Status)
+# ============================================================
+# 格式: [Session名稱] 視窗索引:視窗名稱
+# 對應 zjstatus: {mode} {session}
+
+set -g status-left-length 50
+set -g status-left "#[fg=#8fa1b3,bg=#1c1f24,bold] [#S] #[fg=#c0c5ce]#I:#W "
+
+# ============================================================
+# 右側狀態列 (Right Status)
+# ============================================================
+# 格式: 日期時間
+# 對應 zjstatus: {datetime}
+
+set -g status-right-length 50
+set -g status-right "#[fg=#c0c5ce,bg=#1c1f24,bold] %Y-%m-%d %H:%M:%S "
+
+# ============================================================
+# 視窗狀態格式 (Window Status)
+# ============================================================
+# 對應 zjstatus 的 tab_normal 和 tab_active
+
+# 非活動視窗格式 (灰色)
+set -g window-status-format "#[fg=#65737e,bg=#1c1f24] #I:#W#F "
+
+# 活動視窗格式 (藍色、粗體)
+# 對應 zjstatus 的 tab_active
+set -g window-status-current-format "#[fg=#8fa1b3,bg=#1c1f24,bold] #I:#W#F "
+
+# 視窗分隔符號
+# 對應 zjstatus 的 tab_separator
+set -g window-status-separator "#[fg=#65737e,bg=#1c1f24]│"
+
+# ============================================================
+# 視窗狀態樣式 (Window Status Styles)
+# ============================================================
+
+# 非活動視窗樣式
+set -g window-status-style "fg=#65737e,bg=#1c1f24"
+
+# 活動視窗樣式
+set -g window-status-current-style "fg=#8fa1b3,bg=#1c1f24,bold"
+
+# 最後活動視窗樣式 (青色)
+set -g window-status-last-style "fg=#96b5b4,bg=#1c1f24"
+
+# 有活動的視窗樣式 (黃色、粗體)
+set -g window-status-activity-style "fg=#ebcb8b,bg=#1c1f24,bold"
+
+# 有響鈴的視窗樣式 (紅色、粗體)
+set -g window-status-bell-style "fg=#bf616a,bg=#1c1f24,bold"
+
+# 啟用視窗活動監控
+set -g monitor-activity on
+set -g visual-activity off
+
+# ============================================================
+# 訊息樣式 (Message Styles)
+# ============================================================
+
+# 訊息列樣式 (藍色背景)
+set -g message-style "fg=#1c1f24,bg=#8fa1b3,bold"
+
+# 命令提示樣式 (綠色背景)
+set -g message-command-style "fg=#1c1f24,bg=#a3be8c,bold"
+
+# ============================================================
+# 模式樣式 (Mode Styles)
+# ============================================================
+
+# 複製模式高亮樣式 (黃色背景)
+set -g mode-style "fg=#1c1f24,bg=#ebcb8b,bold"
+
+# ================================================================
+# 3. Pane 設定 (Pane Configuration)
+# ================================================================
+
+# Pane 邊框樣式 - Ocean Dark 配色
+set -g pane-border-style "fg=#4f5b66"
+set -g pane-active-border-style "fg=#8fa1b3,bold"
+
+# Pane 邊框格式
+set -g pane-border-format "#[fg=#8fa1b3] #{pane_index}: #{pane_title} "
+
+# 顯示 Pane 邊框
+set -g pane-border-status off
+
+# ================================================================
+# 4. 快捷鍵設定 (Key Bindings)
+# ================================================================
+
+# 更改 Prefix 鍵 (預設: Ctrl+B)
+# 如果想改成 Ctrl+A，取消下面兩行的註解
+# unbind C-b
+# set -g prefix C-a
+# bind C-a send-prefix
+
+# ============================================================
+# 視窗管理 (Window Management)
+# ============================================================
+
+# 建立新視窗 (Ctrl+B, C)
+bind c new-window -c "#{pane_current_path}"
+
+# 分割視窗 (保持當前路徑)
+bind '"' split-window -v -c "#{pane_current_path}"
+bind % split-window -h -c "#{pane_current_path}"
+
+# 更直覺的分割快捷鍵
+bind | split-window -h -c "#{pane_current_path}"
+bind - split-window -v -c "#{pane_current_path}"
+
+# 關閉視窗 (Ctrl+B, X)
+bind X confirm-before -p "kill-window #W? (y/n)" kill-window
+
+# ============================================================
+# Pane 導航 (Pane Navigation)
+# ============================================================
+
+# Vim 風格的 Pane 切換
+bind h select-pane -L
+bind j select-pane -D
+bind k select-pane -U
+bind l select-pane -R
+
+# 方向鍵切換 Pane
+bind Left select-pane -L
+bind Down select-pane -D
+bind Up select-pane -U
+bind Right select-pane -R
+
+# ============================================================
+# Pane 調整大小 (Pane Resizing)
+# ============================================================
+
+# Vim 風格的 Pane 調整 (按住 Prefix)
+bind -r H resize-pane -L 5
+bind -r J resize-pane -D 5
+bind -r K resize-pane -U 5
+bind -r L resize-pane -R 5
+
+# 方向鍵調整 Pane 大小
+bind -r C-Left resize-pane -L 5
+bind -r C-Down resize-pane -D 5
+bind -r C-Up resize-pane -U 5
+bind -r C-Right resize-pane -R 5
+
+# ============================================================
+# 複製模式 (Copy Mode)
+# ============================================================
+
+# 進入複製模式 (Ctrl+B, [)
+bind [ copy-mode
+
+# Vi 風格的複製模式按鍵
+bind -T copy-mode-vi v send-keys -X begin-selection
+bind -T copy-mode-vi y send-keys -X copy-selection-and-cancel
+bind -T copy-mode-vi C-v send-keys -X rectangle-toggle
+
+# 貼上 (Ctrl+B, ])
+bind ] paste-buffer
+
+# ============================================================
+# 其他快捷鍵 (Other Bindings)
+# ============================================================
+
+# 重新載入配置 (Ctrl+B, R)
+bind R source-file ~/.config/psmux/psmux.conf \; display-message "Config reloaded!"
+
+# 清除歷史記錄 (Ctrl+B, Ctrl+L)
+bind C-l send-keys 'clear' \; send-keys 'Enter' \; clear-history
+
+# 同步所有 Pane 的輸入 (Ctrl+B, S)
+bind S set-window-option synchronize-panes \; display-message "Sync panes: #{?synchronize-panes,ON,OFF}"
+
+# 最大化/還原 Pane (Ctrl+B, Z)
+bind z resize-pane -Z
+
+# ================================================================
+# 5. 視覺效果設定 (Visual Settings)
+# ================================================================
+
+# 響鈴設定
+set -g bell-action any
+set -g visual-bell off
+
+# 活動監控
+set -g monitor-activity on
+set -g visual-activity off
+
+# 靜音監控
+set -g monitor-silence 0
+set -g visual-silence off
+
+# ================================================================
+# 6. 剪貼簿整合 (Clipboard Integration)
+# ================================================================
+
+# Windows 剪貼簿整合 (需要 clip.exe)
+# 複製到系統剪貼簿
+bind -T copy-mode-vi y send-keys -X copy-pipe-and-cancel "clip.exe"
+
+# 從系統剪貼簿貼上
+bind C-v run "powershell.exe -Command Get-Clipboard | tmux load-buffer - ; tmux paste-buffer"
+
+# ================================================================
+# 7. 環境變數 (Environment Variables)
+# ================================================================
+
+# UTF-8 編碼支援 (CJK 優化)
+set -g default-command "pwsh.exe -NoLogo"
+
+# ================================================================
+# 🎨 配色對應表 (Color Reference)
+# ================================================================
+# 
+# Ocean Dark 配色:
+# - 背景 (bg):        #1c1f24
+# - 前景 (fg):        #c0c5ce
+# - 藍色 (blue):      #8fa1b3  - Session、活動視窗、Pane 邊框
+# - 綠色 (green):     #a3be8c  - 命令提示
+# - 黃色 (yellow):    #ebcb8b  - 活動通知、複製模式
+# - 紅色 (red):       #bf616a  - 響鈴通知
+# - 青色 (cyan):      #96b5b4  - 最後活動視窗
+# - 灰色 (dim):       #65737e  - 非活動視窗、分隔符
+# - 邊框灰 (border):  #4f5b66  - 非活動 Pane 邊框
+# 
+# ================================================================
+# 📋 格式變數說明 (Format Variables)
+# ================================================================
+# 
+# 可在 status-left, status-right, window-status-format 中使用:
+# 
+# #S  - Session 名稱
+# #I  - 視窗索引 (Window Index)
+# #W  - 視窗名稱 (Window Name)
+# #F  - 視窗旗標 (Window Flags)
+#       * = 當前視窗
+#       - = 最後活動視窗
+#       # = 有活動
+#       ! = 有響鈴
+#       ~ = 靜音
+#       Z = 縮放
+# #P  - Pane 索引
+# #T  - Pane 標題
+# #H  - 主機名稱
+# 
+# 時間格式 (strftime):
+# %Y  - 年份 (4位數)
+# %m  - 月份 (01-12)
+# %d  - 日期 (01-31)
+# %H  - 小時 (00-23)
+# %M  - 分鐘 (00-59)
+# %S  - 秒數 (00-59)
+# 
+# ================================================================
+# 🎯 狀態列布局說明
+# ================================================================
+# 
+# 完整狀態列預覽:
+# ┌────────────────────────────────────────────────────────────┐
+# │ [main] 1:pwsh    1:pwsh│2:nvim*│3:htop    2026-04-02 14:30 │
+# └────────────────────────────────────────────────────────────┘
+# 
+# 左側: [Session名稱] 視窗索引:視窗名稱
+# 中間: 所有視窗列表 (活動視窗以藍色粗體顯示)
+# 右側: 當前日期時間
+# 
+# ================================================================
+# 🚀 快捷鍵速查表
+# ================================================================
+# 
+# 【Prefix 鍵】: Ctrl+B (所有快捷鍵都需要先按 Prefix)
+# 
+# 【視窗管理】
+# c           - 建立新視窗
+# ,           - 重命名視窗
+# X           - 關閉視窗 (需確認)
+# n           - 下一個視窗
+# p           - 上一個視窗
+# 0-9         - 切換到指定視窗
+# w           - 視窗列表 (互動式選擇)
+# 
+# 【Pane 管理】
+# "           - 水平分割 (上下)
+# %           - 垂直分割 (左右)
+# |           - 垂直分割 (更直覺)
+# -           - 水平分割 (更直覺)
+# x           - 關閉 Pane (需確認)
+# z           - 最大化/還原 Pane
+# 
+# 【Pane 導航】
+# h/j/k/l     - Vim 風格切換 (左/下/上/右)
+# 方向鍵      - 切換 Pane
+# o           - 循環切換 Pane
+# 
+# 【Pane 調整】
+# H/J/K/L     - Vim 風格調整大小 (按住 Prefix)
+# Ctrl+方向鍵 - 調整 Pane 大小
+# 
+# 【複製模式】
+# [           - 進入複製模式
+# v           - 開始選取 (Vi 模式)
+# y           - 複製選取內容
+# ]           - 貼上
+# 
+# 【其他】
+# R           - 重新載入配置
+# Ctrl+L      - 清除歷史記錄
+# S           - 同步所有 Pane 輸入
+# d           - Detach (分離 Session)
+# ?           - 顯示所有快捷鍵
+# 
+# ================================================================
+# 💡 使用提示
+# ================================================================
+# 
+# 1. 啟動 psmux:
+#    psmux
+# 
+# 2. 建立命名 Session:
+#    psmux new -s 工作區名稱
+# 
+# 3. 連接到現有 Session:
+#    psmux attach -t 工作區名稱
+# 
+# 4. 列出所有 Sessions:
+#    psmux ls
+# 
+# 5. 重新載入配置:
+#    Ctrl+B, R
+# 
+# 6. 測試狀態列:
+#    - 建立多個視窗 (Ctrl+B, C)
+#    - 切換視窗觀察狀態列變化
+#    - 觀察活動視窗的藍色高亮
+# 
+# ================================================================
+# 📝 配置說明
+# ================================================================
+# 
+# 本配置檔案特色:
+# 
+# ✅ zjstatus 風格狀態列 (對應 Zellij)
+# ✅ Ocean Dark 配色方案 (對應 Alacritty)
+# ✅ CJK (中日韓) 字元顯示優化
+# ✅ UTF-8 編碼支援
+# ✅ Vim 風格快捷鍵
+# ✅ 滑鼠支援
+# ✅ 視窗活動監控
+# ✅ 剪貼簿整合
+# ✅ 繁體中文註解說明
+# 
+# ================================================================

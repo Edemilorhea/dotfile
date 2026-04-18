@@ -1,0 +1,223 @@
+# ================================================================
+# psmux 配置檔案 - 修正版 (使用 colour 格式)
+# ================================================================
+# 配置版本: psmux v1.1
+# 最後更新: 2026-04-02
+# 修正: 使用 colour0-255 格式而非 #RRGGBB
+# ================================================================
+
+# ================================================================
+# 1. 基礎設定
+# ================================================================
+
+# Prefix 鍵設定 (改為 Alt+A)
+unbind C-b
+set -g prefix M-a
+bind M-a send-prefix
+
+set -g default-shell "pwsh.exe"
+set -g default-command "pwsh.exe -NoLogo"
+set -g default-terminal "screen-256color"
+set -ga terminal-overrides ",*256col*:Tc"
+set -g mouse on
+set -g mode-keys vi
+set -g history-limit 10000
+set -g base-index 1
+set -g pane-base-index 1
+set -g renumber-windows on
+set -g display-time 2000
+set -g display-panes-time 2000
+set -g focus-events on
+set -sg escape-time 0
+
+# ================================================================
+# 2. 狀態列設定 - 淺色優雅風格 (使用 colour 格式)
+# ================================================================
+
+# 啟用狀態列
+set -g status on
+set -g status-position bottom
+set -g status-interval 1
+set -g status-justify centre
+
+# 狀態列樣式
+# 背景: colour189 (#d7d7ff 淺藍灰)
+# 前景: colour237 (#3a3a3a 深藍灰)
+set -g status-style "bg=colour189,fg=colour237"
+
+# 左側狀態列
+# colour25 = 深藍色 (#005faf)
+set -g status-left-length 50
+set -g status-left "#[fg=colour25,bg=colour189,bold] [#S] #[fg=colour237]#I:#W "
+
+# 右側狀態列
+set -g status-right-length 50
+set -g status-right "#[fg=colour237,bg=colour189,bold] %Y-%m-%d %H:%M:%S "
+
+# 視窗狀態格式
+# colour246 = 中灰色 (#949494)
+set -g window-status-format "#[fg=colour246,bg=colour189] #I:#W#F "
+set -g window-status-current-format "#[fg=colour25,bg=colour189,bold] #I:#W#F "
+set -g window-status-separator "#[fg=colour246,bg=colour189]│"
+
+# 視窗狀態樣式
+set -g window-status-style "fg=colour246,bg=colour189"
+set -g window-status-current-style "fg=colour25,bg=colour189,bold"
+set -g window-status-last-style "fg=colour33,bg=colour189"
+set -g window-status-activity-style "fg=colour208,bg=colour189,bold"
+set -g window-status-bell-style "fg=colour196,bg=colour189,bold"
+
+# 活動監控
+set -g monitor-activity on
+set -g visual-activity off
+
+# 訊息樣式
+set -g message-style "fg=colour255,bg=colour25,bold"
+set -g message-command-style "fg=colour255,bg=colour33,bold"
+
+# 複製模式樣式
+set -g mode-style "fg=colour237,bg=colour117,bold"
+
+# ================================================================
+# 3. Pane 設定
+# ================================================================
+
+# Pane 邊框樣式
+# colour117 = 淺藍色 (#87d7ff)
+set -g pane-border-style "fg=colour246"
+set -g pane-active-border-style "fg=colour25,bold"
+set -g pane-border-format "#[fg=colour25] #{pane_index}: #{pane_title} "
+set -g pane-border-status off
+
+# ================================================================
+# 4. 快捷鍵設定
+# ================================================================
+
+# 視窗管理
+bind c new-window -c "#{pane_current_path}"
+bind '"' split-window -v -c "#{pane_current_path}"
+bind % split-window -h -c "#{pane_current_path}"
+bind | split-window -h -c "#{pane_current_path}"
+bind - split-window -v -c "#{pane_current_path}"
+bind X confirm-before -p "kill-window #W? (y/n)" kill-window
+
+# Pane 導航
+bind h select-pane -L
+bind j select-pane -D
+bind k select-pane -U
+bind l select-pane -R
+bind Left select-pane -L
+bind Down select-pane -D
+bind Up select-pane -U
+bind Right select-pane -R
+
+# Pane 調整大小
+bind -r H resize-pane -L 5
+bind -r J resize-pane -D 5
+bind -r K resize-pane -U 5
+bind -r L resize-pane -R 5
+bind -r C-Left resize-pane -L 5
+bind -r C-Down resize-pane -D 5
+bind -r C-Up resize-pane -U 5
+bind -r C-Right resize-pane -R 5
+
+# 複製模式
+bind [ copy-mode
+bind -T copy-mode-vi v send-keys -X begin-selection
+bind -T copy-mode-vi y send-keys -X copy-selection-and-cancel
+bind -T copy-mode-vi C-v send-keys -X rectangle-toggle
+bind ] paste-buffer
+
+# 其他快捷鍵
+bind R source-file ~/.config/psmux/psmux.conf \; display-message "Config reloaded!"
+bind C-l send-keys 'clear' \; send-keys 'Enter' \; clear-history
+bind S set-window-option synchronize-panes \; display-message "Sync panes: #{?synchronize-panes,ON,OFF}"
+bind z resize-pane -Z
+
+# ================================================================
+# 💡 快捷鍵說明
+# ================================================================
+# Prefix 鍵: Alt+A (所有快捷鍵都要先按 Alt+A)
+# 
+# 視窗管理:
+#   Alt+A c       - 新建視窗
+#   Alt+A "       - 垂直分割
+#   Alt+A %       - 水平分割
+#   Alt+A |       - 水平分割 (替代)
+#   Alt+A -       - 垂直分割 (替代)
+#   Alt+A X       - 關閉視窗 (需確認)
+#
+# Pane 導航 (psmux-pain-control):
+#   Alt+A h/j/k/l - Vim 風格導航
+#   Alt+A 方向鍵   - 箭頭導航
+#
+# Pane 調整大小 (psmux-pain-control):
+#   Alt+A Alt+h/j/k/l - Vim 風格調整
+#   Alt+A Ctrl+方向鍵  - 箭頭調整
+#
+# Session 保存/恢復 (psmux-resurrect):
+#   Alt+A Ctrl+S  - 手動保存 session
+#   Alt+A Ctrl+R  - 恢復 session
+#   (自動保存: 每 15 分鐘)
+#
+# 插件管理 (PPM):
+#   Alt+A i       - 安裝插件 (小寫 i)
+#   Alt+A u       - 更新插件 (小寫 u)
+#   Alt+A m       - 清理插件 (小寫 m)
+#
+# 其他:
+#   Alt+A R       - 重新載入配置
+#   Alt+A Ctrl+L  - 清除畫面
+#   Alt+A S       - 同步所有 Pane
+#   Alt+A z       - 最大化/還原 Pane
+# ================================================================
+
+# ================================================================
+# 5. 剪貼簿整合
+# ================================================================
+
+bind -T copy-mode-vi y send-keys -X copy-pipe-and-cancel "clip.exe"
+bind C-v run "powershell.exe -Command Get-Clipboard | tmux load-buffer - ; tmux paste-buffer"
+
+# ================================================================
+# 6. 視覺效果設定
+# ================================================================
+
+set -g bell-action any
+set -g visual-bell off
+set -g monitor-activity on
+set -g visual-activity off
+set -g monitor-silence 0
+set -g visual-silence off
+
+# ================================================================
+# 💡 注意事項
+# ================================================================
+# 
+# 配色由 psmux-theme-nord 插件控制
+# 如需自訂配色，請在主題插件載入後覆寫相關設定
+# 
+# ================================================================
+
+# ===========================================
+# 插件設定
+# ===========================================
+
+# 插件列表
+set -g @plugin 'psmux-plugins/ppm'
+set -g @plugin 'psmux-plugins/psmux-sensible'
+set -g @plugin 'psmux-plugins/psmux-theme-nord'
+set -g @plugin 'psmux-plugins/psmux-resurrect'
+set -g @plugin 'psmux-plugins/psmux-continuum'
+set -g @plugin 'psmux-plugins/psmux-pain-control'
+set -g @plugin 'psmux-plugins/psmux-prefix-highlight'
+
+# 插件配置
+# psmux-continuum 自動保存間隔（預設 15 分鐘）
+set -g @continuum-save-interval '15'
+
+# psmux-resurrect 保存內容配置
+set -g @resurrect-capture-pane-contents 'on'
+
+# 初始化 PPM（必須保持在最後一行）
+run '~/.psmux/plugins/ppm/ppm.ps1'

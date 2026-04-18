@@ -1,0 +1,165 @@
+# ================================================================
+# psmux 配置檔案 - 修正版 (使用 colour 格式)
+# ================================================================
+# 配置版本: psmux v1.1
+# 最後更新: 2026-04-02
+# 修正: 使用 colour0-255 格式而非 #RRGGBB
+# ================================================================
+
+# ================================================================
+# 1. 基礎設定
+# ================================================================
+
+set -g default-shell "pwsh.exe"
+set -g default-command "pwsh.exe -NoLogo"
+set -g default-terminal "screen-256color"
+set -ga terminal-overrides ",*256col*:Tc"
+set -g mouse on
+set -g mode-keys vi
+set -g history-limit 10000
+set -g base-index 1
+set -g pane-base-index 1
+set -g renumber-windows on
+set -g display-time 2000
+set -g display-panes-time 2000
+set -g focus-events on
+set -sg escape-time 0
+
+# ================================================================
+# 2. 狀態列設定 - Ocean Dark 配色 (使用 colour 格式)
+# ================================================================
+
+# 啟用狀態列
+set -g status on
+set -g status-position bottom
+set -g status-interval 1
+set -g status-justify centre
+
+# 狀態列樣式
+# 背景: colour233 (#1c1f24 近似色)
+# 前景: colour250 (#c0c5ce 近似色)
+set -g status-style "bg=colour233,fg=colour250"
+
+# 左側狀態列
+# colour24 = 藍色 (#8fa1b3 近似色)
+set -g status-left-length 50
+set -g status-left "#[fg=colour24,bg=colour233,bold] [#S] #[fg=colour250]#I:#W "
+
+# 右側狀態列
+set -g status-right-length 50
+set -g status-right "#[fg=colour250,bg=colour233,bold] %Y-%m-%d %H:%M:%S "
+
+# 視窗狀態格式
+# colour240 = 灰色 (#65737e 近似色)
+set -g window-status-format "#[fg=colour240,bg=colour233] #I:#W#F "
+set -g window-status-current-format "#[fg=colour24,bg=colour233,bold] #I:#W#F "
+set -g window-status-separator "#[fg=colour240,bg=colour233]│"
+
+# 視窗狀態樣式
+set -g window-status-style "fg=colour240,bg=colour233"
+set -g window-status-current-style "fg=colour24,bg=colour233,bold"
+set -g window-status-last-style "fg=colour37,bg=colour233"
+set -g window-status-activity-style "fg=colour228,bg=colour233,bold"
+set -g window-status-bell-style "fg=colour203,bg=colour233,bold"
+
+# 活動監控
+set -g monitor-activity on
+set -g visual-activity off
+
+# 訊息樣式
+set -g message-style "fg=colour233,bg=colour24,bold"
+set -g message-command-style "fg=colour233,bg=colour107,bold"
+
+# 複製模式樣式
+set -g mode-style "fg=colour233,bg=colour228,bold"
+
+# ================================================================
+# 3. Pane 設定
+# ================================================================
+
+# Pane 邊框樣式
+# colour238 = 邊框灰 (#4f5b66 近似色)
+set -g pane-border-style "fg=colour238"
+set -g pane-active-border-style "fg=colour24,bold"
+set -g pane-border-format "#[fg=colour24] #{pane_index}: #{pane_title} "
+set -g pane-border-status off
+
+# ================================================================
+# 4. 快捷鍵設定
+# ================================================================
+
+# 視窗管理
+bind c new-window -c "#{pane_current_path}"
+bind '"' split-window -v -c "#{pane_current_path}"
+bind % split-window -h -c "#{pane_current_path}"
+bind | split-window -h -c "#{pane_current_path}"
+bind - split-window -v -c "#{pane_current_path}"
+bind X confirm-before -p "kill-window #W? (y/n)" kill-window
+
+# Pane 導航
+bind h select-pane -L
+bind j select-pane -D
+bind k select-pane -U
+bind l select-pane -R
+bind Left select-pane -L
+bind Down select-pane -D
+bind Up select-pane -U
+bind Right select-pane -R
+
+# Pane 調整大小
+bind -r H resize-pane -L 5
+bind -r J resize-pane -D 5
+bind -r K resize-pane -U 5
+bind -r L resize-pane -R 5
+bind -r C-Left resize-pane -L 5
+bind -r C-Down resize-pane -D 5
+bind -r C-Up resize-pane -U 5
+bind -r C-Right resize-pane -R 5
+
+# 複製模式
+bind [ copy-mode
+bind -T copy-mode-vi v send-keys -X begin-selection
+bind -T copy-mode-vi y send-keys -X copy-selection-and-cancel
+bind -T copy-mode-vi C-v send-keys -X rectangle-toggle
+bind ] paste-buffer
+
+# 其他快捷鍵
+bind R source-file ~/.config/psmux/psmux.conf \; display-message "Config reloaded!"
+bind C-l send-keys 'clear' \; send-keys 'Enter' \; clear-history
+bind S set-window-option synchronize-panes \; display-message "Sync panes: #{?synchronize-panes,ON,OFF}"
+bind z resize-pane -Z
+
+# ================================================================
+# 5. 剪貼簿整合
+# ================================================================
+
+bind -T copy-mode-vi y send-keys -X copy-pipe-and-cancel "clip.exe"
+bind C-v run "powershell.exe -Command Get-Clipboard | tmux load-buffer - ; tmux paste-buffer"
+
+# ================================================================
+# 6. 視覺效果設定
+# ================================================================
+
+set -g bell-action any
+set -g visual-bell off
+set -g monitor-activity on
+set -g visual-activity off
+set -g monitor-silence 0
+set -g visual-silence off
+
+# ================================================================
+# 💡 顏色對應表 (256 色系統)
+# ================================================================
+# 
+# Ocean Dark 配色對應 256 色:
+# - colour233 (#1c1f24) = 背景
+# - colour250 (#c0c5ce) = 前景
+# - colour24  (#8fa1b3) = 藍色 (Session、活動視窗)
+# - colour107 (#a3be8c) = 綠色 (命令提示)
+# - colour228 (#ebcb8b) = 黃色 (活動通知)
+# - colour203 (#bf616a) = 紅色 (響鈴)
+# - colour37  (#96b5b4) = 青色 (最後活動視窗)
+# - colour240 (#65737e) = 灰色 (非活動視窗)
+# - colour238 (#4f5b66) = 邊框灰
+# 
+# ================================================================
