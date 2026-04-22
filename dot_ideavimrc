@@ -88,6 +88,8 @@ nnoremap <leader>cl :action CloseAllToTheLeft<CR>
 nnoremap <leader>cr :action CloseAllToTheRight<CR>
 nnoremap <leader>cua :action CloseAllUnpinnedEditors<CR>
 
+cnoremap <C-v> <C-r>+
+
 " 展開到指定層級（對應你截圖中的「展開層級 1~5」）
 " 目前區塊：z1 ~ z5
 nnoremap z1 :action ExpandToLevel1<CR>
