@@ -10,7 +10,7 @@ Import-Module PSEverything
 # ================================
 # 🌈 Oh My Posh 主題設定
 # ================================
-oh-my-posh init pwsh --config 'C:\Users\tc_tseng\AppData\Local\Programs\oh-my-posh\themes\M365Princess.omp.json' | Invoke-Expression  # [omp-manager]
+oh-my-posh init pwsh --config "$env:POSH_THEMES_PATH\M365Princess.omp.json" | Invoke-Expression  # [omp-manager]
 # ================================
 # 🧩 WinGet 指令不存在提示
 # ================================
