@@ -3,35 +3,35 @@
 # ================================
 Import-Module PSReadLine
 Import-Module PSFzf
-
+Import-Module -Name Terminal-Icons
 # Terminal-Icons 智慧載入 (自動修復損壞的設定)
-function Initialize-TerminalIcons {
-    $configRoot = Join-Path ([Environment]::GetFolderPath('ApplicationData')) 'powershell\Community\Terminal-Icons'
-
-    # 如果之前有壞掉的設定，先乾脆砍掉
-    if (Test-Path $configRoot) {
-        try {
-            # 簡單測試一下 XML 是否能被 Import-Clixml 正常讀（例如 prefs.xml 或任何一個 xml）
-            Get-ChildItem $configRoot -Filter *.xml -ErrorAction SilentlyContinue |
-                Select-Object -First 1 |
-                ForEach-Object {
-                    Import-Clixml -Path $_.FullName -ErrorAction Stop | Out-Null
-                }
-        } catch {
-            Remove-Item $configRoot -Recurse -Force -ErrorAction SilentlyContinue
-        }
-    }
-
-    if (Get-Module -ListAvailable -Name Terminal-Icons) {
-        try {
-            Import-Module Terminal-Icons -ErrorAction Stop
-        } catch {
-            Write-Verbose "Failed to load Terminal-Icons: $($_.Exception.Message)"
-        }
-    }
-}
-
-Initialize-TerminalIcons
+#function Initialize-TerminalIcons {
+#    $configRoot = Join-Path ([Environment]::GetFolderPath('ApplicationData')) 'powershell\Community\Terminal-Icons'
+#
+#    # 如果之前有壞掉的設定，先乾脆砍掉
+#    if (Test-Path $configRoot) {
+#        try {
+#            # 簡單測試一下 XML 是否能被 Import-Clixml 正常讀（例如 prefs.xml 或任何一個 xml）
+#            Get-ChildItem $configRoot -Filter *.xml -ErrorAction SilentlyContinue |
+#                Select-Object -First 1 |
+#                ForEach-Object {
+#                    Import-Clixml -Path $_.FullName -ErrorAction Stop | Out-Null
+#                }
+#        } catch {
+#            Remove-Item $configRoot -Recurse -Force -ErrorAction SilentlyContinue
+#        }
+#    }
+#
+#    if (Get-Module -ListAvailable -Name Terminal-Icons) {
+#        try {
+#            Import-Module Terminal-Icons -ErrorAction Stop
+#        } catch {
+#            Write-Verbose "Failed to load Terminal-Icons: $($_.Exception.Message)"
+#        }
+#    }
+#}
+#
+#Initialize-TerminalIcons
 
 Import-Module PSEverything
 

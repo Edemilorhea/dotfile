@@ -124,10 +124,9 @@ cyan = "#96b5b4"
 white = "#eff1f5"
 
 # ================================================================
-# 4. 終端與 Shell 設定 (Terminal & Shell)
+# 4. Shell 設定 (Shell Configuration)
 # ================================================================
-[terminal]
-# Shell 設定
+# 修正: 使用頂層 [shell] 結構，避免巢狀配置問題
 [terminal.shell]
 program = "pwsh.exe"
 args = ["-NoLogo", "-NoExit"]
@@ -179,7 +178,7 @@ mods = "Control"
 action = "DecreaseFontSize"
 
 [[keyboard.bindings]]
-key = "Key0"
+key = "0"
 mods = "Control"
 action = "ResetFontSize"
 
@@ -217,9 +216,6 @@ save_to_clipboard = true
 # 設定終端類型
 TERM = "xterm-256color"
 
-# Windows IME 中文輸入優化
-WINIT_X11_SCALE_FACTOR = "1"
-
 # 強制 UTF-8 編碼 (解決 CJK 字元顯示問題)
 LANG = "zh_TW.UTF-8"
 LC_ALL = "zh_TW.UTF-8"
@@ -227,15 +223,17 @@ LC_ALL = "zh_TW.UTF-8"
 # ================================================================
 # 11. 渲染器設定 (Renderer) - Windows 優化
 # ================================================================
-# Windows 11 推薦使用 dx12，Windows 10 使用 gl
 
 # ================================================================
 # 12. 偵錯設定 (Debug)
 # ================================================================
 [debug]
-# 如果遇到問題，可以啟用 debug 模式
-# log_level = "debug"
-# persistent_logging = true
+# 啟用警告級別日誌，用於捕捉偶發性錯誤
+log_level = "Warn"
+persistent_logging = true
+render_timer = false
+
+[terminal]
 
 # ================================================================
 # 📦 Sarasa Gothic 字體安裝指引
