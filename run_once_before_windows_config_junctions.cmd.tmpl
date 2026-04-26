@@ -96,8 +96,11 @@ call :create_junction "%USERPROFILE%\.config\alacritty" "%APPDATA%\alacritty"
 :: Wezterm: .config/wezterm -> %USERPROFILE%\.config\wezterm (已經是對的)
 :: (Wezterm 會讀取 .wezterm.lua 或 .config/wezterm/wezterm.lua，不需要額外處理)
 
-:: Zellij: .config/zellij -> %APPDATA%\zellij (如果需要)
-:: call :create_junction "%USERPROFILE%\.config\zellij" "%APPDATA%\zellij"
+:: Zellij: .config/zellij -> %APPDATA%\zellij
+call :create_junction "%USERPROFILE%\.config\zellij" "%APPDATA%\zellij"
+
+:: Tabby: .config/tabby -> %APPDATA%\tabby
+call :create_junction "%USERPROFILE%\.config\tabby" "%APPDATA%\tabby"
 
 :: 未來新增配置: 在這裡加入新的 call :create_junction "來源" "目標"
 
