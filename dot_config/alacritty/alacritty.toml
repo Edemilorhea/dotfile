@@ -61,10 +61,10 @@ size = 12.0
 # ============================================================
 # 當前使用: JetBrains Mono
 # ============================================================
-normal = { family = "JetBrains Mono", style = "Regular" }
-bold = { family = "JetBrains Mono", style = "Bold" }
-italic = { family = "JetBrains Mono", style = "Italic" }
-bold_italic = { family = "JetBrains Mono", style = "Bold Italic" }
+normal = { family = "JetBrains Maple Mono", style = "Regular" }
+bold = { family = "JetBrains Maple Mono", style = "Bold" }
+italic = { family = "JetBrains Maple Mono", style = "Italic" }
+bold_italic = { family = "JetBrains Maple Mono", style = "Bold Italic" }
 
 # ============================================================
 # 備用方案 2: Windows 內建字體 (不需安裝)
@@ -130,7 +130,7 @@ white = "#eff1f5"
 # Shell 設定
 [terminal.shell]
 program = "pwsh.exe"
-args = ["-NoLogo", "-NoExit", "-Command", "zellij"]
+args = ["-NoLogo", "-NoExit"]
 
 # ================================================================
 # 5. 捲動設定 (Scrolling)

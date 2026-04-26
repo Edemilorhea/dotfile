@@ -73,7 +73,41 @@ require("config.keymaps")
 -- 如需自訂 LSP，請在 lua/plugins/lsp.lua 中設定
 
 -- 載入 LSP 診斷工具
-require("config.lsp-diagnostic")
-require("config.lsp-performance")
+-- require("config.lsp-diagnostic")
+-- require("config.lsp-performance")
+
+-- 根據系統設定 Neovim / LazyVim 預設 shell
+-- Windows: pwsh / powershell
+-- Linux / WSL / macOS: zsh -> bash
+
+if vim.fn.has("win32") == 1 then
+    -- Windows：優先用 PowerShell 7 (pwsh)，沒有就退回舊 powershell
+    if vim.fn.executable("pwsh") == 1 then
+        vim.o.shell = "pwsh"
+    else
+        vim.o.shell = "powershell"
+    end
+
+    -- 官方建議的 PowerShell 參數，避免編碼 / pipe 問題
+    -- :help shell-powershell
+    vim.o.shellcmdflag = "-NoLogo -ExecutionPolicy RemoteSigned -Command "
+        .. "[Console]::InputEncoding=[Console]::OutputEncoding="
+        .. "[System.Text.UTF8Encoding]::new();"
+        .. "$PSDefaultParameterValues['Out-File:Encoding']='utf8';"
+
+    vim.o.shellredir = "2>&1 | %%{ '$_' } | Out-File %s; exit $LastExitCode"
+
+    vim.o.shellpipe = "2>&1 | %%{ '$_' } | Tee-Object %s; exit $LastExitCode"
+
+    vim.o.shellquote = ""
+    vim.o.shellxquote = ""
+else
+    -- 非 Windows（Linux / WSL / macOS）：優先用 zsh，沒有就用 bash
+    if vim.fn.executable("zsh") == 1 then
+        vim.o.shell = "zsh"
+    else
+        vim.o.shell = "bash"
+    end
+end
 
 vim.notify("🚀 Neovim 完整環境已啟動")
