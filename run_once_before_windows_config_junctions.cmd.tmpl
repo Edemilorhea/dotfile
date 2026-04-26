@@ -2,22 +2,22 @@
 @echo off
 setlocal enabledelayedexpansion
 
-:: ================================================================
-:: Windows .config Junction 統一管理腳本
-:: ================================================================
-:: 目的: 將 .config 下的配置目錄 Junction 到各軟體實際讀取的位置
-:: 執行時機: chezmoi apply 之前 (run_once_before)
-:: 權限需求: 無需管理員權限 (使用 Junction)
-:: ================================================================
+REM ================================================================
+REM Windows .config Junction 統一管理腳本
+REM ================================================================
+REM 目的: 將 .config 下的配置目錄 Junction 到各軟體實際讀取的位置
+REM 執行時機: chezmoi apply 之前 (run_once_before)
+REM 權限需求: 無需管理員權限 (使用 Junction)
+REM ================================================================
 
 echo ============================================================
 echo [Config Junction Setup] Starting Windows config junctions setup...
 echo ============================================================
 
-:: ----------------------------------------------------------------
-:: 函數: 建立 Junction
-:: 參數: %1 = 來源目錄 (.config 下), %2 = 目標目錄 (軟體讀取位置)
-:: ----------------------------------------------------------------
+REM ----------------------------------------------------------------
+REM 函數: 建立 Junction
+REM 參數: %1 = 來源目錄 (.config 下), %2 = 目標目錄 (軟體讀取位置)
+REM ----------------------------------------------------------------
 goto :main
 
 :create_junction
@@ -27,24 +27,24 @@ set "TARGET=%~2"
 echo.
 echo [Junction] Processing: %SOURCE% -^> %TARGET%
 
-:: 1. 確保來源目錄存在
+REM 1. 確保來源目錄存在
 if not exist "%SOURCE%" (
     echo [Junction] Source directory not found, skipping: %SOURCE%
     exit /b 0
 )
 
-:: 2. 檢查目標是否已存在
+REM 2. 檢查目標是否已存在
 if exist "%TARGET%" (
-    :: 檢查是否為 Junction
+    REM 檢查是否為 Junction
     dir /al "%TARGET%" | find "<JUNCTION>" >nul 2>&1
     if errorlevel 1 (
-        :: 不是 Junction，可能是實體目錄，需要備份
+        REM 不是 Junction，可能是實體目錄，需要備份
         echo [Junction] Real directory exists, backing up...
         for /f "tokens=2-4 delims=/ " %%a in ('date /t') do (set mydate=%%c%%a%%b)
         for /f "tokens=1-2 delims=/:" %%a in ('time /t') do (set mytime=%%a%%b)
         set "mytime=!mytime: =0!"
         
-        :: 取得目標目錄名稱
+        REM 取得目標目錄名稱
         for %%F in ("%TARGET%") do set "dirname=%%~nxF"
         for %%F in ("%TARGET%\..") do set "parentdir=%%~fF"
         
@@ -52,7 +52,7 @@ if exist "%TARGET%" (
         echo [Junction] Backing up to: !BACKUP!
         ren "%TARGET%" "!dirname!_backup_!mydate!_!mytime!"
     ) else (
-        :: 已經是 Junction，檢查目標是否正確
+        REM 已經是 Junction，檢查目標是否正確
         for /f "tokens=2 delims=[]" %%a in ('dir /al "%TARGET%" 2^>nul ^| find "<JUNCTION>"') do (
             set "CURRENT_TARGET=%%a"
         )
@@ -61,14 +61,14 @@ if exist "%TARGET%" (
     )
 )
 
-:: 3. 確保目標的父目錄存在
+REM 3. 確保目標的父目錄存在
 for %%F in ("%TARGET%\..") do set "PARENT_DIR=%%~fF"
 if not exist "%PARENT_DIR%" (
     echo [Junction] Creating parent directory: %PARENT_DIR%
     mkdir "%PARENT_DIR%"
 )
 
-:: 4. 建立 Junction
+REM 4. 建立 Junction
 echo [Junction] Creating: %TARGET% -^> %SOURCE%
 mklink /J "%TARGET%" "%SOURCE%" >nul
 if errorlevel 1 (
@@ -80,33 +80,32 @@ if errorlevel 1 (
 
 exit /b 0
 
-:: ----------------------------------------------------------------
-:: 主程序: 定義需要建立 Junction 的配置
-:: ----------------------------------------------------------------
+REM ----------------------------------------------------------------
+REM 主程序: 定義需要建立 Junction 的配置
+REM ----------------------------------------------------------------
 :main
 
 {{- if .syncNvim }}
-:: Neovim: .config/nvim -> %LOCALAPPDATA%\nvim
+REM Neovim: .config/nvim -> %LOCALAPPDATA%\nvim
 call :create_junction "%USERPROFILE%\.config\nvim" "%LOCALAPPDATA%\nvim"
 {{- end }}
 
-:: Alacritty: .config/alacritty -> %APPDATA%\alacritty
+REM Alacritty: .config/alacritty -> %APPDATA%\alacritty
 call :create_junction "%USERPROFILE%\.config\alacritty" "%APPDATA%\alacritty"
 
-:: Wezterm: .config/wezterm -> %USERPROFILE%\.config\wezterm (已經是對的)
-:: (Wezterm 會讀取 .wezterm.lua 或 .config/wezterm/wezterm.lua，不需要額外處理)
+REM Wezterm: .config/wezterm -> %USERPROFILE%\.config\wezterm (已經是對的)
+REM (Wezterm 會讀取 .wezterm.lua 或 .config/wezterm/wezterm.lua，不需要額外處理)
 
-:: Zellij: .config/zellij -> %APPDATA%\zellij
+REM Zellij: .config/zellij -> %APPDATA%\zellij
 call :create_junction "%USERPROFILE%\.config\zellij" "%APPDATA%\zellij"
 
-:: Tabby: .config/tabby -> %APPDATA%\tabby
+REM Tabby: .config/tabby -> %APPDATA%\tabby
 call :create_junction "%USERPROFILE%\.config\tabby" "%APPDATA%\tabby"
 
+REM psmux: .config/psmux -> %APPDATA%\psmux
+REM call :create_junction "%USERPROFILE%\.config\tabby" "%APPDATA%\tabby"
 
-:: psmux: .config/psmux -> %APPDATA%\psmux
-:: call :create_junction "%USERPROFILE%\.config\tabby" "%APPDATA%\tabby"
-
-:: 未來新增配置: 在這裡加入新的 call :create_junction "來源" "目標"
+REM 未來新增配置: 在這裡加入新的 call :create_junction "來源" "目標"
 
 echo.
 echo ============================================================
