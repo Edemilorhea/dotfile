@@ -29,8 +29,8 @@ echo [Junction] Processing: %SOURCE% -^> %TARGET%
 
 REM 1. 確保來源目錄存在
 if not exist "%SOURCE%" (
-    echo [Junction] Source directory not found, skipping: %SOURCE%
-    exit /b 0
+    echo [Junction] Source directory not found, creating: %SOURCE%
+    mkdir "%SOURCE%"
 )
 
 REM 2. 檢查目標是否已存在
