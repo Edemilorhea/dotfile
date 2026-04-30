@@ -53,18 +53,18 @@ size = 12.0
 # 備用方案 1: 保留原本的 Maple Mono NF CN
 # ============================================================
 # 如果 Sarasa 顯示有問題，取消下面註解，註解掉上面的 Sarasa
-# normal = { family = "Maple Mono NF CN", style = "Regular" }
-# bold = { family = "Maple Mono NF CN", style = "Bold" }
-# italic = { family = "Maple Mono NF CN", style = "Italic" }
-# bold_italic = { family = "Maple Mono NF CN", style = "Bold Italic" }
+ normal = { family = "Maple Mono NF CN", style = "Regular" }
+ bold = { family = "Maple Mono NF CN", style = "Bold" }
+ italic = { family = "Maple Mono NF CN", style = "Italic" }
+ bold_italic = { family = "Maple Mono NF CN", style = "Bold Italic" }
 
 # ============================================================
 # 當前使用: JetBrains Mono
 # ============================================================
-normal = { family = "JetBrains Maple Mono", style = "Regular" }
-bold = { family = "JetBrains Maple Mono", style = "Bold" }
-italic = { family = "JetBrains Maple Mono", style = "Italic" }
-bold_italic = { family = "JetBrains Maple Mono", style = "Bold Italic" }
+# normal = { family = "JetBrains Maple Mono", style = "Regular" }
+# bold = { family = "JetBrains Maple Mono", style = "Bold" }
+# italic = { family = "JetBrains Maple Mono", style = "Italic" }
+#bold_italic = { family = "JetBrains Maple Mono", style = "Bold Italic" }
 
 # ============================================================
 # 備用方案 2: Windows 內建字體 (不需安裝)
@@ -127,9 +127,6 @@ white = "#eff1f5"
 # 4. Shell 設定 (Shell Configuration)
 # ================================================================
 # 修正: 使用頂層 [shell] 結構，避免巢狀配置問題
-[terminal.shell]
-program = "pwsh.exe"
-args = ["-NoLogo", "-NoExit"]
 
 # ================================================================
 # 5. 捲動設定 (Scrolling)
@@ -234,65 +231,4 @@ persistent_logging = true
 render_timer = false
 
 [terminal]
-
-# ================================================================
-# 📦 Sarasa Gothic 字體安裝指引
-# ================================================================
-# 
-# 如果看到空白方塊，請按照以下步驟安裝 Sarasa Gothic:
-# 
-# 1. 下載字體:
-#    https://github.com/be5invis/Sarasa-Gothic/releases
-#    - 下載最新版本的 sarasa-gothic-ttc-*.7z
-# 
-# 2. 解壓縮後，找到以下檔案:
-#    - sarasa-mono-tc-regular.ttf
-#    - sarasa-mono-tc-bold.ttf
-#    - sarasa-mono-tc-italic.ttf
-#    - sarasa-mono-tc-bolditalic.ttf
-# 
-# 3. 安裝字體:
-#    - 右鍵點擊 .ttf 檔案
-#    - 選擇「為所有使用者安裝」
-#    - 安裝全部 4 個檔案
-# 
-# 4. 重新啟動 Alacritty
-# 
-# 5. 測試 CJK 顯示:
-#    echo "測試 CJK: 中文 日本語 한국어 ✓"
-# 
-# ================================================================
-# 🔧 如果 Sarasa 無法使用
-# ================================================================
-# 
-# 方案 1: 使用原本的 Maple Mono NF CN
-# - 取消註解第 48-51 行
-# - 註解掉第 42-45 行
-# 
-# 方案 2: 使用 Windows 內建 Consolas
-# - 取消註解第 57-60 行
-# - 註解掉第 42-45 行
-# - 注意: Consolas 的 CJK 支援較差
-# 
-# ================================================================
-# 🎯 問題排查
-# ================================================================
-# 
-# 如果還是看到空白方塊:
-# 
-# 1. 確認字體已安裝:
-#    PowerShell 執行:
-#    [System.Drawing.Text.InstalledFontCollection]::new().Families | 
-#      Where-Object { $_.Name -match "Sarasa" }
-# 
-# 2. 確認 Zellij 配置正確 (不干預字體)
-# 
-# 3. 確認 OpenCode 沒有覆蓋字體設定
-# 
-# 4. 重新啟動整個 terminal stack:
-#    - 關閉所有 Alacritty 視窗
-#    - 重新開啟 Alacritty
-#    - 啟動 Zellij
-#    - 啟動 OpenCode
-# 
-# ================================================================
+shell = {program = "pwsh.exe", args = ["-NoLogo", "-NoExit"]}
