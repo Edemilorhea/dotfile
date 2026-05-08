@@ -2,7 +2,17 @@
 local M = {}
 
 function M.setup()
-    local vscode = require("vscode")
+    -- 嘗試載入 vscode-neovim 模組
+    local ok, vscode = pcall(require, "vscode-neovim")
+    if not ok then
+        -- 如果失敗，嘗試舊的模組名稱
+        ok, vscode = pcall(require, "vscode")
+        if not ok then
+            print("Warning: VSCode module not available")
+            return
+        end
+    end
+    
     local opts = { noremap = true, silent = true }
     local map = vim.keymap.set
     local visual_line_mode = false

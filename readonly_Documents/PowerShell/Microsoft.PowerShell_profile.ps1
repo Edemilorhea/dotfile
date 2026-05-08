@@ -4,6 +4,8 @@
 Import-Module PSReadLine
 Import-Module PSFzf
 Import-Module -Name Terminal-Icons
+Set-PSReadLineOption -PredictionSource HistoryAndPlugin
+Set-PSReadLineOption -PredictionViewStyle ListView
 # Terminal-Icons 智慧載入 (自動修復損壞的設定)
 #function Initialize-TerminalIcons {
 #    $configRoot = Join-Path ([Environment]::GetFolderPath('ApplicationData')) 'powershell\Community\Terminal-Icons'

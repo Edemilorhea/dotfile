@@ -3,5 +3,6 @@
     "type": "command",
     "command": "powershell -ExecutionPolicy Bypass -NoProfile -Command \"& (Join-Path $env:USERPROFILE '.claude\\statusline-command.ps1')\"",
     "padding": 0
-  }
+  },
+  "editorMode": "vim"
 }

@@ -4,13 +4,13 @@
 
 -- VSCode 環境最小化載入
 if vim.g.vscode then
-    -- 通知系統優化（完全停用通知）
-    vim.notify = function() end
+    -- 1️⃣ 先載入基礎設定 (在 lazy.nvim 之前)
+    local ok_options = pcall(require, "config.options")
+    if not ok_options then
+        print("Warning: config.options not loaded")
+    end
 
-    -- LSP 清理補丁
-    vim.lsp.buf.clear_references = function() end
-
-    -- 最小化插件載入
+    -- 2️⃣ 初始化 lazy.nvim 和插件
     local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
     if not (vim.uv or vim.loop).fs_stat(lazypath) then
         local lazyrepo = "https://github.com/folke/lazy.nvim.git"
@@ -53,10 +53,20 @@ if vim.g.vscode then
         },
     })
 
-    -- 載入 VSCode 基礎設定和快捷鍵
-    require("config.options") -- 載入基礎選項設定
-    require("keymap.general").setup()
-    require("keymap.vscode").setup()
+    -- 3️⃣ 載入快捷鍵設定
+    local ok_general = pcall(function()
+        require("keymap.general").setup()
+    end)
+    if not ok_general then
+        print("Warning: keymap.general not loaded")
+    end
+
+    local ok_vscode = pcall(function()
+        require("keymap.vscode").setup()
+    end)
+    if not ok_vscode then
+        print("Warning: keymap.vscode not loaded")
+    end
 
     return -- 提前結束，不執行下面的完整載入
 end
@@ -109,5 +119,3 @@ else
         vim.o.shell = "bash"
     end
 end
-
-vim.notify("🚀 Neovim 完整環境已啟動")
