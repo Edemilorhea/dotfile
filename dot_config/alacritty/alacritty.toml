@@ -231,4 +231,5 @@ persistent_logging = true
 render_timer = false
 
 [terminal]
-shell = {program = "pwsh.exe", args = ["-NoLogo", "-NoExit"]}
+# shell = {program = "pwsh.exe", args = ["-NoLogo", "-NoExit"]}
+shell = {program = "nu.exe" }

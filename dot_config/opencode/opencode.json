@@ -5,6 +5,7 @@
         "@ex-machina/opencode-anthropic-auth",
         "@franlol/opencode-md-table-formatter@latest",
         "opencode-pty",
+        "opencode-skills",
         // "@daytonaio/opencode",
         // "opencode-helicone-session",
         // "@nick-vi/opencode-type-inject",
