@@ -131,6 +131,9 @@ nnoremap [m :action MethodUp<CR>
 nnoremap <leader>rrm :action ChooseRunConfiguration<CR>
 nnoremap <leader>rdm :action ChooseDebugConfiguration<CR>
 
+"執行db_console 相關
+nnoremap <leader>doc : action Jdbc.OpenConsole.New.Generate<CR>
+
 " 中文說明（新增這些）
 let g:WhichKeyDesc_gd = "gd 前往定義"
 let g:WhichKeyDesc_gm = "gm 前往實作"
