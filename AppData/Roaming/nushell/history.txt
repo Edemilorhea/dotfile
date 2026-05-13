@@ -126,3 +126,18 @@ opencode
 ls
 zi
 opencode
+chezmoi re-add
+chezmoi status
+chezmoi managed
+exit
+exit
+zi
+ls
+cls
+opencode
+exit
+zi
+zi
+dotnet build
+yarn dev
+dotnet run --no-build

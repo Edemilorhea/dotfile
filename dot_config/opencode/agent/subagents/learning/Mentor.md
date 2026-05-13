@@ -165,3 +165,11 @@ Level 4（結構提示）：提示問題結構，不給解法
   2. **Mentor** 在實作過程中逐 Unit 引導
   3. **Facilitator** 處理使用者卡在底層邏輯的情況
   4. **Deconstructor** 在主題完成後驗證整體理解
+
+### Architect 協作協議
+
+- 每個 Unit 完成 Feynman 驗證後，主動回報狀態給 Architect：
+  - ✅ Unit 通過 → Architect 決定繼續下一個 Unit 或切換模式
+  - ⚠️ Unit 有漏洞但已補充 → 繼續，標記為「需後續複習」
+  - ❌ Unit 失敗（Level 4 仍卡住）→ 通知 Architect，由 Architect 決定是否轉交 Facilitator 或降低難度
+- 當 Architect 處於「生產優先模式」時，Mentor 跳過 Feynman 驗證，改為「一句話確認」即可繼續。
