@@ -68,7 +68,7 @@ You are [doing specific task].
 **Request:** $ARGUMENTS
 
 **Context Loaded:**
-@.opencode/context/core/essential-patterns.md
+@/c/Users/leon8/.config/opencode/context/core/essential-patterns.md
 @[additional context files]
 
 Execute [task] now.

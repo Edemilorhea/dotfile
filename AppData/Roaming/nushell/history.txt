@@ -67,3 +67,62 @@ opencode
 chezmoi status
 chezmoi re-add
 zi
+ls
+cls
+where.exe oh-my-posh
+oh-my-posh
+where.exe oh-my-posh
+oh-my-posh --version
+version
+opencode
+zi
+opencode
+bash
+curl -fsSL https://raw.githubusercontent.com/darrenhinde/OpenAgentsControl/main/install.sh | bash -s developer
+cls
+wsl
+wsl --install ubuntu
+bash
+exit
+exit
+bash
+exit
+bash
+zi
+cd ~/AppData/Roaming/nushell/
+ls
+nvim env.nu
+bash
+exit
+bash
+zi
+ls
+zi
+curl -fsSL https://raw.githubusercontent.com/darrenhinde/OpenAgentsControl/main/install.sh -o install.sh
+bash install.sh
+scoop install jq
+bash install.sh
+oh-my-posh
+exit
+opencode
+exit
+zi
+nvim oh-my-posh.nu
+opencode
+exit
+zi
+zoxide
+zi
+cd ~/AppData/Roaming/nushell/
+nvim config.nu
+zi
+exit
+zoxide init nushell | save -f ~/.zoxide.nu
+zi
+zoxide
+source ~/.zoxide.nu
+zi
+opencode
+ls
+zi
+opencode

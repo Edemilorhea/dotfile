@@ -26,3 +26,5 @@ $env.PYENV_VIRTUALENV_DISABLE_PROMPT = 1
 
 # 添加 PATH
 $env.PATH = ($env.PATH | append $"($env.USERPROFILE)\\.config")
+let git_path = 'C:\Program Files\Git\bin'
+$env.PATH = ($env.PATH | prepend $git_path)

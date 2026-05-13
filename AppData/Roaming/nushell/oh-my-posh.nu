@@ -1,5 +1,5 @@
 
-let _omp_executable: string = (echo "C:/Users/TC/scoop/apps/oh-my-posh/current/oh-my-posh.exe")
+let _omp_executable: string = "oh-my-posh"
 
 let _omp_executable_is_path = (
     ($_omp_executable | str contains "/")
@@ -45,6 +45,7 @@ def --wrapped _omp_get_prompt [
         ^$_omp_executable print $type
             --save-cache
             --shell=nu
+            $"--config=($env.POSH_THEMES_PATH)\\M365Princess.omp.json"
             $"--shell-version=($env.POSH_SHELL_VERSION)"
             $"--status=($env.LAST_EXIT_CODE)"
             $"--no-status=($no_status)"
@@ -58,6 +59,7 @@ def --wrapped _omp_get_prompt [
 $env.PROMPT_MULTILINE_INDICATOR = (
     ^$_omp_executable print secondary
         --shell=nu
+        $"--config=($env.POSH_THEMES_PATH)\\M365Princess.omp.json"
         $"--shell-version=($env.POSH_SHELL_VERSION)"
 )
 

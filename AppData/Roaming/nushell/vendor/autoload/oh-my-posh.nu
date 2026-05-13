@@ -8,7 +8,7 @@ let _omp_executable_is_path = (
 )
 
 # Exit early if the oh-my-posh executable is not available
-if not (($_omp_executable_is_path and ($_omp_executable | path exists)) or (which $_omp_executable | is-not-empty)) { return }
+if (($_omp_executable_is_path and ($_omp_executable | path exists)) or (which $_omp_executable | is-not-empty)) {
 
 # make sure we have the right prompt render correctly
 if ($env.config? | is-not-empty) {
@@ -76,4 +76,5 @@ $env.PROMPT_COMMAND = {||
 }
 
 $env.PROMPT_COMMAND_RIGHT = {|| _omp_get_prompt right }
+}
 
