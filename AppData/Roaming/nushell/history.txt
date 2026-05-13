@@ -1,0 +1,69 @@
+exit
+opencode
+zi
+cd E:\
+ls
+cd Tools\
+ls
+git clone https://github.com/psmux/psmux.git
+cd psmux\
+ls
+cargo build -release
+cargo build -realease
+cargo build --realease
+cargo build -realease
+cargo build -realase
+cargo build
+ls
+pwd
+cd E:\Tools\psmux\target
+ls
+cd debug\
+ls
+zi
+ls
+version
+zi
+oh-my-posh init nu
+oh-my-posh init nu --print
+opencode
+zi
+ls
+cd .con
+opencode
+exit
+pwsh
+ls
+exit
+exit
+exit
+nu
+exit
+zi
+opencode
+zi
+opencode
+procdump -ma -e -x . nu.exe nu_full.dmp
+zi
+ls
+curl -fsSL https://raw.githubusercontent.com/darrenhinde/OpenAgentsControl/main/install.sh -o install.sh
+bash install.sh
+wsl
+bash
+exit
+bash
+wsl
+wsl --install 
+ls
+bash
+zi
+bash.exe install.sh
+bash sudo apt-get install jq
+bash -- sudo apt-get install jq
+bash 
+bash install.sh
+ls
+opencode
+chezmoi status
+chezmoi re-add
+zi
