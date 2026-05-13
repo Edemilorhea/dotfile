@@ -2,3 +2,28 @@
 .config/opencode/bun.lock
 .config/opencode/antigravity-accounts.json
 .config/opencode/package.json
+.config/opencode/package-lock.json
+.config/opencode/README.md
+.config/opencode/opencode-notifier*.json
+.config/opencode/tui.json.newversion
+
+# OpenAgentsControl - skills
+.config/opencode/skills/**
+
+# OpenAgentsControl - context (保留 project/ 和 project-intelligence/)
+.config/opencode/context/core/**
+.config/opencode/context/openagents-repo/**
+.config/opencode/context/development/**
+.config/opencode/context/ui/**
+
+# OpenAgentsControl - agent (保留你自己的)
+.config/opencode/agent/core/openagent.md
+.config/opencode/agent/core/opencoder.md
+.config/opencode/agent/subagents/code/**
+.config/opencode/agent/subagents/core/**
+.config/opencode/agent/subagents/development/**
+.config/opencode/agent/subagents/system-builder/**
+
+# OpenAgentsControl - plugins / tool
+.config/opencode/plugins/**
+.config/opencode/tool/**
