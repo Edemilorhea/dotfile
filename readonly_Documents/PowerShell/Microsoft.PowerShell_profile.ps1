@@ -124,6 +124,23 @@ Function tldrzhtw {
 # ================================
 # 📌 常用 Alias
 # ================================
+
+function czgit {
+    git -C (chezmoi source-path) @args
+}
+
+function ocRider { opencode --port 4096 }
+
+function myhelp {
+    Write-Host "`n📌 自訂指令清單 (從 profile 自動掃描)`n" -ForegroundColor Cyan
+    Select-String -Path $PROFILE -Pattern '^function ' |
+        ForEach-Object { 
+            $name = $_.Line -replace 'function ', '' -replace ' *\{.*', ''
+            Write-Host "  $name" -ForegroundColor Yellow
+        }
+    Write-Host ""
+}
+
 Set-Alias lvim 'C:\Users\TC\.local\bin\lvim.ps1'
 Set-Alias tlzh tldrzhtw
 Set-Alias tl tldr
