@@ -141,3 +141,21 @@ zi
 dotnet build
 yarn dev
 dotnet run --no-build
+chezmoi update
+exit
+exit
+exit
+E:\tools\psmux\target\release\psmux.exe
+cls
+version
+exit
+zi
+ls
+nvim config.nu
+zi
+nvim config.nu
+source ~/.config.nu
+source ./config.nu
+/ ?
+nvim config.nu
+source ./config.nu

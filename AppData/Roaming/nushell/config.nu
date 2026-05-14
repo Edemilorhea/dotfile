@@ -155,7 +155,7 @@ $env.config = ($env.config | upsert keybindings [
         mode: [emacs vi_normal vi_insert]
         event: {
             send: executehostcommand
-            cmd: "commandline (history | get command | reverse | uniq | str join (char -i 0) | fzf --read0 --layout=reverse --height=40% | str trim)"
+            cmd: "commandline edit (history | get command | reverse | uniq | str join (char -i 0) | fzf --read0 --layout=reverse --height=40% --scheme=history --tiebreak=begin | str trim)"
         }
     }
     # Alt+F — 接受建議
@@ -174,7 +174,7 @@ $env.config = ($env.config | upsert keybindings [
         mode: [emacs vi_normal vi_insert]
         event: {
             send: executehostcommand
-            cmd: "commandline (history | get command | reverse | uniq | str join (char -i 0) | fzf --read0 --layout=reverse --height=40% --prompt 'CMD > ' | str trim)"
+            cmd: "commandline edit (history | get command | reverse | uniq | str join (char -i 0) | fzf --read0 --layout=reverse --height=40% --scheme=history --tiebreak=begin --prompt 'CMD > ' | str trim)"
         }
     }
     # Alt+C — fzf 跳轉目錄 (對應 PSFzf PSReadlineChordSetLocation)
