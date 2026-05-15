@@ -6,6 +6,7 @@
 .config/opencode/README.md
 .config/opencode/opencode-notifier*.json
 .config/opencode/tui.json.newversion
+AppData/Roaming/nushell/history.txt
 
 # OpenAgentsControl - skills
 .config/opencode/skills/**
