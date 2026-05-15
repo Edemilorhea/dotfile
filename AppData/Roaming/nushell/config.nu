@@ -207,7 +207,7 @@ $env.config = ($env.config | upsert keybindings [
 ])
 
 # ================================
-# 🔧 補全設定 (對應 PSReadLine Tab → MenuComplete)
+# 📋 Tab 補全設定 (類似 PSReadLine MenuComplete)
 # ================================
 $env.config = ($env.config | upsert completions {
     case_sensitive: false
@@ -220,8 +220,87 @@ $env.config = ($env.config | upsert completions {
     }
 })
 
+# 啟用歷史選單 (輸入時自動彈出)
+$env.config = ($env.config | upsert history {
+    max_size: 100_000
+    sync_on_enter: true
+    file_format: "sqlite"
+    isolation: false
+})
+
+# 配置選單樣式
+$env.config = ($env.config | upsert menus [
+    {
+        name: completion_menu
+        only_buffer_difference: false
+        marker: "| "
+        type: {
+            layout: columnar
+            columns: 4
+            col_width: 20
+            col_padding: 2
+        }
+        style: {
+            text: green
+            selected_text: { attr: r }
+            description_text: yellow
+        }
+    }
+    {
+        name: history_menu
+        only_buffer_difference: false
+        marker: "? "
+        type: {
+            layout: list
+            page_size: 10
+        }
+        style: {
+            text: green
+            selected_text: green_reverse
+            description_text: yellow
+        }
+    }
+])
+
+# Tab 鍵綁定 (正常補全：指令、路徑、參數)
+$env.config = ($env.config | upsert keybindings (
+    $env.config.keybindings | append {
+        name: completion_menu
+        modifier: none
+        keycode: tab
+        mode: [emacs vi_normal vi_insert]
+        event: {
+            until: [
+                { send: menu name: completion_menu }
+                { send: menunext }
+                { edit: complete }
+            ]
+        }
+    }
+))
+
+# ================================  
+# 💡 啟用 ANSI 顏色與 inline 自動提示 (灰色建議文字)
+# ================================
+$env.config = ($env.config | upsert use_ansi_coloring true)
+
 # ================================
 # 🚀 zoxide 初始化
 # ================================
 zoxide init nushell | save -f ~/.zoxide.nu
 source ~/.zoxide.nu
+
+# ================================
+# 🎯 Carapace 補全引擎
+# ================================
+$env.CARAPACE_BRIDGES = 'zsh,fish,bash,inshellisense'
+mkdir ~/.cache/carapace
+carapace _carapace nushell | save --force ~/.cache/carapace/init.nu
+source ~/.cache/carapace/init.nu
+
+# ================================
+# 🔍 Atuin 跨 Shell 歷史同步
+# ================================
+mkdir ~/.cache/atuin
+atuin init nu | save --force ~/.cache/atuin/init.nu
+source ~/.cache/atuin/init.nu

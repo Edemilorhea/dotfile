@@ -68,7 +68,7 @@ $env.PROMPT_COMMAND = {||
     # this obviously isn't bulletproof, but it's a start
     mut clear = false
     if $nu.history-enabled {
-        $clear = (history | is-empty) or ((history | last 1 | get 0.command) == "clear")
+        $clear = (history | is-empty) or ((history | last 1 | get -o 0.command) == "clear")
     }
 
     if ($env.SET_POSHCONTEXT? | is-not-empty) {
