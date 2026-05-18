@@ -20,7 +20,7 @@
 # ================================
 # 🌈 環境變數
 # ================================
-$env.WEZTERM_LOG = "debug"
+$env.WEZTERM_LOG = "warn"
 $env.VIRTUAL_ENV_DISABLE_PROMPT = 1
 $env.PYENV_VIRTUALENV_DISABLE_PROMPT = 1
 

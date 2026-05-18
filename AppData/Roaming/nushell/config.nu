@@ -143,6 +143,38 @@ def oc [...args] {
     }
 }
 
+# pw — PowerShell 快捷執行（免去 pwsh -Command '...' 的麻煩）
+# 使用方式: pw Get-Process | Select-Object Name
+#          pw "Get-Date -Format yyyy-MM-dd"
+def --wrapped pw [...args] {
+    let cmd = ($args | str join " ")
+    ^pwsh -NoProfile -Command $cmd
+}
+
+# pwe — PowerShell 執行並轉換輸出為 Nu 表格（適合管道後續處理）
+# 使用方式: pwe Get-Process | where Name =~ chrome | select Name Id
+def --wrapped pwe [...args] {
+    let cmd = ($args | str join " ")
+    ^pwsh -NoProfile -Command $cmd | lines | parse "{output}" | get output? | default []
+}
+
+# bx — Bash 快捷執行（避免覆蓋系統 bash 指令）
+# 使用方式: bx ls -la
+#          bx "echo $HOME"
+def --wrapped bx [...args] {
+    let cmd = ($args | str join " ")
+    if $nu.os-info.name == "windows" {
+        # Windows 嘗試使用 WSL bash 或 Git Bash
+        if (which bash | length) > 0 {
+            ^bash -c $cmd
+        } else {
+            error make { msg: "bash not found. Please install WSL or Git Bash." }
+        }
+    } else {
+        ^bash -c $cmd
+    }
+}
+
 # ================================
 # ⌨️ 快捷鍵設定
 # ================================
@@ -166,15 +198,15 @@ $env.config = ($env.config | upsert keybindings [
         mode: [emacs vi_insert]
         event: { send: HistoryHintWordComplete }
     }
-    # Ctrl+F — fzf 互動選指令 (對應 PSFzf PSReadlineChordProvider)
+    # Ctrl+F — fzf 搜尋當前目錄下所有檔案
     {
-        name: fzf_provider
+        name: fzf_files
         modifier: control
         keycode: char_f
         mode: [emacs vi_normal vi_insert]
         event: {
             send: executehostcommand
-            cmd: "commandline edit (history | get command | reverse | uniq | str join (char -i 0) | fzf --read0 --layout=reverse --height=40% --scheme=history --tiebreak=begin --prompt 'CMD > ' | str trim)"
+            cmd: "let __file = (ls **/* | get name | str join (char -i 0) | fzf --read0 --layout=reverse --height=40% --prompt 'FILE > ' | str trim); if ($__file | is-not-empty) { commandline edit $__file }"
         }
     }
     # Alt+C — fzf 跳轉目錄 (對應 PSFzf PSReadlineChordSetLocation)
@@ -188,11 +220,11 @@ $env.config = ($env.config | upsert keybindings [
             cmd: "let __dir = (ls **/* | where type == dir | get name | str join (char -i 0) | fzf --read0 --layout=reverse --height=40% --prompt 'CD > ' | str trim); if ($__dir | is-not-empty) { cd $__dir }"
         }
     }
-    # RightArrow — 接受下一個單字建議
+    # End — 接受下一個單字建議 (避免覆蓋右方向鍵移動游標)
     {
         name: accept_next_word
         modifier: none
-        keycode: right
+        keycode: end
         mode: [emacs vi_insert]
         event: { send: HistoryHintWordComplete }
     }
@@ -284,10 +316,16 @@ $env.config = ($env.config | upsert keybindings (
 # ================================
 $env.config = ($env.config | upsert use_ansi_coloring true)
 
+# 關閉啟動歡迎橫幅，開啟啟動時間提示
+$env.config = ($env.config | upsert show_banner false)
+$env.config = ($env.config | upsert show_hints true)
+
 # ================================
 # 🚀 zoxide 初始化
 # ================================
-zoxide init nushell | save -f ~/.zoxide.nu
+if not ("~/.zoxide.nu" | path exists) {
+    zoxide init nushell | save -f ~/.zoxide.nu
+}
 source ~/.zoxide.nu
 
 # ================================
@@ -295,12 +333,26 @@ source ~/.zoxide.nu
 # ================================
 $env.CARAPACE_BRIDGES = 'zsh,fish,bash,inshellisense'
 mkdir ~/.cache/carapace
-carapace _carapace nushell | save --force ~/.cache/carapace/init.nu
+if not ("~/.cache/carapace/init.nu" | path exists) {
+    carapace _carapace nushell | save --force ~/.cache/carapace/init.nu
+}
 source ~/.cache/carapace/init.nu
+# Carapace 接管補全後強制不分大小寫
+$env.config.completions.case_sensitive = false
 
 # ================================
 # 🔍 Atuin 跨 Shell 歷史同步
 # ================================
 mkdir ~/.cache/atuin
-atuin init nu | save --force ~/.cache/atuin/init.nu
+if not ("~/.cache/atuin/init.nu" | path exists) {
+    atuin init nu | save --force ~/.cache/atuin/init.nu
+}
 source ~/.cache/atuin/init.nu
+
+# ================================
+# 🎉 自訂歡迎語
+# ================================
+let __now = (date now | format date "%Y-%m-%d %H:%M:%S")
+let __ver = (version | get version)
+let __user = ($env.USERNAME? | default ($env.USER? | default "User"))
+print $"\n🕐 ($__now)  |  🐚 Nushell ($__ver)  |  👤 ($__user)\n"
