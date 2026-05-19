@@ -20,7 +20,20 @@
 # ================================
 # Oh My Posh
 # ================================
-source oh-my-posh.nu
+# 🔧 修復: 只在非 OpenCode 環境中啟用 Oh-My-Posh
+# 原因: Oh-My-Posh 的終端狀態查詢會在 OpenCode 關閉時觸發 ConHost 崩潰 (0xc0000094)
+if ($env.OPENCODE_SESSION? | is-empty) {
+    source oh-my-posh.nu
+} else {
+    # OpenCode 環境使用簡單 prompt,避免終端狀態衝突
+    $env.PROMPT_COMMAND = {|| 
+        let path_segment = ($env.PWD | str replace $nu.home-path "~")
+        $"(ansi green_bold)❯(ansi reset) (ansi cyan)($path_segment)(ansi reset) "
+    }
+    $env.PROMPT_COMMAND_RIGHT = {|| "" }
+    $env.PROMPT_INDICATOR = ""
+    $env.PROMPT_MULTILINE_INDICATOR = "::: "
+}
 
 # ================================
 # 🧠 Zoxide 智慧跳轉
