@@ -55,6 +55,13 @@ def --env lvim [...args] {
     } else {
         $"($nu.home-path)/.local/bin/lvim"
     }
+    
+    if not ($bin | path exists) {
+        print $"❌ lvim 未找到於: ($bin)"
+        print "請確認 LunarVim 已正確安裝"
+        return
+    }
+    
     ^$bin ...$args
 }
 
@@ -86,6 +93,15 @@ def tldrzhtw [cmd: string] {
 
 # TLDR + fzf 互動查詢
 def tldr-fzf [] {
+    if (which fzf | is-empty) {
+        print "❌ fzf 未安裝，無法使用互動查詢"
+        return
+    }
+    if (which tldr | is-empty) {
+        print "❌ tldr 未安裝"
+        return
+    }
+    
     let commands = (tldr --list | lines | sort)
     if ($commands | is-empty) {
         print "沒有指令列表，請先執行 tldr --update"
@@ -100,6 +116,16 @@ def tldr-fzf [] {
 # fcd — Everything CLI + fzf 快速跳轉 (對應 PowerShell fcd)
 # 需要安裝 Everything + es.exe (https://www.voidtools.com/support/everything/command_line_interface/)
 def --env fcd [] {
+    if (which fzf | is-empty) {
+        print "❌ fzf 未安裝，無法使用互動選擇"
+        return
+    }
+    if (which es | is-empty) {
+        print "❌ Everything CLI (es.exe) 未安裝"
+        print "下載: https://www.voidtools.com/support/everything/command_line_interface/"
+        return
+    }
+    
     let result = (^es -folder | lines | fzf --prompt "跳轉到 > " --layout=reverse --height=40% | str trim)
     if ($result | is-not-empty) {
         cd $result
@@ -149,10 +175,23 @@ if ($d.ShowDialog() -eq "OK") { $d.SelectedPath }
 
 # oc — OpenCode wrapper (跨平台，自動偵測 Windows / Linux)
 def oc [...args] {
-    if $nu.os-info.name == "windows" {
-        ^pwsh -NoProfile -File $"($nu.home-path)\\.config\\opencode-wrapper.ps1" ...$args
+    let wrapper = if $nu.os-info.name == "windows" {
+        $"($nu.home-path)\\.config\\opencode-wrapper.ps1"
     } else {
-        ^bash $"($nu.home-path)/.config/opencode-wrapper.sh" ...$args
+        $"($nu.home-path)/.config/opencode-wrapper.sh"
+    }
+    
+    if not ($wrapper | path exists) {
+        print $"❌ OpenCode wrapper 未找到於: ($wrapper)"
+        print "嘗試直接執行 opencode..."
+        ^opencode ...$args
+        return
+    }
+    
+    if $nu.os-info.name == "windows" {
+        ^pwsh -NoProfile -File $wrapper ...$args
+    } else {
+        ^bash $wrapper ...$args
     }
 }
 
@@ -331,36 +370,48 @@ $env.config = ($env.config | upsert use_ansi_coloring true)
 
 # 關閉啟動歡迎橫幅，開啟啟動時間提示
 $env.config = ($env.config | upsert show_banner false)
-$env.config = ($env.config | upsert show_hints true)
+$env.config = ($env.config | upsert show_hints false)
 
 # ================================
 # 🚀 zoxide 初始化
 # ================================
-if not ("~/.zoxide.nu" | path exists) {
-    zoxide init nushell | save -f ~/.zoxide.nu
+if (which zoxide | is-not-empty) {
+    if not ("~/.zoxide.nu" | path exists) {
+        zoxide init nushell | save -f ~/.zoxide.nu
+    }
+    source ~/.zoxide.nu
+} else {
+    print "⚠️  zoxide 未安裝，跳過初始化 (安裝: https://github.com/ajeetdsouza/zoxide)"
 }
-source ~/.zoxide.nu
 
 # ================================
 # 🎯 Carapace 補全引擎
 # ================================
-$env.CARAPACE_BRIDGES = 'zsh,fish,bash,inshellisense'
-mkdir ~/.cache/carapace
-if not ("~/.cache/carapace/init.nu" | path exists) {
-    carapace _carapace nushell | save --force ~/.cache/carapace/init.nu
+if (which carapace | is-not-empty) {
+    $env.CARAPACE_BRIDGES = 'zsh,fish,bash,inshellisense'
+    mkdir ~/.cache/carapace
+    if not ("~/.cache/carapace/init.nu" | path exists) {
+        carapace _carapace nushell | save --force ~/.cache/carapace/init.nu
+    }
+    source ~/.cache/carapace/init.nu
+    # Carapace 接管補全後強制不分大小寫
+    $env.config.completions.case_sensitive = false
+} else {
+    print "⚠️  carapace 未安裝，跳過補全引擎 (安裝: https://carapace.sh)"
 }
-source ~/.cache/carapace/init.nu
-# Carapace 接管補全後強制不分大小寫
-$env.config.completions.case_sensitive = false
 
 # ================================
 # 🔍 Atuin 跨 Shell 歷史同步
 # ================================
-mkdir ~/.cache/atuin
-if not ("~/.cache/atuin/init.nu" | path exists) {
-    atuin init nu | save --force ~/.cache/atuin/init.nu
+if (which atuin | is-not-empty) {
+    mkdir ~/.cache/atuin
+    if not ("~/.cache/atuin/init.nu" | path exists) {
+        atuin init nu | save --force ~/.cache/atuin/init.nu
+    }
+    source ~/.cache/atuin/init.nu
+} else {
+    print "⚠️  atuin 未安裝，跳過歷史同步 (安裝: https://atuin.sh)"
 }
-source ~/.cache/atuin/init.nu
 
 # ================================
 # 🎉 自訂歡迎語

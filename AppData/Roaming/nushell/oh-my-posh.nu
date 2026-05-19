@@ -11,6 +11,18 @@ let _omp_executable_is_path = (
 # Exit early if the oh-my-posh executable is not available
 if not (($_omp_executable_is_path and ($_omp_executable | path exists)) or (which $_omp_executable | is-not-empty)) { return }
 
+# 智慧偵測 Oh-My-Posh 主題路徑
+let _omp_theme_candidates = [
+    ($env.POSH_THEMES_PATH? | default "" | path join "M365Princess.omp.json")
+    ($env.LOCALAPPDATA? | default "" | path join "Programs/oh-my-posh/themes/M365Princess.omp.json")
+    ($nu.home-dir | path join ".config/oh-my-posh/themes/M365Princess.omp.json")
+    ($nu.home-dir | path join "AppData/Local/Programs/oh-my-posh/themes/M365Princess.omp.json")
+]
+let _omp_theme = ($_omp_theme_candidates | where {|p| $p | path exists} | first | default "")
+if ($_omp_theme | is-empty) {
+    print "⚠️  Oh-My-Posh 主題 M365Princess.omp.json 未找到,使用預設主題"
+}
+
 # make sure we have the right prompt render correctly
 if ($env.config? | is-not-empty) {
     $env.config = ($env.config | upsert render_right_prompt_on_last_line true)
@@ -41,11 +53,16 @@ def --wrapped _omp_get_prompt [
         $no_status = false
     }
 
+    mut config_arg = []
+    if ($_omp_theme | is-not-empty) {
+        $config_arg = [$"--config=($_omp_theme)"]
+    }
+    
     (
         ^$_omp_executable print $type
             --save-cache
             --shell=nu
-            $"--config=($env.POSH_THEMES_PATH)\\M365Princess.omp.json"
+            ...$config_arg
             $"--shell-version=($env.POSH_SHELL_VERSION)"
             $"--status=($env.LAST_EXIT_CODE)"
             $"--no-status=($no_status)"
@@ -56,12 +73,21 @@ def --wrapped _omp_get_prompt [
     )
 }
 
-$env.PROMPT_MULTILINE_INDICATOR = (
-    ^$_omp_executable print secondary
-        --shell=nu
-        $"--config=($env.POSH_THEMES_PATH)\\M365Princess.omp.json"
-        $"--shell-version=($env.POSH_SHELL_VERSION)"
-)
+def _omp_get_multiline_indicator [] {
+    mut config_arg = []
+    if ($_omp_theme | is-not-empty) {
+        $config_arg = [$"--config=($_omp_theme)"]
+    }
+    
+    (
+        ^$_omp_executable print secondary
+            --shell=nu
+            ...$config_arg
+            $"--shell-version=($env.POSH_SHELL_VERSION)"
+    )
+}
+
+$env.PROMPT_MULTILINE_INDICATOR = (_omp_get_multiline_indicator)
 
 $env.PROMPT_COMMAND = {||
     # hack to set the cursor line to 1 when the user clears the screen

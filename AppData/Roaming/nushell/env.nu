@@ -26,5 +26,20 @@ $env.PYENV_VIRTUALENV_DISABLE_PROMPT = 1
 
 # 添加 PATH
 $env.PATH = ($env.PATH | append $"($env.USERPROFILE)\\.config")
-let git_path = 'C:\Program Files\Git\bin'
-$env.PATH = ($env.PATH | prepend $git_path)
+
+# 智慧偵測 Git 路徑 (跨平台)
+if $nu.os-info.name == "windows" {
+    let git_candidates = [
+        'C:\Program Files\Git\bin'
+        'C:\Program Files (x86)\Git\bin'
+        ($env.LOCALAPPDATA | path join 'Programs\Git\bin')
+        ($env.PROGRAMFILES | path join 'Git\bin')
+    ]
+    for $path in $git_candidates {
+        if ($path | path exists) {
+            $env.PATH = ($env.PATH | prepend $path)
+            break
+        }
+    }
+}
+# Linux/macOS 通常 Git 已在 PATH,不需額外處理
