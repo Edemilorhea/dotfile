@@ -27,7 +27,7 @@ if ($env.OPENCODE_SESSION? | is-empty) {
 } else {
     # OpenCode 環境使用簡單 prompt,避免終端狀態衝突
     $env.PROMPT_COMMAND = {|| 
-        let path_segment = ($env.PWD | str replace $nu.home-path "~")
+        let path_segment = ($env.PWD | str replace $nu.home-dir "~")
         $"(ansi green_bold)❯(ansi reset) (ansi cyan)($path_segment)(ansi reset) "
     }
     $env.PROMPT_COMMAND_RIGHT = {|| "" }
@@ -46,9 +46,9 @@ alias tlzh = tldrzhtw
 # lvim (跨平台，自動偵測 Windows / Linux)
 def --env lvim [...args] {
     let bin = if $nu.os-info.name == "windows" {
-        $"($nu.home-path)\\.local\\bin\\lvim.ps1"
+        $"($nu.home-dir)\\.local\\bin\\lvim.ps1"
     } else {
-        $"($nu.home-path)/.local/bin/lvim"
+        $"($nu.home-dir)/.local/bin/lvim"
     }
     
     if not ($bin | path exists) {
@@ -171,9 +171,9 @@ if ($d.ShowDialog() -eq "OK") { $d.SelectedPath }
 # oc — OpenCode wrapper (跨平台，自動偵測 Windows / Linux)
 def oc [...args] {
     let wrapper = if $nu.os-info.name == "windows" {
-        $"($nu.home-path)\\.config\\opencode-wrapper.ps1"
+        $"($nu.home-dir)\\.config\\opencode-wrapper.ps1"
     } else {
-        $"($nu.home-path)/.config/opencode-wrapper.sh"
+        $"($nu.home-dir)/.config/opencode-wrapper.sh"
     }
     
     if not ($wrapper | path exists) {
@@ -385,30 +385,70 @@ if (which zoxide | is-not-empty) {
 # ================================
 if (which carapace | is-not-empty) {
     $env.CARAPACE_BRIDGES = 'zsh,fish,bash,inshellisense'
-    let __carapace_cache = ($nu.home-path | path join ".cache" "carapace" "init.nu")
-    mkdir ($nu.home-path | path join ".cache" "carapace")
-    if not ($__carapace_cache | path exists) {
-        carapace _carapace nushell | save --force $__carapace_cache
-    }
-    source ($nu.home-path | path join ".cache" "carapace" "init.nu")
-    # Carapace 接管補全後強制不分大小寫
     $env.config.completions.case_sensitive = false
+    # 使用 external completer（不需要 source，避免 parse-time 問題）
+    $env.config.completions.external.enable = true
+    $env.config.completions.external.completer = {|spans|
+        carapace $spans.0 nushell ...$spans | from json
+    }
 } else {
-    print "⚠️  carapace 未安裝，跳過補全引擎 (安裝: https://carapace.sh)"
+    print "⚠️  carapace 未安裝，正在嘗試自動安裝..."
+    let __os = $nu.os-info.name
+    if $__os == "windows" {
+        if (which winget | is-not-empty) {
+            ^winget install rsteube.Carapace --silent
+        } else {
+            print "❌ 找不到 winget，請手動安裝: https://carapace.sh"
+        }
+    } else if $__os == "macos" {
+        if (which brew | is-not-empty) {
+            ^brew install carapace
+        } else {
+            print "❌ 找不到 brew，請手動安裝: https://carapace.sh"
+        }
+    } else {
+        ^curl -sSL https://raw.githubusercontent.com/carapace-sh/carapace-bin/master/install.sh | bash
+    }
+    if (which carapace | is-not-empty) {
+        print "✅ carapace 安裝成功，請重新開啟終端機生效"
+    } else {
+        print "❌ carapace 安裝失敗，請手動安裝: https://carapace.sh"
+    }
 }
 
 # ================================
 # 🔍 Atuin 跨 Shell 歷史同步
 # ================================
+# 注意: source 是 parse-time 指令，cache 必須在首次啟動前存在
+# 首次安裝後請執行: atuin init nu | save --force ~/.cache/atuin/init.nu
 if (which atuin | is-not-empty) {
-    let __atuin_cache = ($nu.home-path | path join ".cache" "atuin" "init.nu")
-    mkdir ($nu.home-path | path join ".cache" "atuin")
-    if not ($__atuin_cache | path exists) {
-        atuin init nu | save --force $__atuin_cache
-    }
-    source ($nu.home-path | path join ".cache" "atuin" "init.nu")
+    let __atuin_cache = ($nu.home-dir | path join ".cache" "atuin" "init.nu")
+    mkdir ($nu.home-dir | path join ".cache" "atuin")
+    # 每次啟動強制重新生成 cache
+    atuin init nu | save --force $__atuin_cache
 } else {
-    print "⚠️  atuin 未安裝，跳過歷史同步 (安裝: https://atuin.sh)"
+    print "⚠️  atuin 未安裝，正在嘗試自動安裝..."
+    let __os = $nu.os-info.name
+    if $__os == "windows" {
+        if (which winget | is-not-empty) {
+            ^winget install Atuinsh.Atuin --silent
+        } else {
+            print "❌ 找不到 winget，請手動安裝: https://atuin.sh"
+        }
+    } else if $__os == "macos" {
+        if (which brew | is-not-empty) {
+            ^brew install atuin
+        } else {
+            print "❌ 找不到 brew，請手動安裝: https://atuin.sh"
+        }
+    } else {
+        ^curl -sSL https://setup.atuin.sh | bash
+    }
+    if (which atuin | is-not-empty) {
+        print "✅ atuin 安裝成功，請重新載入 config: source $nu.config-path"
+    } else {
+        print "❌ atuin 安裝失敗，請手動安裝: https://atuin.sh"
+    }
 }
 
 # ================================
