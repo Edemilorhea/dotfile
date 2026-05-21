@@ -36,11 +36,6 @@ if ($env.OPENCODE_SESSION? | is-empty) {
 }
 
 # ================================
-# 🧠 Zoxide 智慧跳轉
-# ================================
-source zoxide.nu
-
-# ================================
 # 📌 常用 Alias
 # ================================
 alias tl = tldr
@@ -376,10 +371,11 @@ $env.config = ($env.config | upsert show_hints false)
 # 🚀 zoxide 初始化
 # ================================
 if (which zoxide | is-not-empty) {
-    if not ("~/.zoxide.nu" | path exists) {
-        zoxide init nushell | save -f ~/.zoxide.nu
+    let __zoxide_cache = ($nu.default-config-dir | path join "zoxide.nu")
+    if not ($__zoxide_cache | path exists) {
+        zoxide init nushell | save -f $__zoxide_cache
     }
-    source ~/.zoxide.nu
+    source ($nu.default-config-dir | path join "zoxide.nu")
 } else {
     print "⚠️  zoxide 未安裝，跳過初始化 (安裝: https://github.com/ajeetdsouza/zoxide)"
 }
@@ -389,11 +385,12 @@ if (which zoxide | is-not-empty) {
 # ================================
 if (which carapace | is-not-empty) {
     $env.CARAPACE_BRIDGES = 'zsh,fish,bash,inshellisense'
-    mkdir ~/.cache/carapace
-    if not ("~/.cache/carapace/init.nu" | path exists) {
-        carapace _carapace nushell | save --force ~/.cache/carapace/init.nu
+    let __carapace_cache = ($nu.home-path | path join ".cache" "carapace" "init.nu")
+    mkdir ($nu.home-path | path join ".cache" "carapace")
+    if not ($__carapace_cache | path exists) {
+        carapace _carapace nushell | save --force $__carapace_cache
     }
-    source ~/.cache/carapace/init.nu
+    source ($nu.home-path | path join ".cache" "carapace" "init.nu")
     # Carapace 接管補全後強制不分大小寫
     $env.config.completions.case_sensitive = false
 } else {
@@ -404,11 +401,12 @@ if (which carapace | is-not-empty) {
 # 🔍 Atuin 跨 Shell 歷史同步
 # ================================
 if (which atuin | is-not-empty) {
-    mkdir ~/.cache/atuin
-    if not ("~/.cache/atuin/init.nu" | path exists) {
-        atuin init nu | save --force ~/.cache/atuin/init.nu
+    let __atuin_cache = ($nu.home-path | path join ".cache" "atuin" "init.nu")
+    mkdir ($nu.home-path | path join ".cache" "atuin")
+    if not ($__atuin_cache | path exists) {
+        atuin init nu | save --force $__atuin_cache
     }
-    source ~/.cache/atuin/init.nu
+    source ($nu.home-path | path join ".cache" "atuin" "init.nu")
 } else {
     print "⚠️  atuin 未安裝，跳過歷史同步 (安裝: https://atuin.sh)"
 }
