@@ -422,36 +422,14 @@ if (which carapace | is-not-empty) {
 # ================================
 # 🔍 Atuin 跨 Shell 歷史同步
 # ================================
-# 注意: source 是 parse-time 指令，cache 必須在首次啟動前存在
-# 首次安裝後請執行: atuin init nu | save --force ~/.cache/atuin/init.nu
+# atuin.nu 放在 vendor/autoload/，Nushell 啟動時自動載入
+# 每次啟動重新生成以確保格式最新
 if (which atuin | is-not-empty) {
-    let __atuin_cache = ($nu.home-dir | path join ".cache" "atuin" "init.nu")
-    mkdir ($nu.home-dir | path join ".cache" "atuin")
-    # 每次啟動強制重新生成 cache
-    atuin init nu | save --force $__atuin_cache
+    let __atuin_autoload = ($nu.default-config-dir | path join "vendor" "autoload" "atuin.nu")
+    mkdir ($nu.default-config-dir | path join "vendor" "autoload")
+    atuin init nu | save --force $__atuin_autoload
 } else {
-    print "⚠️  atuin 未安裝，正在嘗試自動安裝..."
-    let __os = $nu.os-info.name
-    if $__os == "windows" {
-        if (which winget | is-not-empty) {
-            ^winget install Atuinsh.Atuin --silent
-        } else {
-            print "❌ 找不到 winget，請手動安裝: https://atuin.sh"
-        }
-    } else if $__os == "macos" {
-        if (which brew | is-not-empty) {
-            ^brew install atuin
-        } else {
-            print "❌ 找不到 brew，請手動安裝: https://atuin.sh"
-        }
-    } else {
-        ^curl -sSL https://setup.atuin.sh | bash
-    }
-    if (which atuin | is-not-empty) {
-        print "✅ atuin 安裝成功，請重新載入 config: source $nu.config-path"
-    } else {
-        print "❌ atuin 安裝失敗，請手動安裝: https://atuin.sh"
-    }
+    print "⚠️  atuin 未安裝，跳過初始化"
 }
 
 # ================================
