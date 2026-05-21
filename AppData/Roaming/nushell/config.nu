@@ -370,14 +370,17 @@ $env.config = ($env.config | upsert show_hints false)
 # ================================
 # 🚀 zoxide 初始化
 # ================================
+# zoxide.nu 放在 vendor/autoload/，Nushell 啟動時自動載入
+# 首次或檔案不存在時自動生成
 if (which zoxide | is-not-empty) {
-    let __zoxide_cache = ($nu.default-config-dir | path join "zoxide.nu")
-    if not ($__zoxide_cache | path exists) {
-        zoxide init nushell | save -f $__zoxide_cache
+    let __zoxide_autoload = ($nu.default-config-dir | path join "vendor" "autoload" "zoxide.nu")
+    if not ($__zoxide_autoload | path exists) {
+        mkdir ($nu.default-config-dir | path join "vendor" "autoload")
+        zoxide init nushell | save -f $__zoxide_autoload
+        print "✅ zoxide.nu 已生成，請重新開啟終端機生效"
     }
-    source ($nu.default-config-dir | path join "zoxide.nu")
 } else {
-    print "⚠️  zoxide 未安裝，跳過初始化 (安裝: https://github.com/ajeetdsouza/zoxide)"
+    print "⚠️  zoxide 未安裝，跳過初始化"
 }
 
 # ================================
