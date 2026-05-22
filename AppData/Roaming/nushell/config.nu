@@ -429,7 +429,27 @@ if (which atuin | is-not-empty) {
     mkdir ($nu.default-config-dir | path join "vendor" "autoload")
     atuin init nu | save --force $__atuin_autoload
 } else {
-    print "⚠️  atuin 未安裝，跳過初始化"
+    print "⚠️  atuin 未安裝，正在嘗試自動安裝..."
+    let __os = $nu.os-info.name
+    if $__os == "windows" {
+        if (which winget | is-not-empty) {
+            ^winget install atuin --silent
+        } else {
+            print "❌ 找不到 winget，請手動安裝: https://atuin.sh"
+        }
+    } else {
+        # Linux / macOS — 官方安裝腳本
+        if (which curl | is-not-empty) {
+            ^bash -c "curl --proto '=https' --tlsv1.2 -LsSf https://setup.atuin.sh | sh"
+        } else {
+            print "❌ 找不到 curl，請手動安裝: https://atuin.sh"
+        }
+    }
+    if (which atuin | is-not-empty) {
+        print "✅ atuin 安裝成功，請重新開啟終端機生效"
+    } else {
+        print "❌ atuin 安裝失敗，請手動安裝: https://atuin.sh"
+    }
 }
 
 # ================================
