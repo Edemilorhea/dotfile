@@ -1,0 +1,81 @@
+{
+    "$schema": "https://opencode.ai/config.json",
+    "plugin": [
+        "opencode-gemini-auth@latest",
+        "@ex-machina/opencode-anthropic-auth",
+        "@franlol/opencode-md-table-formatter@latest",
+        "opencode-skills",
+        "@mohak34/opencode-notifier@latest",
+        "@different-ai/opencode-browser",
+        "@tarquinen/opencode-dcp",
+        "opencode-large-image-optimizer@latest",
+        "opencode-chrome-devtools"
+    ],
+    "instructions": [
+        "~/.config/opencode/plugin/shell-strategy/shell_strategy.md",
+        "~/.config/opencode/instructions/morph-tools.md"
+    ],
+    "default_agent": "OpenAgent",
+    "provider": {
+        "google": {
+            "options": {
+                "projectId": "gen-lang-client-0877567430"
+            },
+            "models": {
+                "gemini-2.5-flash": {
+                    "options": {
+                        "thinkingConfig": {
+                            "thinkingBudget": 8192,
+                            "includeThoughts": true
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "mcp": {
+        "notebooklm": {
+            "type": "local",
+            "command": [
+                "npx",
+                "-y",
+                "notebooklm-mcp@latest"
+            ],
+            "enabled": true
+        },
+        "linear": {
+            "type": "remote",
+            "url": "https://mcp.linear.app/mcp",
+            "enabled": true,
+            "timeout": 5000
+        }
+    },
+    "permission": {
+        "read": {
+            "*": "allow",
+            "*.env": "deny",
+            "*.env.*": "deny",
+            "*.env.example": "allow"
+        },
+        "list": "allow",
+        "glob": "allow",
+        "grep": "allow",
+        "lsp": "allow",
+        "edit": "ask",
+        "bash": {
+            "*": "ask",
+            "Get-*": "allow",
+            "Test-*": "allow",
+            "ls": "allow",
+            "pwd": "allow"
+        },
+        "task": "ask",
+        "todoread": "allow",
+        "todowrite": "ask",
+        "webfetch": "allow",
+        "websearch": "allow",
+        "codesearch": "allow",
+        "external_directory": "ask",
+        "doom_loop": "allow"
+    }
+}
