@@ -5,7 +5,6 @@
         "@ex-machina/opencode-anthropic-auth",
         "@franlol/opencode-md-table-formatter@latest",
         "opencode-pty",
-        "opencode-skills",
         "@mohak34/opencode-notifier@latest",
         "@different-ai/opencode-browser",
         "@tarquinen/opencode-dcp",

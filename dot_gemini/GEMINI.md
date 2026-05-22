@@ -35,8 +35,44 @@ Edit(file_path: "D:\repos\project\file.tsx", ...)
 MultiEdit(file_path: "D:\repos\project\file.tsx", ...)
 ```
 
-## This is Agent Context
-@./agents/dotnet-code-reviewer.md
+## 載入規則與 Agent 定義
 
-## This is Rules
+### 核心規則
 @./rules/workflow.md
+@./rules/codestyle.md
+@./rules/permissions.md
+
+### 核心 Agents
+@./agents/core/openagent.md
+@./agents/core/opencoder.md
+@./agents/core/architect.md
+@./agents/plan.md
+@./agents/build.md
+
+### 程式碼相關 SubAgents
+@./agents/subagents/code/coder-agent.md
+@./agents/subagents/code/build-agent.md
+@./agents/subagents/code/reviewer.md
+@./agents/subagents/code/test-engineer.md
+
+### 核心功能 SubAgents
+@./agents/subagents/core/contextscout.md
+@./agents/subagents/core/externalscout.md
+@./agents/subagents/core/task-manager.md
+@./agents/subagents/core/documentation.md
+
+### 開發專業 SubAgents
+@./agents/subagents/development/devops-specialist.md
+@./agents/subagents/development/frontend-specialist.md
+
+### 學習輔助 SubAgents
+@./agents/subagents/learning/navigator.md
+@./agents/subagents/learning/mentor.md
+@./agents/subagents/learning/facilitator.md
+@./agents/subagents/learning/deconstructor.md
+
+### 系統建置 SubAgents
+@./agents/subagents/system-builder/context-organizer.md
+
+### 專業審查 Agents
+@./agents/dotnet-code-reviewer.md
