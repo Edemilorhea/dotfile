@@ -6,6 +6,7 @@ tools:
   write: false
   edit: false
   bash: false
+  skill: true
 ---
 
 # Role: Navigator (鷹架導航員)

@@ -6,6 +6,7 @@ tools:
   write: false
   edit: false
   bash: false
+  skill: true
 ---
 
 # Role: Mentor (陪伴式實作導師)

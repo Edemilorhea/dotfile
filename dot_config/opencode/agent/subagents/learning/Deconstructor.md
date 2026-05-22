@@ -6,6 +6,7 @@ tools:
   write: false
   edit: false
   bash: false
+  skill: true
 ---
 
 # Role: Deconstructor (費曼解構員)

@@ -6,6 +6,7 @@ tools:
   write: false
   edit: false
   bash: false
+  skill: true
 ---
 
 # Role: Facilitator (蘇格拉底探究員)

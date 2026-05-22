@@ -6,6 +6,7 @@ tools:
   write: false
   edit: false
   bash: false
+  skill: true
 ---
 
 # Role: Meta-Learning Architect (元學習架構師)
