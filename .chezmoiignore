@@ -8,8 +8,10 @@
 .config/opencode/tui.json.newversion
 AppData/Roaming/nushell/history.txt
 
-# OpenAgentsControl - skills
-.config/opencode/skills/**
+# OpenAgentsControl - skills (OAC 提供，不需管理)
+.config/opencode/skills/browser-automation
+.config/opencode/skills/context7
+.config/opencode/skills/task-management
 
 # OpenAgentsControl - context (保留 project/ 和 project-intelligence/)
 .config/opencode/context/core/**
