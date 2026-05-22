@@ -178,7 +178,7 @@
             "rm *": "deny",
             "rm -rf *": "deny"
         },
-        "task": "ask",
+        "task": "allow",
         "todoread": "allow",
         "todowrite": "ask",
         "webfetch": "allow",
@@ -228,7 +228,7 @@
                 },
                 "write": "ask",
                 "todowrite": "ask",
-                "task": "ask",
+        "task": "allow",
                 "external_directory": "ask",
                 "doom_loop": "allow",
                 "bash": {
