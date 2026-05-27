@@ -228,7 +228,7 @@
                 },
                 "write": "ask",
                 "todowrite": "ask",
-        "task": "allow",
+                "task": "allow",
                 "external_directory": "ask",
                 "doom_loop": "allow",
                 "bash": {
