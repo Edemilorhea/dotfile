@@ -43,6 +43,23 @@ alias nav = navi
 alias bunx = bun
 alias tlzh = tldrzhtw
 
+def psmux [...args] {
+    let scoop = $"($env.USERPROFILE)\\scoop\\shims\\psmux.exe"
+    let cargo = $"($env.USERPROFILE)\\.cargo\\bin\\psmux.exe"
+
+    let exe = if ($scoop | path exists) {
+        $scoop
+    } else if ($cargo | path exists) {
+        $cargo
+    } else {
+        print "psmux not found in scoop\\shims or .cargo\\bin"
+        return
+    }
+
+    ^$exe ...$args
+}
+
+
 # lvim (跨平台，自動偵測 Windows / Linux)
 def --env lvim [...args] {
     let bin = if $nu.os-info.name == "windows" {

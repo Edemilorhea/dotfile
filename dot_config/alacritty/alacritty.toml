@@ -17,7 +17,7 @@ dimensions = { columns = 120, lines = 28 }
 padding = { x = 4, y = 4 }
 
 # 視窗裝飾
-decorations = "Full"
+decorations = "none"
 
 # 透明度設定 (1.0 = 完全不透明)
 opacity = 0.95

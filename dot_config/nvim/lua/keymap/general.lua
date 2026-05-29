@@ -58,8 +58,15 @@ function M.setup()
     vim.keymap.set("n", "<C-s>", "<cmd>w<cr>", { desc = "Save file" })
     vim.keymap.set("i", "<C-s>", "<Esc><cmd>w<cr>", { desc = "Save file" })
 
-    -- LazyVim 配置重載（只在 Neovim 中有效）
+    -- 純 Neovim 環境專用設定
     if not vim.g.vscode then
+        -- 視窗導航快捷鍵（Ctrl+hjkl）
+        vim.keymap.set("n", "<C-h>", "<C-w>h", { desc = "Go to Left Window" })
+        vim.keymap.set("n", "<C-j>", "<C-w>j", { desc = "Go to Lower Window" })
+        vim.keymap.set("n", "<C-k>", "<C-w>k", { desc = "Go to Upper Window" })
+        vim.keymap.set("n", "<C-l>", "<C-w>l", { desc = "Go to Right Window" })
+
+        -- LazyVim 配置重載
         local function reload_lazyvim()
             local ok, reload = pcall(require, "lazy.core.reload")
             if ok and reload and reload.reload then

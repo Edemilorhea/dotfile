@@ -78,21 +78,22 @@ function M.setup()
     -- vim.keymap.set("n", "k", visual_line_move("up"), opts)
 
     -- Normal Mode
-    map("n", "j", function()
-        if vim.v.count == 0 then
-            vscode.call("cursorDown")
-        else
-            return "j"
-        end
-    end, { expr = true })
+    -- 使用 Ctrl+j/k/h/l 呼叫 VSCode 的游標移動
+    map("n", "<C-j>", function()
+        vscode.call("cursorDown")
+    end)
 
-    map("n", "k", function()
-        if vim.v.count == 0 then
-            vscode.call("cursorUp")
-        else
-            return "k"
-        end
-    end, { expr = true })
+    map("n", "<C-k>", function()
+        vscode.call("cursorUp")
+    end)
+
+    map("n", "<C-h>", function()
+        vscode.call("cursorLeft")
+    end)
+
+    map("n", "<C-l>", function()
+        vscode.call("cursorRight")
+    end)
 
     --[[
     在Vscode 當中 沒有 Visual-Line 跟 Visual-Block 的狀態，所以沒辦法安全的處理選取摺疊的時候可以多行選取
@@ -192,11 +193,8 @@ function M.setup()
     vim.keymap.set("v", "<C-/>", "gc", { remap = true, desc = "Comment selection" })
     vim.keymap.set("v", "<C-_>", "gc", { remap = true, desc = "Comment selection" })
 
-    -- 視窗導航快捷鍵
-    vim.keymap.set("n", "<C-h>", "<C-w>h", { desc = "Go to Left Window", remap = true })
-    vim.keymap.set("n", "<C-j>", "<C-w>j", { desc = "Go to Lower Window", remap = true })
-    vim.keymap.set("n", "<C-k>", "<C-w>k", { desc = "Go to Upper Window", remap = true })
-    vim.keymap.set("n", "<C-l>", "<C-w>l", { desc = "Go to Right Window", remap = true })
+    -- 視窗導航快捷鍵（這些在 VSCode 中不需要，因為 Ctrl+hjkl 已用於游標移動）
+    -- 純 Neovim 環境下的視窗切換會在 lua/config/keymaps.lua 中設定
 end
 
 return M

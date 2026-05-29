@@ -99,7 +99,7 @@ Help users add project patterns using Project Intelligence standard. **Easiest w
 **Run**: `/add-context`
 
 **What happens**:
-1. Saves to `.opencode/context/project-intelligence/` in your project (always local)
+1. Saves to `/c/Users/tc_tseng/.config/opencode/context/project-intelligence/` in your project (always local)
 2. Checks for external context files in `.tmp/` (if found, offers to extract)
 3. Checks for existing project intelligence
 4. Asks 6 questions (~5 min) OR reviews existing patterns
@@ -131,14 +131,14 @@ Help users add project patterns using Project Intelligence standard. **Easiest w
 
 Determine where project intelligence files should be saved. This runs BEFORE anything else.
 
-**Default behavior**: Always use local `.opencode/context/project-intelligence/`.
+**Default behavior**: Always use local `/c/Users/tc_tseng/.config/opencode/context/project-intelligence/`.
 **Override**: `--global` flag saves to `~/.config/opencode/context/project-intelligence/` instead.
 
 **Resolution:**
 1. If `--global` flag → `$CONTEXT_DIR = ~/.config/opencode/context/project-intelligence/`
-2. Otherwise → `$CONTEXT_DIR = .opencode/context/project-intelligence/` (always local)
+2. Otherwise → `$CONTEXT_DIR = /c/Users/tc_tseng/.config/opencode/context/project-intelligence/` (always local)
 
-**If `.opencode/context/` doesn't exist yet**, create it silently — no prompt needed. The directory structure is part of the output shown in Stage 4.
+**If `/c/Users/tc_tseng/.config/opencode/context/` doesn't exist yet**, create it silently — no prompt needed. The directory structure is part of the output shown in Stage 4.
 
 **Variable**: `$CONTEXT_DIR` is set here and used in all subsequent stages.
 
@@ -200,7 +200,7 @@ Ready to harvest? [y/n]: _
 
 ### Stage 1: Detect Existing Context
 
-Check: `$CONTEXT_DIR` (set in Stage 0.5 — either `.opencode/context/project-intelligence/` or `~/.config/opencode/context/project-intelligence/`)
+Check: `$CONTEXT_DIR` (set in Stage 0.5 — either `/c/Users/tc_tseng/.config/opencode/context/project-intelligence/` or `~/.config/opencode/context/project-intelligence/`)
 
 **If exists**:
 ```
@@ -643,8 +643,8 @@ Already have global patterns? Bring them into this project:
 📚 Learn More
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-- Project Intelligence: .opencode/context/core/standards/project-intelligence.md
-- MVI Principles: .opencode/context/core/context-system/standards/mvi.md
+- Project Intelligence: /c/Users/tc_tseng/.config/opencode/context/core/standards/project-intelligence.md
+- MVI Principles: /c/Users/tc_tseng/.config/opencode/context/core/context-system/standards/mvi.md
 - Context System: CONTEXT_SYSTEM_GUIDE.md
 ```
 
@@ -880,22 +880,22 @@ Check code & retry.
 A: Check file exists, <200 lines. Run `/context validate`
 
 **Q: See what's in context?**
-A: `cat .opencode/context/project-intelligence/technical-domain.md` (local) or `cat ~/.config/opencode/context/project-intelligence/technical-domain.md` (global)
+A: `cat /c/Users/tc_tseng/.config/opencode/context/project-intelligence/technical-domain.md` (local) or `cat ~/.config/opencode/context/project-intelligence/technical-domain.md` (global)
 
 **Q: Multiple context files?**
 A: Yes! Create in your project-intelligence directory. Agents load all.
 
 **Q: Remove pattern?**
-A: Edit directly: `nano .opencode/context/project-intelligence/technical-domain.md`
+A: Edit directly: `nano /c/Users/tc_tseng/.config/opencode/context/project-intelligence/technical-domain.md`
 
 **Q: Share w/ team?**
-A: Yes! Use local install (`.opencode/context/project-intelligence/`) and commit to repo. Team members get your patterns automatically.
+A: Yes! Use local install (`/c/Users/tc_tseng/.config/opencode/context/project-intelligence/`) and commit to repo. Team members get your patterns automatically.
 
 **Q: Local vs global?**
 A: Local (`.opencode/`) = project-specific, committed to git, team-shared. Global (`~/.config/opencode/`) = personal defaults across all projects. Local overrides global.
 
 **Q: Installed globally but want project patterns?**
-A: Run `/add-context` (defaults to local). Creates `.opencode/context/project-intelligence/` in your project even if OAC was installed globally.
+A: Run `/add-context` (defaults to local). Creates `/c/Users/tc_tseng/.config/opencode/context/project-intelligence/` in your project even if OAC was installed globally.
 
 **Q: Have external context files in .tmp/?**
 A: Run `/context harvest` to extract and organize them into permanent context
