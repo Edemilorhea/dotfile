@@ -15,10 +15,6 @@
         // "github:JRedeker/opencode-morph-fast-apply",
         // "opencode-mem"
     ],
-    "instructions": [
-        "~/.config/opencode/plugin/shell-strategy/shell_strategy.md",
-        "~/.config/opencode/instructions/morph-tools.md"
-    ],
     "default_agent": "OpenAgent",
     "provider": {
         "google": {
