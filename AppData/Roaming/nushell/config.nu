@@ -42,6 +42,7 @@ alias tl = tldr
 alias nav = navi
 alias bunx = bun
 alias tlzh = tldrzhtw
+alias opencodecmd = cmd /c opencode
 
 def psmux [...args] {
     let scoop = $"($env.USERPROFILE)\\scoop\\shims\\psmux.exe"
@@ -243,10 +244,11 @@ def --wrapped bx [...args] {
 # ⌨️ 快捷鍵設定
 # ================================
 $env.config = ($env.config | upsert keybindings [
-    # Ctrl+R — fzf 歷史搜尋
+    # Ctrl+R — atuin 互動式歷史搜尋 (由 vendor/autoload/atuin.nu 綁定)
+    # Ctrl+Alt+R — fzf nushell 本地歷史搜尋 (第二選擇，離線或偏好 fzf 時使用)
     {
         name: fzf_history
-        modifier: control
+        modifier: control_alt
         keycode: char_r
         mode: [emacs vi_normal vi_insert]
         event: {
