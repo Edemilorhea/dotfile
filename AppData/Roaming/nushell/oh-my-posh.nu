@@ -87,7 +87,8 @@ def _omp_get_multiline_indicator [] {
     )
 }
 
-$env.PROMPT_MULTILINE_INDICATOR = (_omp_get_multiline_indicator)
+# 🚀 效能優化: 改用靜態字串，避免啟動時同步阻塞 165ms
+$env.PROMPT_MULTILINE_INDICATOR = "❯❯ "
 
 $env.PROMPT_COMMAND = {||
     # hack to set the cursor line to 1 when the user clears the screen
@@ -104,5 +105,6 @@ $env.PROMPT_COMMAND = {||
     _omp_get_prompt primary $"--cleared=($clear)"
 }
 
-$env.PROMPT_COMMAND_RIGHT = {|| _omp_get_prompt right }
+# 🚀 效能優化: 關閉 right prompt，省掉每次 150ms 的 oh-my-posh 呼叫
+$env.PROMPT_COMMAND_RIGHT = {|| "" }
 
