@@ -60,6 +60,9 @@ function M.setup()
 
     -- 純 Neovim 環境專用設定
     if not vim.g.vscode then
+        -- Ctrl+Q 作為 Visual Block（替代 Ctrl+V，避免終端貼上衝突）
+        vim.keymap.set({ "n", "x" }, "<C-q>", "<C-v>", { desc = "Visual Block mode" })
+
         -- 視窗導航快捷鍵（Ctrl+hjkl）
         vim.keymap.set("n", "<C-h>", "<C-w>h", { desc = "Go to Left Window" })
         vim.keymap.set("n", "<C-j>", "<C-w>j", { desc = "Go to Lower Window" })
