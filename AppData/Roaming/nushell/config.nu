@@ -42,7 +42,7 @@ alias tl = tldr
 alias nav = navi
 alias bunx = bun
 alias tlzh = tldrzhtw
-alias opencodecmd = cmd /c opencode
+alias occmd = cmd /c opencode
 
 def psmux [...args] {
     let scoop = $"($env.USERPROFILE)\\scoop\\shims\\psmux.exe"
@@ -183,28 +183,6 @@ if ($d.ShowDialog() -eq "OK") { $d.SelectedPath }
         ^lvim .
     } else {
         print "\n❌ 已取消選擇\n"
-    }
-}
-
-# oc — OpenCode wrapper (跨平台，自動偵測 Windows / Linux)
-def oc [...args] {
-    let wrapper = if $nu.os-info.name == "windows" {
-        $"($nu.home-dir)\\.config\\opencode-wrapper.ps1"
-    } else {
-        $"($nu.home-dir)/.config/opencode-wrapper.sh"
-    }
-    
-    if not ($wrapper | path exists) {
-        print $"❌ OpenCode wrapper 未找到於: ($wrapper)"
-        print "嘗試直接執行 opencode..."
-        ^opencode ...$args
-        return
-    }
-    
-    if $nu.os-info.name == "windows" {
-        ^pwsh -NoProfile -File $wrapper ...$args
-    } else {
-        ^bash $wrapper ...$args
     }
 }
 

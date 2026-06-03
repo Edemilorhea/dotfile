@@ -1,15 +1,16 @@
 {
     "$schema": "https://opencode.ai/config.json",
+    "autoupdate": false,
     "plugin": [
         "opencode-gemini-auth@latest",
         "@ex-machina/opencode-anthropic-auth",
         "@franlol/opencode-md-table-formatter@latest",
-        "opencode-pty",
         "@mohak34/opencode-notifier@latest",
         "@different-ai/opencode-browser",
         "@tarquinen/opencode-dcp",
         "opencode-large-image-optimizer@latest",
         "opencode-chrome-devtools"
+        // "opencode-pty",
         // "@zenobius/opencode-skillful",
         // "github:JRedeker/opencode-morph-fast-apply",
         // "opencode-mem"
