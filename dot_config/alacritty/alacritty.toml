@@ -180,16 +180,6 @@ mods = "Control"
 action = "ResetFontSize"
 
 [[keyboard.bindings]]
-key = "L"
-mods = "Control"
-action = "ClearHistory"
-
-[[keyboard.bindings]]
-key = "F"
-mods = "Control|Shift"
-action = "SearchForward"
-
-[[keyboard.bindings]]
 key = "N"
 mods = "Control|Shift"
 action = "SpawnNewInstance"
@@ -204,7 +194,7 @@ hide_when_typing = true
 # 9. 選取設定 (Selection)
 # ================================================================
 [selection]
-save_to_clipboard = true
+save_to_clipboard = false
 
 # ================================================================
 # 10. 環境變數 (Environment) - CJK 優化
