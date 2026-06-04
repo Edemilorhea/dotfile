@@ -74,6 +74,7 @@ nnoremap <leader>ct :action CloseAllEditorsButActive<CR>
 " IDE 左右分割跳轉
 nnoremap <C-h> :action PrevSplitter<CR>
 nnoremap <C-l> :action NextSplitter<CR>
+nnoremap <C-m> :action MaximizeEditorInSplit<CR>
 
 " Flash 搜尋
 nmap s <Action>(flash.search)
