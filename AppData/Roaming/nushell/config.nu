@@ -362,7 +362,7 @@ $env.config = ($env.config | upsert use_ansi_coloring true)
 
 # 關閉啟動歡迎橫幅，開啟啟動時間提示
 $env.config = ($env.config | upsert show_banner false)
-$env.config = ($env.config | upsert show_hints false)
+$env.config = ($env.config | upsert show_hints true)
 
 # ================================
 # 🚀 zoxide 初始化
