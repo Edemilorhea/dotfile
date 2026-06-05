@@ -18,6 +18,11 @@
 #     config nu --doc | nu-highlight | less -R
 
 # ================================
+# Debug Logging
+# ================================
+$env.NU_LOG_LEVEL = "TRACE"
+
+# ================================
 # Oh My Posh
 # ================================
 # 🔧 修復: 只在非 OpenCode 環境中啟用 Oh-My-Posh
@@ -243,6 +248,7 @@ $env.config = ($env.config | upsert keybindings [
         event: { send: HistoryHintWordComplete }
     }
     # Ctrl+F — fzf 搜尋當前目錄下所有檔案
+    # 🔧 修復: 改用 fd 避免 ls **/* 在大目錄遞迴掃描卡住；無 fd 則限制深度 4 層
     {
         name: fzf_files
         modifier: control
@@ -250,10 +256,11 @@ $env.config = ($env.config | upsert keybindings [
         mode: [emacs vi_normal vi_insert]
         event: {
             send: executehostcommand
-            cmd: "let __file = (ls **/* | get name | str join (char -i 0) | fzf --read0 --layout=reverse --height=40% --prompt 'FILE > ' | str trim); if ($__file | is-not-empty) { commandline edit $__file }"
+            cmd: "let __file = (if (which fd | is-not-empty) { ^fd --type f --hidden --exclude .git | lines } else { glob '**/*' --depth 4 | where { |p| ($p | path type) == 'file' } | each { |p| $p | path relative-to $env.PWD } } | str join (char -i 0) | fzf --read0 --layout=reverse --height=40% --prompt 'FILE > ' | str trim); if ($__file | is-not-empty) { commandline edit $__file }"
         }
     }
     # Alt+C — fzf 跳轉目錄 (對應 PSFzf PSReadlineChordSetLocation)
+    # 🔧 修復: 改用 fd 避免 ls **/* 在大目錄遞迴掃描卡住；無 fd 則限制深度 4 層
     {
         name: fzf_cd
         modifier: alt
@@ -261,7 +268,7 @@ $env.config = ($env.config | upsert keybindings [
         mode: [emacs vi_normal vi_insert]
         event: {
             send: executehostcommand
-            cmd: "let __dir = (ls **/* | where type == dir | get name | str join (char -i 0) | fzf --read0 --layout=reverse --height=40% --prompt 'CD > ' | str trim); if ($__dir | is-not-empty) { cd $__dir }"
+            cmd: "let __dir = (if (which fd | is-not-empty) { ^fd --type d --hidden --exclude .git | lines } else { glob '**/*' --depth 4 | where { |p| ($p | path type) == 'dir' } | each { |p| $p | path relative-to $env.PWD } } | str join (char -i 0) | fzf --read0 --layout=reverse --height=40% --prompt 'CD > ' | str trim); if ($__dir | is-not-empty) { cd $__dir }"
         }
     }
     # End — 接受下一個單字建議 (避免覆蓋右方向鍵移動游標)
@@ -420,11 +427,14 @@ if (which carapace | is-not-empty) {
 # 🔍 Atuin 跨 Shell 歷史同步
 # ================================
 # atuin.nu 放在 vendor/autoload/，Nushell 啟動時自動載入
-# 每次啟動重新生成以確保格式最新
+# 🔧 修復: 只在檔案不存在時生成，避免每次啟動執行 atuin init 造成卡住
+# 若需強制更新，手動刪除 vendor/autoload/atuin.nu 再重啟即可
 if (which atuin | is-not-empty) {
     let __atuin_autoload = ($nu.default-config-dir | path join "vendor" "autoload" "atuin.nu")
-    mkdir ($nu.default-config-dir | path join "vendor" "autoload")
-    atuin init nu | save --force $__atuin_autoload
+    if not ($__atuin_autoload | path exists) {
+        mkdir ($nu.default-config-dir | path join "vendor" "autoload")
+        atuin init nu | save --force $__atuin_autoload
+    }
 } else {
     print "⚠️  atuin 未安裝，正在嘗試自動安裝..."
     let __os = $nu.os-info.name
@@ -456,3 +466,21 @@ let __now = (date now | format date "%Y-%m-%d %H:%M:%S")
 let __ver = (version | get version)
 let __user = ($env.USERNAME? | default ($env.USER? | default "User"))
 print $"\n🕐 ($__now)  |  🐚 Nushell ($__ver)  |  👤 ($__user)\n"
+
+# ================================
+# 📋 命令執行 Log（診斷用）
+# ================================
+$env.config = ($env.config | upsert hooks.pre_execution [
+    {||
+        let cmd = (commandline)
+        let timestamp = (date now | format date "%Y-%m-%d %H:%M:%S%.3f")
+        $"[START $timestamp] ($cmd)\n" | save --append $"($env.USERPROFILE)\\nu_cmd.log"
+    }
+])
+
+$env.config = ($env.config | upsert hooks.pre_prompt [
+    {||
+        let timestamp = (date now | format date "%Y-%m-%d %H:%M:%S%.3f")
+        $"[END   $timestamp]\n" | save --append $"($env.USERPROFILE)\\nu_cmd.log"
+    }
+])
