@@ -47,6 +47,13 @@ if $nu.os-info.name == "windows" {
 }
 # Linux/macOS 通常 Git 已在 PATH,不需額外處理
 
+# WSL：從 Windows 路徑進入時自動切換到 home
+if $nu.os-info.name != "windows" {
+    if ($env.PWD | str starts-with "/mnt/") {
+        cd ~
+    }
+}
+
 # Linux 手動安裝工具的 PATH（~/.atuin/bin 等）
 if $nu.os-info.name != "windows" {
     let local_bins = [$"($nu.home-dir)/.atuin/bin"]
