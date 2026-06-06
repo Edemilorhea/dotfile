@@ -1,4 +1,7 @@
 
+# 只在 Windows 上執行，其他平台直接跳過（由 Starship 透過 vendor/autoload 處理）
+if $nu.os-info.name != "windows" { return }
+
 let _omp_executable: string = "oh-my-posh"
 
 let _omp_executable_is_path = (
