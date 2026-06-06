@@ -54,9 +54,14 @@ if $nu.os-info.name != "windows" {
     }
 }
 
-# Linux 手動安裝工具的 PATH（~/.atuin/bin 等）
+# Linux 手動安裝工具的 PATH
 if $nu.os-info.name != "windows" {
-    let local_bins = [$"($nu.home-dir)/.atuin/bin"]
+    let local_bins = [
+        $"($nu.home-dir)/.atuin/bin"
+        $"($nu.home-dir)/.nix-profile/bin"
+        "/nix/var/nix/profiles/default/bin"
+        $"($nu.home-dir)/.local/bin"
+    ]
     for $path in $local_bins {
         if ($path | path exists) {
             $env.PATH = ($env.PATH | prepend $path)
