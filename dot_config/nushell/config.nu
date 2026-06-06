@@ -1,4 +1,4 @@
-# config.nu — Nushell 0.112.2+
+# config.nu — Nushell 0.113.1+
 
 $env.NU_LOG_LEVEL = "TRACE"
 
@@ -7,26 +7,14 @@ $env.NU_LOG_LEVEL = "TRACE"
 # ================================
 if ($env.OPENCODE_SESSION? | is-not-empty) {
     $env.PROMPT_COMMAND = {||
-        let path_segment = ($env.PWD | str replace $env.HOME "~")
+        let path_segment = ($env.PWD | str replace $nu.home-dir "~")
         $"(ansi green_bold)❯(ansi reset) (ansi cyan)($path_segment)(ansi reset) "
     }
     $env.PROMPT_COMMAND_RIGHT = {|| "" }
     $env.PROMPT_INDICATOR = ""
     $env.PROMPT_MULTILINE_INDICATOR = "::: "
 } else if $nu.os-info.name == "windows" {
-    # Oh My Posh（Windows）
-    let _omp = "oh-my-posh"
-    if (which $_omp | is-not-empty) {
-        let _theme_candidates = [
-            ($env.POSH_THEMES_PATH? | default "" | path join "M365Princess.omp.json")
-            ($env.LOCALAPPDATA? | default "" | path join "Programs/oh-my-posh/themes/M365Princess.omp.json")
-        ]
-        let _theme = ($_theme_candidates | where { |p| $p | path exists } | first | default "")
-
-        if ($env.config? | is-not-empty) {
-            $env.config = ($env.config | upsert render_right_prompt_on_last_line true)
-        }
-
+    if (which oh-my-posh | is-not-empty) {
         $env.POWERLINE_COMMAND = "oh-my-posh"
         $env.PROMPT_INDICATOR = ""
         $env.POSH_SESSION_ID = "e87f7998-38b8-4ffa-bbe7-d49a50ee8de6"
@@ -35,8 +23,6 @@ if ($env.OPENCODE_SESSION? | is-not-empty) {
         $env.VIRTUAL_ENV_DISABLE_PROMPT = 1
         $env.PYENV_VIRTUALENV_DISABLE_PROMPT = 1
         $env.PROMPT_MULTILINE_INDICATOR = "❯❯ "
-
-        let _omp_theme = $_theme
 
         $env.PROMPT_COMMAND = {||
             mut clear = false
@@ -81,8 +67,8 @@ alias occmd = cmd /c opencode
 # ================================
 def psmux [...args] {
     if $nu.os-info.name != "windows" { print "❌ psmux 僅支援 Windows"; return }
-    let scoop = $"($env.USERPROFILE)\\scoop\\shims\\psmux.exe"
-    let cargo = $"($env.USERPROFILE)\\.cargo\\bin\\psmux.exe"
+    let scoop = ($nu.home-dir | path join "scoop" "shims" "psmux.exe")
+    let cargo = ($nu.home-dir | path join ".cargo" "bin" "psmux.exe")
     let exe = if ($scoop | path exists) { $scoop } else if ($cargo | path exists) { $cargo } else {
         print "psmux not found"; return
     }
@@ -90,11 +76,7 @@ def psmux [...args] {
 }
 
 def --env lvim [...args] {
-    let bin = if $nu.os-info.name == "windows" {
-        $"($env.USERPROFILE)\\.local\\bin\\lvim.ps1"
-    } else {
-        $"($env.HOME)/.local/bin/lvim"
-    }
+    let bin = ($nu.home-dir | path join ".local" "bin" (if $nu.os-info.name == "windows" { "lvim.ps1" } else { "lvim" }))
     if not ($bin | path exists) { print $"❌ lvim 未找到於: ($bin)"; return }
     ^$bin ...$args
 }
@@ -165,19 +147,13 @@ def --wrapped pwe [...args] {
 }
 
 def --wrapped bx [...args] {
-    let cmd = ($args | str join " ")
-    ^bash -c $cmd
+    ^bash -c ($args | str join " ")
 }
-
-# ================================
-# Config 初始化（必須在所有 upsert 之前）
-# ================================
-if ($env.config? | is-empty) { $env.config = {} }
 
 # ================================
 # 快捷鍵
 # ================================
-$env.config = ($env.config | upsert keybindings ([
+$env.config.keybindings = [
     {
         name: fzf_history
         modifier: control_alt
@@ -222,10 +198,7 @@ $env.config = ($env.config | upsert keybindings ([
         mode: [emacs vi_insert]
         event: { send: HistoryHintWordComplete }
     }
-]))
-
-$env.config = ($env.config | upsert keybindings (
-    $env.config.keybindings | append {
+    {
         name: completion_menu
         modifier: none
         keycode: tab
@@ -238,36 +211,30 @@ $env.config = ($env.config | upsert keybindings (
             ]
         }
     }
-))
+]
 
 # ================================
 # 補全設定
 # ================================
-$env.config = ($env.config | upsert completions {
-    case_sensitive: false
-    quick: true
-    partial: true
-    algorithm: "fuzzy"
-    external: {
-        enable: true
-        max_results: 100
-    }
-})
+$env.config.completions.case_sensitive = false
+$env.config.completions.quick = true
+$env.config.completions.partial = true
+$env.config.completions.algorithm = "fuzzy"
+$env.config.completions.external.enable = true
+$env.config.completions.external.max_results = 100
 
 # ================================
 # 歷史設定
 # ================================
-$env.config = ($env.config | upsert history {
-    max_size: 100_000
-    sync_on_enter: true
-    file_format: "sqlite"
-    isolation: false
-})
+$env.config.history.max_size = 100_000
+$env.config.history.sync_on_enter = true
+$env.config.history.file_format = "sqlite"
+$env.config.history.isolation = false
 
 # ================================
 # 選單
 # ================================
-$env.config = ($env.config | upsert menus [
+$env.config.menus = [
     {
         name: completion_menu
         only_buffer_difference: false
@@ -282,40 +249,30 @@ $env.config = ($env.config | upsert menus [
         type: { layout: list, page_size: 10 }
         style: { text: green, selected_text: green_reverse, description_text: yellow }
     }
-])
+]
 
-$env.config = ($env.config | upsert use_ansi_coloring true)
-$env.config = ($env.config | upsert show_banner false)
-$env.config = ($env.config | upsert bracketed_paste true)
+$env.config.use_ansi_coloring = true
+$env.config.show_banner = false
+$env.config.bracketed_paste = true
+$env.config.render_right_prompt_on_last_line = true
 
 # ================================
 # Carapace 補全
 # ================================
 if (which carapace | is-not-empty) {
     $env.CARAPACE_BRIDGES = 'zsh,fish,bash,inshellisense'
-    $env.config = ($env.config | upsert completions {
-        case_sensitive: false
-        quick: true
-        partial: true
-        algorithm: "fuzzy"
-        external: {
-            enable: true
-            max_results: 100
-            completer: {|spans| carapace $spans.0 nushell ...$spans | from json }
-        }
-    })
+    $env.config.completions.external.completer = {|spans| carapace $spans.0 nushell ...$spans | from json }
 } else {
-    print "⚠️  carapace 未安裝，跳過補全引擎"
+    print "⚠️  carapace 未安裝"
 }
 
 # ================================
 # zoxide
 # ================================
 if (which zoxide | is-not-empty) {
-    let __cfg_dir = ($nu.config-path | path dirname)
-    let __zoxide_autoload = ($__cfg_dir | path join "vendor" "autoload" "zoxide.nu")
+    let __zoxide_autoload = ($nu.default-config-dir | path join "vendor" "autoload" "zoxide.nu")
     if not ($__zoxide_autoload | path exists) {
-        mkdir ($__cfg_dir | path join "vendor" "autoload")
+        mkdir ($nu.default-config-dir | path join "vendor" "autoload")
         zoxide init nushell | save -f $__zoxide_autoload
         print "✅ zoxide.nu 已生成，請重新開啟終端機"
     }
@@ -327,10 +284,9 @@ if (which zoxide | is-not-empty) {
 # Atuin
 # ================================
 if (which atuin | is-not-empty) {
-    let __cfg_dir2 = ($nu.config-path | path dirname)
-    let __atuin_autoload = ($__cfg_dir2 | path join "vendor" "autoload" "atuin.nu")
+    let __atuin_autoload = ($nu.default-config-dir | path join "vendor" "autoload" "atuin.nu")
     if not ($__atuin_autoload | path exists) {
-        mkdir ($__cfg_dir2 | path join "vendor" "autoload")
+        mkdir ($nu.default-config-dir | path join "vendor" "autoload")
         atuin init nu | save --force $__atuin_autoload
     }
 } else {
@@ -340,23 +296,18 @@ if (which atuin | is-not-empty) {
 # ================================
 # Log（診斷用）
 # ================================
-let __nu_log_path = if $nu.os-info.name == "windows" {
-    $"($env.USERPROFILE)\\nu_cmd.log"
-} else {
-    $"($env.HOME)/nu_cmd.log"
-}
+let __nu_log_path = $"($nu.home-dir)/nu_cmd.log"
 
-$env.config = ($env.config | upsert hooks {
-    pre_execution: [{||
-        let cmd = (commandline)
-        let ts = (date now | format date "%Y-%m-%d %H:%M:%S%.3f")
-        $"[START $ts] ($cmd)\n" | save --append $__nu_log_path
-    }]
-    pre_prompt: [{||
-        let ts = (date now | format date "%Y-%m-%d %H:%M:%S%.3f")
-        $"[END   $ts]\n" | save --append $__nu_log_path
-    }]
-})
+$env.config.hooks.pre_execution = [{||
+    let cmd = (commandline)
+    let ts = (date now | format date "%Y-%m-%d %H:%M:%S%.3f")
+    $"[START $ts] ($cmd)\n" | save --append $__nu_log_path
+}]
+
+$env.config.hooks.pre_prompt = [{||
+    let ts = (date now | format date "%Y-%m-%d %H:%M:%S%.3f")
+    $"[END   $ts]\n" | save --append $__nu_log_path
+}]
 
 # ================================
 # 歡迎語
