@@ -61,6 +61,9 @@ if $nu.os-info.name != "windows" {
         $"($nu.home-dir)/.nix-profile/bin"
         "/nix/var/nix/profiles/default/bin"
         $"($nu.home-dir)/.local/bin"
+        $"($nu.home-dir)/.bun/bin"
+        $"($nu.home-dir)/.dotnet"
+        $"($nu.home-dir)/.dotnet/tools"
     ]
     for $path in $local_bins {
         if ($path | path exists) {
