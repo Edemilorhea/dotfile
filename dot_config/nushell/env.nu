@@ -46,3 +46,13 @@ if $nu.os-info.name == "windows" {
     }
 }
 # Linux/macOS 通常 Git 已在 PATH,不需額外處理
+
+# Linux 手動安裝工具的 PATH（~/.atuin/bin 等）
+if $nu.os-info.name != "windows" {
+    let local_bins = [$"($nu.home-dir)/.atuin/bin"]
+    for $path in $local_bins {
+        if ($path | path exists) {
+            $env.PATH = ($env.PATH | prepend $path)
+        }
+    }
+}
