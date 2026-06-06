@@ -1,0 +1,36 @@
+# ~/.profile - 跨 shell 共用 PATH 設定
+# 被 bash、zsh（login shell）、nushell（橋接）讀取
+
+# Nix
+if [ -e "$HOME/.nix-profile/etc/profile.d/nix.sh" ]; then
+  . "$HOME/.nix-profile/etc/profile.d/nix.sh"
+fi
+
+# Atuin
+if [ -e "$HOME/.atuin/bin/env" ]; then
+  . "$HOME/.atuin/bin/env"
+fi
+
+# Local bin
+export PATH="$HOME/.local/bin:$PATH"
+
+# Bun
+if [ -d "$HOME/.bun/bin" ]; then
+  export BUN_INSTALL="$HOME/.bun"
+  export PATH="$BUN_INSTALL/bin:$PATH"
+fi
+
+# .NET
+if [ -d "$HOME/.dotnet" ]; then
+  export DOTNET_ROOT="$HOME/.dotnet"
+  export PATH="$PATH:$HOME/.dotnet:$HOME/.dotnet/tools"
+fi
+
+# Editor
+export EDITOR="nvim"
+export VISUAL="nvim"
+
+# 機器專屬設定
+if [ -f "$HOME/.profile.local" ]; then
+  . "$HOME/.profile.local"
+fi
