@@ -27,7 +27,7 @@ if ($env.OPENCODE_SESSION? | is-not-empty) {
         $env.PROMPT_COMMAND = {||
             mut clear = false
             if $nu.history-enabled {
-                $clear = (history | is-empty) or ((history | last 1 | get -o 0.command) == "clear")
+                $clear = (history | is-empty) or ((history | last 1 | get -i 0.command) == "clear")
             }
             if ($env.SET_POSHCONTEXT? | is-not-empty) {
                 do --env $env.SET_POSHCONTEXT
