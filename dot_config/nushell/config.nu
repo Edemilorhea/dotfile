@@ -37,7 +37,11 @@ if ($env.OPENCODE_SESSION? | is-not-empty) {
 } else if $nu.os-info.name == "windows" {
     # Windows: Oh My Posh
     # 原因: Oh-My-Posh 的終端狀態查詢會在 OpenCode 關閉時觸發 ConHost 崩潰 (0xc0000094)
-    source oh-my-posh.nu
+    # 使用 overlay use 動態載入，避免 Linux 上 parse 時找不到檔案報錯
+    let __omp_path = ($nu.default-config-dir | path join "oh-my-posh.nu")
+    if ($__omp_path | path exists) {
+        overlay use $__omp_path
+    }
 } else {
     # Linux/macOS: Starship（透過 vendor/autoload/starship.nu 自動載入）
     # 初次設定執行: starship init nu | save -f ($nu.data-dir | path join "vendor/autoload/starship.nu")
