@@ -37,10 +37,9 @@ if ($env.OPENCODE_SESSION? | is-not-empty) {
 } else {
     # 非 OpenCode 環境：載入 oh-my-posh.nu（Windows）或 Starship（Linux，透過 vendor/autoload）
     # oh-my-posh.nu 內部有 OS 檢查，Linux 上會直接跳過
-    source oh-my-posh.nu
-}
-    # Linux/macOS: Starship（透過 vendor/autoload/starship.nu 自動載入）
+    # Linux/macOS: Starship 透過 vendor/autoload/starship.nu 自動載入
     # 初次設定執行: starship init nu | save -f ($nu.data-dir | path join "vendor/autoload/starship.nu")
+    source oh-my-posh.nu
 }
 
 # ================================
