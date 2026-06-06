@@ -201,7 +201,7 @@ save_to_clipboard = false
 # ================================================================
 [env]
 # 設定終端類型
-TERM = "xterm-256color"
+TERM = "alacritty"
 
 # 強制 UTF-8 編碼 (解決 CJK 字元顯示問題)
 LANG = "zh_TW.UTF-8"
