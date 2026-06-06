@@ -7,7 +7,7 @@ $env.NU_LOG_LEVEL = "TRACE"
 # ================================
 if ($env.OPENCODE_SESSION? | is-not-empty) {
     $env.PROMPT_COMMAND = {||
-        let path_segment = ($env.PWD | str replace $nu.home-dir "~")
+        let path_segment = ($env.PWD | str replace $env.HOME "~")
         $"(ansi green_bold)❯(ansi reset) (ansi cyan)($path_segment)(ansi reset) "
     }
     $env.PROMPT_COMMAND_RIGHT = {|| "" }
@@ -91,9 +91,9 @@ def psmux [...args] {
 
 def --env lvim [...args] {
     let bin = if $nu.os-info.name == "windows" {
-        $"($nu.home-dir)\\.local\\bin\\lvim.ps1"
+        $"($env.USERPROFILE)\\.local\\bin\\lvim.ps1"
     } else {
-        $"($nu.home-dir)/.local/bin/lvim"
+        $"($env.HOME)/.local/bin/lvim"
     }
     if not ($bin | path exists) { print $"❌ lvim 未找到於: ($bin)"; return }
     ^$bin ...$args
@@ -312,9 +312,10 @@ if (which carapace | is-not-empty) {
 # zoxide
 # ================================
 if (which zoxide | is-not-empty) {
-    let __zoxide_autoload = ($nu.default-config-dir | path join "vendor" "autoload" "zoxide.nu")
+    let __cfg_dir = ($nu.config-path | path dirname)
+    let __zoxide_autoload = ($__cfg_dir | path join "vendor" "autoload" "zoxide.nu")
     if not ($__zoxide_autoload | path exists) {
-        mkdir ($nu.default-config-dir | path join "vendor" "autoload")
+        mkdir ($__cfg_dir | path join "vendor" "autoload")
         zoxide init nushell | save -f $__zoxide_autoload
         print "✅ zoxide.nu 已生成，請重新開啟終端機"
     }
@@ -326,9 +327,10 @@ if (which zoxide | is-not-empty) {
 # Atuin
 # ================================
 if (which atuin | is-not-empty) {
-    let __atuin_autoload = ($nu.default-config-dir | path join "vendor" "autoload" "atuin.nu")
+    let __cfg_dir2 = ($nu.config-path | path dirname)
+    let __atuin_autoload = ($__cfg_dir2 | path join "vendor" "autoload" "atuin.nu")
     if not ($__atuin_autoload | path exists) {
-        mkdir ($nu.default-config-dir | path join "vendor" "autoload")
+        mkdir ($__cfg_dir2 | path join "vendor" "autoload")
         atuin init nu | save --force $__atuin_autoload
     }
 } else {
@@ -341,7 +343,7 @@ if (which atuin | is-not-empty) {
 let __nu_log_path = if $nu.os-info.name == "windows" {
     $"($env.USERPROFILE)\\nu_cmd.log"
 } else {
-    $"($nu.home-dir)/nu_cmd.log"
+    $"($env.HOME)/nu_cmd.log"
 }
 
 $env.config = ($env.config | upsert hooks {
