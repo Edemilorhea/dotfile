@@ -1,6 +1,6 @@
 
 # 只在 Windows 上執行，其他平台直接跳過（由 Starship 透過 vendor/autoload 處理）
-if $nu.os-info.name != "windows" { return }
+if $nu.os-info.name == "windows" {
 
 let _omp_executable: string = "oh-my-posh"
 
@@ -12,7 +12,7 @@ let _omp_executable_is_path = (
 )
 
 # Exit early if the oh-my-posh executable is not available
-if not (($_omp_executable_is_path and ($_omp_executable | path exists)) or (which $_omp_executable | is-not-empty)) { return }
+if (($_omp_executable_is_path and ($_omp_executable | path exists)) or (which $_omp_executable | is-not-empty)) {
 
 # 智慧偵測 Oh-My-Posh 主題路徑
 let _omp_theme_candidates = [
@@ -111,3 +111,5 @@ $env.PROMPT_COMMAND = {||
 # 🚀 效能優化: 關閉 right prompt，省掉每次 150ms 的 oh-my-posh 呼叫
 $env.PROMPT_COMMAND_RIGHT = {|| "" }
 
+} # end if omp executable exists
+} # end if windows
