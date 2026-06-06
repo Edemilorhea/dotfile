@@ -1,3 +1,4 @@
+{{- if ne .chezmoi.os "windows" -}}
 #!/bin/bash
 # Auto-generate nushell vendor/autoload scripts
 # run_once: only runs when this file content changes
@@ -15,3 +16,4 @@ fi
 if command -v atuin &>/dev/null; then
   atuin init nu > ~/.local/share/nushell/vendor/autoload/atuin.nu
 fi
+{{- end -}}

@@ -1,3 +1,4 @@
+{{- if ne .chezmoi.os "windows" -}}
 #!/bin/bash
 # Auto-install Oh My Zsh + Powerlevel10k + plugins
 # run_once: only runs when this file content changes
@@ -34,3 +35,4 @@ if [ ! -d "$ZSH_CUSTOM/plugins/zsh-syntax-highlighting" ]; then
 fi
 
 echo "Oh My Zsh setup complete."
+{{- end -}}
