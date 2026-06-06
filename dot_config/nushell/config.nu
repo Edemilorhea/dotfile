@@ -286,7 +286,6 @@ $env.config = ($env.config | upsert menus [
 
 $env.config = ($env.config | upsert use_ansi_coloring true)
 $env.config = ($env.config | upsert show_banner false)
-$env.config = ($env.config | upsert show_hints true)
 $env.config = ($env.config | upsert bracketed_paste true)
 
 # ================================
