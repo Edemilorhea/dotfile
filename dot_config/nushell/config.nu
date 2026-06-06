@@ -284,9 +284,9 @@ if (which zoxide | is-not-empty) {
 # Atuin
 # ================================
 if (which atuin | is-not-empty) {
-    let __atuin_autoload = ($nu.default-config-dir | path join "vendor" "autoload" "atuin.nu")
+    let __atuin_autoload = ($nu.vendor-autoload-dirs | last | path join "atuin.nu")
     if not ($__atuin_autoload | path exists) {
-        mkdir ($nu.default-config-dir | path join "vendor" "autoload")
+        mkdir ($nu.vendor-autoload-dirs | last)
         atuin init nu | save --force $__atuin_autoload
     }
 } else {
