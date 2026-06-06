@@ -242,6 +242,7 @@ def --wrapped bx [...args] {
 # ================================
 # ⌨️ 快捷鍵設定
 # ================================
+if ($env.config? | is-empty) { $env.config = {} }
 $env.config = ($env.config | upsert keybindings [
     # Ctrl+R — atuin 互動式歷史搜尋 (由 vendor/autoload/atuin.nu 綁定)
     # Ctrl+Alt+R — fzf nushell 本地歷史搜尋 (第二選擇，離線或偏好 fzf 時使用)
