@@ -478,6 +478,11 @@ $env.config = ($env.config | upsert hooks.pre_execution [
     }
 ])
 
+# ================================
+# 📋 Bracketed Paste — 貼上多行時不立即執行
+# ================================
+$env.config = ($env.config | upsert bracketed_paste true)
+
 $env.config = ($env.config | upsert hooks.pre_prompt [
     {||
         let timestamp = (date now | format date "%Y-%m-%d %H:%M:%S%.3f")
