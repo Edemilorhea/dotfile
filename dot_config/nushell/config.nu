@@ -23,14 +23,10 @@
 $env.NU_LOG_LEVEL = "TRACE"
 
 # ================================
-# Oh My Posh
+# Prompt 主題（跨平台）
 # ================================
-# 🔧 修復: 只在非 OpenCode 環境中啟用 Oh-My-Posh
-# 原因: Oh-My-Posh 的終端狀態查詢會在 OpenCode 關閉時觸發 ConHost 崩潰 (0xc0000094)
-if ($env.OPENCODE_SESSION? | is-empty) {
-    source oh-my-posh.nu
-} else {
-    # OpenCode 環境使用簡單 prompt,避免終端狀態衝突
+# 🔧 OpenCode 環境使用簡單 prompt，避免終端狀態衝突
+if ($env.OPENCODE_SESSION? | is-not-empty) {
     $env.PROMPT_COMMAND = {|| 
         let path_segment = ($env.PWD | str replace $nu.home-dir "~")
         $"(ansi green_bold)❯(ansi reset) (ansi cyan)($path_segment)(ansi reset) "
@@ -38,6 +34,13 @@ if ($env.OPENCODE_SESSION? | is-empty) {
     $env.PROMPT_COMMAND_RIGHT = {|| "" }
     $env.PROMPT_INDICATOR = ""
     $env.PROMPT_MULTILINE_INDICATOR = "::: "
+} else if $nu.os-info.name == "windows" {
+    # Windows: Oh My Posh
+    # 原因: Oh-My-Posh 的終端狀態查詢會在 OpenCode 關閉時觸發 ConHost 崩潰 (0xc0000094)
+    source oh-my-posh.nu
+} else {
+    # Linux/macOS: Starship（透過 vendor/autoload/starship.nu 自動載入）
+    # 初次設定執行: starship init nu | save -f ($nu.data-dir | path join "vendor/autoload/starship.nu")
 }
 
 # ================================
@@ -50,19 +53,21 @@ alias tlzh = tldrzhtw
 alias occmd = cmd /c opencode
 
 def psmux [...args] {
-    let scoop = $"($env.USERPROFILE)\\scoop\\shims\\psmux.exe"
-    let cargo = $"($env.USERPROFILE)\\.cargo\\bin\\psmux.exe"
-
-    let exe = if ($scoop | path exists) {
-        $scoop
-    } else if ($cargo | path exists) {
-        $cargo
+    if $nu.os-info.name == "windows" {
+        let scoop = $"($env.USERPROFILE)\\scoop\\shims\\psmux.exe"
+        let cargo = $"($env.USERPROFILE)\\.cargo\\bin\\psmux.exe"
+        let exe = if ($scoop | path exists) {
+            $scoop
+        } else if ($cargo | path exists) {
+            $cargo
+        } else {
+            print "psmux not found in scoop\\shims or .cargo\\bin"
+            return
+        }
+        ^$exe ...$args
     } else {
-        print "psmux not found in scoop\\shims or .cargo\\bin"
-        return
+        print "❌ psmux 僅支援 Windows"
     }
-
-    ^$exe ...$args
 }
 
 
@@ -131,9 +136,13 @@ def tldr-fzf [] {
     }
 }
 
-# fcd — Everything CLI + fzf 快速跳轉 (對應 PowerShell fcd)
+# fcd — Everything CLI + fzf 快速跳轉 (對應 PowerShell fcd，僅支援 Windows)
 # 需要安裝 Everything + es.exe (https://www.voidtools.com/support/everything/command_line_interface/)
 def --env fcd [] {
+    if $nu.os-info.name != "windows" {
+        print "❌ fcd 僅支援 Windows（依賴 Everything CLI）"
+        return
+    }
     if (which fzf | is-empty) {
         print "❌ fzf 未安裝，無法使用互動選擇"
         return
@@ -191,17 +200,25 @@ if ($d.ShowDialog() -eq "OK") { $d.SelectedPath }
     }
 }
 
-# pw — PowerShell 快捷執行（免去 pwsh -Command '...' 的麻煩）
+# pw — PowerShell 快捷執行（免去 pwsh -Command '...' 的麻煩，僅支援 Windows）
 # 使用方式: pw Get-Process | Select-Object Name
 #          pw "Get-Date -Format yyyy-MM-dd"
 def --wrapped pw [...args] {
+    if $nu.os-info.name != "windows" {
+        print "❌ pw 僅支援 Windows（依賴 pwsh）"
+        return
+    }
     let cmd = ($args | str join " ")
     ^pwsh -NoProfile -Command $cmd
 }
 
-# pwe — PowerShell 執行並轉換輸出為 Nu 表格（適合管道後續處理）
+# pwe — PowerShell 執行並轉換輸出為 Nu 表格（適合管道後續處理，僅支援 Windows）
 # 使用方式: pwe Get-Process | where Name =~ chrome | select Name Id
 def --wrapped pwe [...args] {
+    if $nu.os-info.name != "windows" {
+        print "❌ pwe 僅支援 Windows（依賴 pwsh）"
+        return
+    }
     let cmd = ($args | str join " ")
     ^pwsh -NoProfile -Command $cmd | lines | parse "{output}" | get output? | default []
 }
@@ -470,11 +487,17 @@ print $"\n🕐 ($__now)  |  🐚 Nushell ($__ver)  |  👤 ($__user)\n"
 # ================================
 # 📋 命令執行 Log（診斷用）
 # ================================
+let __nu_log_path = if $nu.os-info.name == "windows" {
+    $"($env.USERPROFILE)\\nu_cmd.log"
+} else {
+    $"($nu.home-dir)/nu_cmd.log"
+}
+
 $env.config = ($env.config | upsert hooks.pre_execution [
     {||
         let cmd = (commandline)
         let timestamp = (date now | format date "%Y-%m-%d %H:%M:%S%.3f")
-        $"[START $timestamp] ($cmd)\n" | save --append $"($env.USERPROFILE)\\nu_cmd.log"
+        $"[START $timestamp] ($cmd)\n" | save --append $__nu_log_path
     }
 ])
 
@@ -486,6 +509,6 @@ $env.config = ($env.config | upsert bracketed_paste true)
 $env.config = ($env.config | upsert hooks.pre_prompt [
     {||
         let timestamp = (date now | format date "%Y-%m-%d %H:%M:%S%.3f")
-        $"[END   $timestamp]\n" | save --append $"($env.USERPROFILE)\\nu_cmd.log"
+        $"[END   $timestamp]\n" | save --append $__nu_log_path
     }
 ])

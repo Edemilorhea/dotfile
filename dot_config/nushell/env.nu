@@ -25,8 +25,10 @@ $env.VIRTUAL_ENV_DISABLE_PROMPT = 1
 $env.PYENV_VIRTUALENV_DISABLE_PROMPT = 1
 $env.CARAPACE_MATCH = "1"  # carapace 補全不分大小寫
 
-# 添加 PATH
-$env.PATH = ($env.PATH | append $"($env.USERPROFILE)\\.config")
+# 添加 PATH（跨平台）
+if $nu.os-info.name == "windows" {
+    $env.PATH = ($env.PATH | append $"($env.USERPROFILE)\\.config")
+}
 
 # 智慧偵測 Git 路徑 (跨平台)
 if $nu.os-info.name == "windows" {
