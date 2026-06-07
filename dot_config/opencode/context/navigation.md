@@ -9,7 +9,7 @@
 ## Structure
 
 ```
-/c/Users/tc_tseng/.config/opencode/context/
+/c/Users/TC/.config/opencode/context/
 ├── core/                   # Universal standards & workflows
 ├── openagents-repo/        # OpenAgents Control repository work
 ├── development/            # Software development (all stacks)
