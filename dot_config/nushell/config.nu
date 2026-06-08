@@ -60,7 +60,9 @@ alias tl = tldr
 alias nav = navi
 alias bunx = bun
 alias tlzh = tldrzhtw
-alias occmd = cmd /c opencode
+if $nu.os-info.name == "windows" {
+    alias occmd = cmd /c opencode
+}
 
 # ================================
 # 自訂函數
@@ -292,7 +294,19 @@ if (which atuin | is-not-empty) {
 } else {
     print "⚠️  atuin 未安裝"
 }
-
+# ================================
+# fnm (Node.js)
+# ================================
+if (which fnm | is-not-empty) {
+    let multishell = (^fnm env --shell bash
+        | lines
+        | where { |l| $l | str contains "FNM_MULTISHELL_PATH=" }
+        | first
+        | str replace 'export FNM_MULTISHELL_PATH="' ""
+        | str trim --char '"')
+    $env.FNM_MULTISHELL_PATH = $multishell
+    $env.PATH = ($env.PATH | prepend $"($multishell)/bin")
+}
 # ================================
 # Log（診斷用）
 # ================================

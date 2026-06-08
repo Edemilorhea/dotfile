@@ -68,3 +68,29 @@ if $nu.os-info.name != "windows" {
         }
     }
 }
+
+
+# Bun
+if ($"($nu.home-dir)/.bun/bin" | path exists) {
+    $env.PATH = ($env.PATH | prepend $"($nu.home-dir)/.bun/bin")
+}
+
+# keychain: persist SSH key across sessions (Linux/macOS only)
+if $nu.os-info.name != "windows" {
+    let key_path = $"($nu.home-dir)/.ssh/id_ed25519"
+    if ($key_path | path exists) and (which keychain | is-not-empty) {
+        ^keychain --quiet --nogui $key_path
+        let kc_file = $"($nu.home-dir)/.keychain/(sys host | get hostname)-sh"
+        if ($kc_file | path exists) {
+            let kc = (open $kc_file | str trim)
+            $kc | lines | each { |line|
+                if ($line | str starts-with "SSH_AUTH_SOCK=") {
+                    $env.SSH_AUTH_SOCK = ($line | str replace "SSH_AUTH_SOCK=" "" | str replace -r ";.*" "" | str trim -c '"')
+                }
+                if ($line | str starts-with "SSH_AGENT_PID=") {
+                    $env.SSH_AGENT_PID = ($line | str replace "SSH_AGENT_PID=" "" | str replace -r ";.*" "" | str trim -c '"')
+                }
+            }
+        }
+    }
+}
