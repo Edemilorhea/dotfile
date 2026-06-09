@@ -84,10 +84,10 @@ function Get-DeclaredPlugins {
 
     # Method 2: Also scan config files for @plugin declarations
     $configPaths = @(
+        "$env:USERPROFILE\.config\psmux\psmux.conf",
         "$env:USERPROFILE\.psmux.conf",
         "$env:USERPROFILE\.psmuxrc",
-        "$env:USERPROFILE\.tmux.conf",
-        "$env:USERPROFILE\.config\psmux\psmux.conf"
+        "$env:USERPROFILE\.tmux.conf"
     )
     foreach ($cfg in $configPaths) {
         if (Test-Path $cfg) {
@@ -179,10 +179,10 @@ function Install-FromMonorepo {
 # --- Find the active config file ---
 function Get-PsmuxConfigFile {
     $configPaths = @(
+        "$env:USERPROFILE\.config\psmux\psmux.conf",
         "$env:USERPROFILE\.psmux.conf",
         "$env:USERPROFILE\.psmuxrc",
-        "$env:USERPROFILE\.tmux.conf",
-        "$env:USERPROFILE\.config\psmux\psmux.conf"
+        "$env:USERPROFILE\.tmux.conf"
     )
     foreach ($cfg in $configPaths) {
         if (Test-Path $cfg) { return $cfg }
