@@ -1,0 +1,13 @@
+{{- if ne .chezmoi.os "windows" -}}
+#!/bin/bash
+# Auto-install tpm (Tmux Plugin Manager)
+# run_once: only runs when this file content changes
+
+if [ ! -d "$HOME/.tmux/plugins/tpm" ]; then
+  echo "Installing tpm..."
+  git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
+  echo "tpm installed."
+else
+  echo "tpm already installed, skipping."
+fi
+{{- end -}}
