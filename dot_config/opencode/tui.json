@@ -46,7 +46,7 @@
         "agent_cycle": "tab",
         "agent_cycle_reverse": "shift+tab",
         "input_clear": "<leader>d",
-        "input_paste": "ctrl+shift+v",
+        "input_paste": "ctrl+v",
         "input_newline": "shift+return,ctrl+j",
         "input_submit": "return",
         "input_move_left": "left,ctrl+b",
