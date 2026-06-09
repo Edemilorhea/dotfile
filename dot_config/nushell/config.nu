@@ -392,6 +392,19 @@ $env.config.hooks.pre_prompt = [{||
 }]
 
 # ================================
+# 機器專屬設定（不進 chezmoi repo）
+# ================================
+# 在這裡放：公司 proxy、機器特定 alias、實驗性設定、secret 等
+# 每台機器自行建立 ~/.config/nushell/local.nu，不會被 chezmoi 追蹤
+#
+# 注意：nushell 的 source 要求靜態路徑，不能用變數。
+# 解法：用 overlay use 或直接 source 固定路徑。
+# 這裡用 overlay use 搭配固定路徑，local.nu 不存在時不報錯。
+if ("~/.config/nushell/local.nu" | path expand | path exists) {
+    overlay use ("~/.config/nushell/local.nu" | path expand)
+}
+
+# ================================
 # 歡迎語
 # ================================
 # 啟動時顯示目前時間、nushell 版本、使用者名稱
