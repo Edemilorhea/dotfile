@@ -518,32 +518,4 @@ return {
             })
         end,
     },
-    -- ================================
-    -- suda.nvim：以 root 權限讀寫檔案
-    -- ================================
-    -- 原理：透過 helper process 以 sudo 讀/寫，nvim 本身仍以你的身份運行
-    -- 因此你的插件、設定、colorscheme 全部正常運作
-    --
-    -- 使用方式：
-    --   :SudaRead /etc/hosts       → 以 root 讀取系統檔案到當前 buffer
-    --   :SudaWrite                 → 以 root 寫入當前 buffer 到原路徑
-    --   :SudaWrite /etc/hosts      → 以 root 寫入到指定路徑
-    --   e suda:///etc/hosts        → 直接開啟系統檔案（需設定 g:suda_smart_edit）
-    --
-    -- 推薦流程：直接 nvim /etc/hosts → 編輯 → :SudaWrite（比 sudoedit 更流暢）
-    {
-        "lambdalisue/suda.vim",
-        lazy = true,
-        cmd = { "SudaRead", "SudaWrite" },
-        init = function()
-            -- 自動偵測：開啟無寫入權限的檔案時自動切換 suda 模式
-            vim.g.suda_smart_edit = 1
-
-            -- 快捷鍵
-            vim.keymap.set("n", "<leader>sr", "<cmd>SudaRead<CR>",
-                { desc = "Sudo 讀取（重新載入為 root 可讀版本）" })
-            vim.keymap.set("n", "<leader>sw", "<cmd>SudaWrite<CR>",
-                { desc = "Sudo 寫入（以 root 權限存檔）" })
-        end,
-    },
 }
