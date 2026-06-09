@@ -94,6 +94,28 @@ fi
 {{ end -}}
 
 # ================================
+# SSH Agent (keychain)
+# ================================
+# keychain 讓 ssh-agent 跨 terminal session 存活
+# 自動掃描 ~/.ssh/ 下所有私鑰（排除 .pub / config / known_hosts）
+if command -v keychain &>/dev/null; then
+  _ssh_keys=()
+  for _f in ~/.ssh/*; do
+    # 跳過公鑰、config、known_hosts、資料庫檔案、目錄
+    [[ -f "$_f" ]] || continue
+    [[ "$_f" == *.pub ]] && continue
+    [[ "$(basename $_f)" == "config" ]] && continue
+    [[ "$(basename $_f)" == known_hosts* ]] && continue
+    [[ "$_f" == *.sqlite* ]] && continue
+    _ssh_keys+=("$_f")
+  done
+  if [[ ${#_ssh_keys[@]} -gt 0 ]]; then
+    eval "$(keychain --quiet --nogui --eval "${_ssh_keys[@]}")"
+  fi
+  unset _ssh_keys _f
+fi
+
+# ================================
 # Nix
 # ================================
 if [ -e "$HOME/.nix-profile/etc/profile.d/nix.sh" ]; then
