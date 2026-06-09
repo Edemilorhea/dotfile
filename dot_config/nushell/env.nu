@@ -79,7 +79,72 @@ if $nu.os-info.name != "windows" {
 
 # Bun（JavaScript runtime / package manager）
 if ($"($nu.home-dir)/.bun/bin" | path exists) {
+    $env.BUN_INSTALL = $"($nu.home-dir)/.bun"
     $env.PATH = ($env.PATH | prepend $"($nu.home-dir)/.bun/bin")
+}
+
+# snap（nvim 等透過 snap 安裝的工具，Linux only）
+if $nu.os-info.name != "windows" {
+    if ("/snap/bin" | path exists) {
+        $env.PATH = ($env.PATH | prepend "/snap/bin")
+    }
+}
+
+# NVM（Node Version Manager）
+# nushell 不支援 bash 的 nvm 函數，但可以把 nvm default 版本的 bin 加入 PATH
+# 執行 nvm 指令仍需要開 bash/zsh
+if $nu.os-info.name != "windows" {
+    let nvm_dir = $"($nu.home-dir)/.nvm"
+    if ($nvm_dir | path exists) {
+        $env.NVM_DIR = $nvm_dir
+
+        # 讀取 default alias（內容可能是 lts/* 或 v24.14.0）
+        let default_alias_file = $"($nvm_dir)/alias/default"
+        if ($default_alias_file | path exists) {
+            let raw_alias = (open $default_alias_file | str trim)
+
+            # lts/* 需要再解一層 alias
+            let resolved = if ($raw_alias | str starts-with "lts/") {
+                let lts_file = $"($nvm_dir)/alias/($raw_alias)"
+                if ($lts_file | path exists) {
+                    open $lts_file | str trim
+                } else {
+                    $raw_alias
+                }
+            } else {
+                $raw_alias
+            }
+
+            # 嘗試直接用解析出的版本號
+            let candidate = $"($nvm_dir)/versions/node/($resolved)/bin"
+            if ($candidate | path exists) {
+                $env.PATH = ($env.PATH | prepend $candidate)
+            } else {
+                # fallback: 找最新已安裝版本
+                let versions = (
+                    ls $"($nvm_dir)/versions/node/"
+                    | where type == dir
+                    | get name
+                    | sort
+                )
+                if ($versions | length) > 0 {
+                    let latest_bin = $"($versions | last)/bin"
+                    if ($latest_bin | path exists) {
+                        $env.PATH = ($env.PATH | prepend $latest_bin)
+                    }
+                }
+            }
+        }
+    }
+}
+
+# .NET
+if $nu.os-info.name != "windows" {
+    if ($"($nu.home-dir)/.dotnet" | path exists) {
+        $env.DOTNET_ROOT = $"($nu.home-dir)/.dotnet"
+        $env.PATH = ($env.PATH | append $"($nu.home-dir)/.dotnet")
+        $env.PATH = ($env.PATH | append $"($nu.home-dir)/.dotnet/tools")
+    }
 }
 
 # ================================

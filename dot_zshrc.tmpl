@@ -1,0 +1,138 @@
+# Enable Powerlevel10k instant prompt. Must be at top.
+if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
+  source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
+fi
+
+export ZSH="$HOME/.oh-my-zsh"
+ZSH_THEME="powerlevel10k/powerlevel10k"
+
+plugins=(git zsh-autosuggestions zsh-syntax-highlighting)
+source $ZSH/oh-my-zsh.sh
+
+# ================================
+# Editor
+# ================================
+export EDITOR="nvim"
+export VISUAL="nvim"
+# sudoedit 會用 SUDO_EDITOR 開啟你的 nvim（以你的身份）來編輯系統檔案
+# 這是最安全的做法：只有讀/寫系統檔案的動作才是 root
+export SUDO_EDITOR="nvim"
+
+# alias: 編輯系統檔案用 sudoedit（安全），用你的 nvim + 插件
+alias svi='sudoedit'
+
+# ================================
+# PATH - 系統層級
+# ================================
+
+# snap 應用程式（nvim 透過 snap 安裝時需要此路徑）
+{{ if .has_snap -}}
+if [ -d "/snap/bin" ]; then
+  export PATH="/snap/bin:$PATH"
+fi
+{{ end -}}
+
+# Homebrew (macOS / Linux Homebrew)
+{{ if .has_homebrew -}}
+if [ -f "/opt/homebrew/bin/brew" ]; then
+  eval "$(/opt/homebrew/bin/brew shellenv)"
+elif [ -f "/home/linuxbrew/.linuxbrew/bin/brew" ]; then
+  eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
+fi
+{{ end -}}
+
+# ================================
+# PATH - 使用者層級
+# ================================
+
+# 使用者自行安裝的工具（chezmoi, claude, zoxide 等）
+[ -d "$HOME/.local/bin" ] && export PATH="$HOME/.local/bin:$PATH"
+
+# Bun（JavaScript runtime / package manager）
+if [ -d "$HOME/.bun" ]; then
+  export BUN_INSTALL="$HOME/.bun"
+  export PATH="$BUN_INSTALL/bin:$PATH"
+  # bun completions
+  [ -s "$HOME/.bun/_bun" ] && source "$HOME/.bun/_bun"
+fi
+
+# .NET
+if [ -d "$HOME/.dotnet" ]; then
+  export DOTNET_ROOT="$HOME/.dotnet"
+  export PATH="$PATH:$HOME/.dotnet:$HOME/.dotnet/tools"
+fi
+
+# ================================
+# NVM (Node Version Manager)
+# ================================
+{{ if .has_nvm -}}
+if [ -d "$HOME/.nvm" ]; then
+  export NVM_DIR="$HOME/.nvm"
+  # lazy load: 只在真正呼叫 node/npm/nvm 時才初始化（加速啟動）
+  _nvm_lazy_load() {
+    unset -f nvm node npm npx yarn pnpm
+    [ -s "$NVM_DIR/nvm.sh" ] && source "$NVM_DIR/nvm.sh"
+    [ -s "$NVM_DIR/bash_completion" ] && source "$NVM_DIR/bash_completion"
+  }
+  nvm()  { _nvm_lazy_load; nvm  "$@"; }
+  node() { _nvm_lazy_load; node "$@"; }
+  npm()  { _nvm_lazy_load; npm  "$@"; }
+  npx()  { _nvm_lazy_load; npx  "$@"; }
+  yarn() { _nvm_lazy_load; yarn "$@"; }
+  pnpm() { _nvm_lazy_load; pnpm "$@"; }
+  # 把 nvm default 版本的 bin 加入 PATH（不 lazy load 也能直接用 node）
+  _nvm_default_bin="$NVM_DIR/versions/node/$(cat $NVM_DIR/alias/default 2>/dev/null)/bin"
+  if [ -d "$_nvm_default_bin" ]; then
+    export PATH="$_nvm_default_bin:$PATH"
+  else
+    # fallback: 找最新版本
+    _nvm_default_bin=$(ls -d "$NVM_DIR/versions/node"/v* 2>/dev/null | sort -V | tail -1)/bin
+    [ -d "$_nvm_default_bin" ] && export PATH="$_nvm_default_bin:$PATH"
+  fi
+  unset _nvm_default_bin
+fi
+{{ end -}}
+
+# ================================
+# Nix
+# ================================
+if [ -e "$HOME/.nix-profile/etc/profile.d/nix.sh" ]; then
+  source "$HOME/.nix-profile/etc/profile.d/nix.sh"
+fi
+
+# ================================
+# 工具初始化
+# ================================
+
+# zoxide（智慧 cd）
+if command -v zoxide &>/dev/null; then
+  eval "$(zoxide init zsh)"
+fi
+
+# atuin（歷史管理）
+if [ -f "$HOME/.atuin/bin/env" ]; then
+  . "$HOME/.atuin/bin/env"
+  eval "$(atuin init zsh)"
+fi
+
+# fzf history (Ctrl+H)
+if command -v fzf &>/dev/null; then
+  fzf-history-widget() {
+    BUFFER=$(history -n 1 | tac | fzf --tac | sed 's/ *[0-9]* *//')
+    CURSOR=${#BUFFER}
+    zle reset-prompt
+  }
+  zle -N fzf-history-widget
+  bindkey '^H' fzf-history-widget
+fi
+
+# ================================
+# p10k prompt
+# ================================
+[[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
+
+# ================================
+# 機器專屬設定（不進 chezmoi repo）
+# 放 API key、公司 proxy、實驗性設定等
+# ================================
+[ -f ~/.zshrc.local ] && source ~/.zshrc.local

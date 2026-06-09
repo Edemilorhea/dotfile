@@ -1,18 +1,13 @@
 # ~/.profile - 跨 shell 共用 PATH 設定
-# 被 bash、zsh（login shell）、nushell（橋接）讀取
+# 被 bash、zsh（login shell）讀取
+# nushell 另外用 env.nu 處理（語法不同）
 
-# Nix
-if [ -e "$HOME/.nix-profile/etc/profile.d/nix.sh" ]; then
-  . "$HOME/.nix-profile/etc/profile.d/nix.sh"
-fi
+# ================================
+# PATH - 使用者層級
+# ================================
 
-# Atuin
-if [ -e "$HOME/.atuin/bin/env" ]; then
-  . "$HOME/.atuin/bin/env"
-fi
-
-# Local bin
-export PATH="$HOME/.local/bin:$PATH"
+# 使用者自行安裝的工具
+[ -d "$HOME/.local/bin" ] && export PATH="$HOME/.local/bin:$PATH"
 
 # Bun
 if [ -d "$HOME/.bun/bin" ]; then
@@ -26,11 +21,48 @@ if [ -d "$HOME/.dotnet" ]; then
   export PATH="$PATH:$HOME/.dotnet:$HOME/.dotnet/tools"
 fi
 
+# snap（nvim 等透過 snap 安裝的工具）
+[ -d "/snap/bin" ] && export PATH="/snap/bin:$PATH"
+
+# NVM default node 版本的 bin（login shell 需要能直接用 node）
+if [ -d "$HOME/.nvm" ]; then
+  export NVM_DIR="$HOME/.nvm"
+  _nvm_default=$(cat "$NVM_DIR/alias/default" 2>/dev/null)
+  _nvm_bin="$NVM_DIR/versions/node/$_nvm_default/bin"
+  if [ -d "$_nvm_bin" ]; then
+    export PATH="$_nvm_bin:$PATH"
+  else
+    # fallback: 找最新版本
+    _nvm_bin=$(ls -d "$NVM_DIR/versions/node"/v* 2>/dev/null | sort -V | tail -1)/bin
+    [ -d "$_nvm_bin" ] && export PATH="$_nvm_bin:$PATH"
+  fi
+  unset _nvm_default _nvm_bin
+fi
+
+# ================================
+# Nix
+# ================================
+if [ -e "$HOME/.nix-profile/etc/profile.d/nix.sh" ]; then
+  . "$HOME/.nix-profile/etc/profile.d/nix.sh"
+fi
+
+# ================================
+# Atuin
+# ================================
+if [ -e "$HOME/.atuin/bin/env" ]; then
+  . "$HOME/.atuin/bin/env"
+fi
+
+# ================================
 # Editor
+# ================================
 export EDITOR="nvim"
 export VISUAL="nvim"
+export SUDO_EDITOR="nvim"
 
-# 機器專屬設定
+# ================================
+# 機器專屬設定（不進 chezmoi repo）
+# ================================
 if [ -f "$HOME/.profile.local" ]; then
   . "$HOME/.profile.local"
 fi
