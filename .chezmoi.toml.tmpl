@@ -30,6 +30,10 @@
 [update]
     apply = true
 
+[interpreters.ps1]
+    command = "pwsh"
+    args = ["-NoLogo", "-NoProfile", "-ExecutionPolicy", "Bypass", "-File"]
+
 [merge]
     command = "code"
     args = ["--wait", "--diff"]

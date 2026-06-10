@@ -27,6 +27,27 @@ return {
                         },
                     },
                 },
+
+                -- ESLint 只在專案明確有 ESLint 設定檔時啟動
+                eslint = {
+                    root_dir = function(fname)
+                        local util = require("lspconfig.util")
+                        return util.root_pattern(
+                            "eslint.config.js",
+                            "eslint.config.mjs",
+                            "eslint.config.cjs",
+                            ".eslintrc",
+                            ".eslintrc.js",
+                            ".eslintrc.cjs",
+                            ".eslintrc.json",
+                            ".eslintrc.yaml",
+                            ".eslintrc.yml"
+                        )(fname)
+                    end,
+                    settings = {
+                        workingDirectories = { mode = "auto" },
+                    },
+                },
                 
                 -- 明確停用 ts_ls (使用 vtsls 取代)
                 ts_ls = {

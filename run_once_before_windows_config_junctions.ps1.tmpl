@@ -1,0 +1,55 @@
+{{- if eq .chezmoi.os "windows" -}}
+$ErrorActionPreference = 'Stop'
+
+function Ensure-Directory {
+    param([Parameter(Mandatory = $true)][string]$Path)
+
+    if (-not (Test-Path -LiteralPath $Path)) {
+        New-Item -ItemType Directory -Path $Path -Force | Out-Null
+    }
+}
+
+function Get-SafeTimestamp {
+    Get-Date -Format 'yyyyMMdd_HHmmss'
+}
+
+function Ensure-Junction {
+    param(
+        [Parameter(Mandatory = $true)][string]$Source,
+        [Parameter(Mandatory = $true)][string]$Target
+    )
+
+    Write-Host "[Junction] Processing: $Source -> $Target"
+    Ensure-Directory -Path $Source
+
+    if (Test-Path -LiteralPath $Target) {
+        $item = Get-Item -LiteralPath $Target -Force
+        if ($item.LinkType -eq 'Junction') {
+            Write-Host "[Junction] Already exists: $Target -> $($item.Target)"
+            return
+        }
+
+        $backup = "$Target`_backup_$(Get-SafeTimestamp)"
+        Write-Host "[Junction] Real path exists, backing up to: $backup"
+        Rename-Item -LiteralPath $Target -NewName (Split-Path -Leaf $backup)
+    }
+
+    $parent = Split-Path -Parent $Target
+    Ensure-Directory -Path $parent
+
+    New-Item -ItemType Junction -Path $Target -Target $Source | Out-Null
+    Write-Host "[Junction] Created: $Target -> $Source"
+}
+
+Write-Host '[Config Junction Setup] Starting Windows config junctions setup...'
+
+{{- if .syncNvim }}
+Ensure-Junction -Source "$env:USERPROFILE\.config\nvim" -Target "$env:LOCALAPPDATA\nvim"
+{{- end }}
+
+Ensure-Junction -Source "$env:USERPROFILE\.config\alacritty" -Target "$env:APPDATA\alacritty"
+Ensure-Junction -Source "$env:USERPROFILE\.config\zellij" -Target "$env:APPDATA\zellij"
+Ensure-Junction -Source "$env:USERPROFILE\.config\tabby" -Target "$env:APPDATA\tabby"
+
+Write-Host '[Config Junction Setup] Complete!'
+{{- end -}}
