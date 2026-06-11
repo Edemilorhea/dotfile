@@ -13,6 +13,33 @@ function Get-SafeTimestamp {
     Get-Date -Format 'yyyyMMdd_HHmmss'
 }
 
+function Ensure-Symlink {
+    param(
+        [Parameter(Mandatory = $true)][string]$Source,
+        [Parameter(Mandatory = $true)][string]$Target
+    )
+
+    Write-Host "[Symlink] Processing: $Target -> $Source"
+
+    if (Test-Path -LiteralPath $Target) {
+        $item = Get-Item -LiteralPath $Target -Force
+        if ($item.LinkType -eq 'SymbolicLink') {
+            Write-Host "[Symlink] Already exists: $Target -> $($item.Target)"
+            return
+        }
+
+        $backup = "$Target`_backup_$(Get-SafeTimestamp)"
+        Write-Host "[Symlink] Real file exists, backing up to: $backup"
+        Rename-Item -LiteralPath $Target -NewName (Split-Path -Leaf $backup)
+    }
+
+    $parent = Split-Path -Parent $Target
+    Ensure-Directory -Path $parent
+
+    New-Item -ItemType SymbolicLink -Path $Target -Target $Source | Out-Null
+    Write-Host "[Symlink] Created: $Target -> $Source"
+}
+
 function Ensure-Junction {
     param(
         [Parameter(Mandatory = $true)][string]$Source,
@@ -46,6 +73,9 @@ Write-Host '[Config Junction Setup] Starting Windows config junctions setup...'
 {{- if .syncNvim }}
 Ensure-Junction -Source "$env:USERPROFILE\.config\nvim" -Target "$env:LOCALAPPDATA\nvim"
 {{- end }}
+
+# psmux config symlink: ~/.psmux.conf -> ~/.config/psmux/psmux.conf
+Ensure-Symlink -Source "$env:USERPROFILE\.config\psmux\psmux.conf" -Target "$env:USERPROFILE\.psmux.conf"
 
 Ensure-Junction -Source "$env:USERPROFILE\.config\alacritty" -Target "$env:APPDATA\alacritty"
 Ensure-Junction -Source "$env:USERPROFILE\.config\zellij" -Target "$env:APPDATA\zellij"
