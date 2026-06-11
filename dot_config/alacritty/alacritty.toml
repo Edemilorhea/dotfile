@@ -184,12 +184,12 @@ key = "N"
 mods = "Control|Shift"
 action = "SpawnNewInstance"
 
-# C-F12 不再由 alacritty 直接送 \u0003，改由 psmux 的 `bind -n C-F12 send-keys -f C-c` 處理
+# C-F12 送標準 xterm escape sequence 給 psmux，由 psmux 的 `bind -n C-F12 send-keys -f C-c` 處理
 # （-f 旗標為自編譯版本擴充，bypass raw-mode TUI heuristic，強制送 CTRL_C_EVENT signal）
-# [[keyboard.bindings]]
-# key = "F12"
-# mods = "Control"
-# chars = "\u0003"
+[[keyboard.bindings]]
+key = "F12"
+mods = "Control"
+chars = "\x1b[24;5~"
 
 # ================================================================
 # 8. 滑鼠設定 (Mouse)
