@@ -4,23 +4,12 @@
 return {
   -- 主題設定 (只在 Neovim 中使用)
   {
-    "folke/tokyonight.nvim",
-    optional = true,
+    "olimorris/onedarkpro.nvim",
+    lazy = false,
+    priority = 1000,
     cond = not vim.g.vscode,
-    opts = {
-      style = "night",
-      transparent = false,
-      terminal_colors = true,
-      styles = {
-        comments = { italic = true },
-        keywords = { italic = true },
-        functions = {},
-        variables = {},
-      },
-    },
-    config = function(_, opts)
-      require("tokyonight").setup(opts)
-      vim.cmd("colorscheme tokyonight")
+    config = function()
+      vim.cmd("colorscheme onedark")
     end,
   },
   
@@ -199,7 +188,7 @@ return {
     cond = not vim.g.vscode,
     opts = {
       options = {
-        theme = "tokyonight",
+        theme = "onedark",
         section_separators = { left = "", right = "" },
         component_separators = { left = "", right = "" },
         globalstatus = true,

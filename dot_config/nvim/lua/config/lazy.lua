@@ -25,6 +25,7 @@ require("lazy").setup({
                 { import = "plugins.shared" }, -- VSCode + Neovim 共用插件
                 { import = "plugins.blink" }, -- blink.cmp 覆寫配置
                 { import = "plugins.development" }, -- 開發工具 (兩邊都需要)
+                { import = "plugins.tools", cond = not vim.g.vscode }, -- 工具插件 (Telescope、浮動終端等)
                 { import = "plugins.neovim-only", cond = not vim.g.vscode }, -- 純 Neovim 插件
                 { import = "plugins.ui-restructured", cond = not vim.g.vscode }, -- UI 插件
                 { import = "plugins.markdown-enhanced", cond = not vim.g.vscode }, -- Markdown 生態系統
