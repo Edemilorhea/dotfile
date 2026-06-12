@@ -18,19 +18,19 @@ function M.setup()
     local flash = require("flash")
     vim.keymap.set({ "n", "x", "o" }, "<leader>hf", flash.jump, {
         silent = true,
-        desc = "[H]op [F]lash",
+        desc = "Flash 跳轉",
     })
     vim.keymap.set({ "n", "x", "o" }, "<leader>hF", flash.treesitter, {
         silent = true,
-        desc = "Flash Treesitter",
+        desc = "Flash 語法樹跳轉",
     })
     vim.keymap.set({ "o", "x" }, "<leader>hr", flash.treesitter_search, {
         silent = true,
-        desc = "Treesitter Search",
+        desc = "語法樹搜尋",
     })
     vim.keymap.set("n", "<leader>he", flash.toggle, {
         silent = true,
-        desc = "Toggle Flash Search",
+        desc = "切換 Flash 搜尋",
     })
 
 
@@ -39,7 +39,7 @@ function M.setup()
         desc = "跳轉至定義",
     })
     vim.keymap.set("n", "ca", vim.lsp.buf.code_action, {
-        desc = "LSP Code Action",
+        desc = "LSP 程式碼動作",
     })
 
     -- 僅為了 WhichKey 顯示用，不重新綁定

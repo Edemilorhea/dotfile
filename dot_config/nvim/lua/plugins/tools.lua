@@ -421,12 +421,12 @@ return {
             pcall(require("telescope").load_extension, "fzf")
         end,
         keys = {
-            { "<leader>ff", "<cmd>Telescope find_files<CR>", desc = "Find Files" },
-            { "<leader>fg", "<cmd>Telescope live_grep<CR>", desc = "Live Grep" },
-            { "<leader>fb", "<cmd>Telescope buffers<CR>", desc = "Buffers" },
-            { "<leader>fh", "<cmd>Telescope help_tags<CR>", desc = "Help Tags" },
-            { "<leader>fr", "<cmd>Telescope oldfiles<CR>", desc = "Recent Files" },
-            { "<leader>fw", "<cmd>Telescope grep_string<CR>", desc = "Find Word" },
+            { "<leader>ff", "<cmd>Telescope find_files<CR>", desc = "搜尋檔案" },
+            { "<leader>fg", "<cmd>Telescope live_grep<CR>", desc = "全文搜尋" },
+            { "<leader>fb", "<cmd>Telescope buffers<CR>", desc = "搜尋 Buffer" },
+            { "<leader>fh", "<cmd>Telescope help_tags<CR>", desc = "搜尋說明文件" },
+            { "<leader>fr", "<cmd>Telescope oldfiles<CR>", desc = "最近開啟檔案" },
+            { "<leader>fw", "<cmd>Telescope grep_string<CR>", desc = "搜尋游標文字" },
         },
     },
     {
@@ -487,16 +487,17 @@ return {
     {
         -- Float term
         "voldikss/vim-floaterm",
+        lazy = false,
         config = function()
             local keymap = vim.keymap
 
-            keymap.set("n", "<leader>tc", ":FloatermNew --height=0.95 --width=0.95<CR>")
-            keymap.set("n", "<leader>tt", ":FloatermToggle<CR>")
-            keymap.set("n", "<leader>tp", ":FloatermPrev<CR>")
-            keymap.set("n", "<leader>tn", ":FloatermNext<CR>")
-            keymap.set("n", "<leader>tlg", ":FloatermNew --height=0.95 --width=0.95 lazygit<CR>")
-            keymap.set("n", "<leader>tq", ":FloatermKill<CR>")
-            keymap.set("n", "<leader>th", ":FloatermHide<CR>")
+            keymap.set("n", "<leader>tc", ":FloatermNew --height=0.95 --width=0.95<CR>", { desc = "新增終端機" })
+            keymap.set("n", "<leader>tt", ":FloatermToggle<CR>", { desc = "切換終端機" })
+            keymap.set("n", "<leader>tp", ":FloatermPrev<CR>", { desc = "上一個終端機" })
+            keymap.set("n", "<leader>tn", ":FloatermNext<CR>", { desc = "下一個終端機" })
+            keymap.set("n", "<leader>tg", ":FloatermNew --height=0.95 --width=0.95 lazygit<CR>", { desc = "開啟 Lazygit" })
+            keymap.set("n", "<leader>tq", ":FloatermKill<CR>", { desc = "關閉終端機" })
+            keymap.set("n", "<leader>th", ":FloatermHide<CR>", { desc = "隱藏終端機" })
         end,
     },
     {

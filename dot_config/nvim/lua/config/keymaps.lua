@@ -19,15 +19,25 @@ vim.api.nvim_create_autocmd("User", {
         pcall(vim.keymap.del, "t", "<C-/>")
         pcall(vim.keymap.del, "n", "<C-_>")
         pcall(vim.keymap.del, "t", "<C-_>")
-        vim.keymap.set("n", "<C-/>", "gcc", { remap = true, desc = "Comment line" })
-        vim.keymap.set("n", "<C-_>", "gcc", { remap = true, desc = "Comment line" })
-        vim.keymap.set("v", "<C-/>", "gc", { remap = true, desc = "Comment selection" })
-        vim.keymap.set("v", "<C-_>", "gc", { remap = true, desc = "Comment selection" })
+        vim.keymap.set("n", "<C-/>", "gcc", { remap = true, desc = "註解目前行" })
+        vim.keymap.set("n", "<C-_>", "gcc", { remap = true, desc = "註解目前行" })
+        vim.keymap.set("v", "<C-/>", "gc", { remap = true, desc = "註解選取範圍" })
+        vim.keymap.set("v", "<C-_>", "gc", { remap = true, desc = "註解選取範圍" })
+
+        -- 覆蓋 LazyVim 預設格式化，改走 conform 的 formatter chain：dprint → biome → prettier → LSP
+        pcall(vim.keymap.del, "n", "<leader>cf")
+        pcall(vim.keymap.del, "v", "<leader>cf")
+        vim.keymap.set({ "n", "v" }, "<leader>cf", function()
+            require("conform").format({
+                async = true,
+                lsp_format = "fallback",
+            })
+        end, { desc = "格式化" })
 
         -- 覆蓋 LazyVim 預設的 H/L (buffer 切換)
-        vim.keymap.set("n", "H", "^", { desc = "Go to first non-blank character" })
-        vim.keymap.set("n", "L", "$", { desc = "Go to end of line" })
-        vim.keymap.set("v", "H", "^", { desc = "Go to first non-blank character" })
-        vim.keymap.set("v", "L", "$", { desc = "Go to end of line" })
+        vim.keymap.set("n", "H", "^", { desc = "移到行首非空白字元" })
+        vim.keymap.set("n", "L", "$", { desc = "移到行尾" })
+        vim.keymap.set("v", "H", "^", { desc = "移到行首非空白字元" })
+        vim.keymap.set("v", "L", "$", { desc = "移到行尾" })
     end,
 })

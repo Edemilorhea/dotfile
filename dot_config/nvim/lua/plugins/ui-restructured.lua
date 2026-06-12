@@ -19,8 +19,8 @@ return {
     cmd = { "Neotree" },
     cond = not vim.g.vscode,
     keys = {
-      { "<leader>e", "<cmd>Neotree toggle<cr>", desc = "Toggle file explorer" },
-      { "<leader>o", "<cmd>Neotree focus<cr>", desc = "Focus file explorer" },
+      { "<leader>oe", "<cmd>Neotree toggle<cr>", desc = "切換 Neo-tree" },
+      { "<leader>oE", "<cmd>Neotree reveal<cr>", desc = "Neo-tree 顯示目前檔案" },
     },
     config = function()
       require("neo-tree").setup({
@@ -142,6 +142,31 @@ return {
         },
       })
     end,
+  },
+  
+  -- Snacks Explorer：LazyVim 新版預設檔案瀏覽器
+  {
+    "folke/snacks.nvim",
+    cond = not vim.g.vscode,
+    opts = function(_, opts)
+      opts.explorer = opts.explorer or {}
+    end,
+    keys = {
+      {
+        "<leader>e",
+        function()
+          Snacks.explorer({ cwd = LazyVim.root() })
+        end,
+        desc = "Snacks Explorer（專案根目錄）",
+      },
+      {
+        "<leader>E",
+        function()
+          Snacks.explorer()
+        end,
+        desc = "Snacks Explorer（目前工作目錄）",
+      },
+    },
   },
   
   -- Trouble 診斷視窗 (只在 Neovim 中使用)

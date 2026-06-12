@@ -63,7 +63,7 @@ return {
                 function()
                     require("flash").jump()
                 end,
-                desc = "Flash",
+                desc = "Flash 跳轉",
             },
             {
                 "S",
@@ -71,7 +71,7 @@ return {
                 function()
                     require("flash").treesitter()
                 end,
-                desc = "Flash Treesitter",
+                desc = "Flash 語法樹跳轉",
             },
             {
                 "r",
@@ -79,7 +79,7 @@ return {
                 function()
                     require("flash").remote()
                 end,
-                desc = "Remote Flash",
+                desc = "遠端 Flash 跳轉",
             },
             {
                 "R",
@@ -87,7 +87,7 @@ return {
                 function()
                     require("flash").treesitter_search()
                 end,
-                desc = "Treesitter Search",
+                desc = "語法樹搜尋",
             },
         },
     },
@@ -120,10 +120,10 @@ return {
             require("mini.comment").setup(opts)
         end,
         keys = {
-            { "<C-/>", "gcc", mode = "n", remap = true, desc = "Comment line" },
-            { "<C-_>", "gcc", mode = "n", remap = true, desc = "Comment line" },
-            { "<C-/>", "gc", mode = "v", remap = true, desc = "Comment selection" },
-            { "<C-_>", "gc", mode = "v", remap = true, desc = "Comment selection" },
+            { "<C-/>", "gcc", mode = "n", remap = true, desc = "註解目前行" },
+            { "<C-_>", "gcc", mode = "n", remap = true, desc = "註解目前行" },
+            { "<C-/>", "gc", mode = "v", remap = true, desc = "註解選取範圍" },
+            { "<C-_>", "gc", mode = "v", remap = true, desc = "註解選取範圍" },
         },
     },
 }

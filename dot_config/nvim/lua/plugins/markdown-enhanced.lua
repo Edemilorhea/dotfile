@@ -154,7 +154,6 @@ return {
         end,
         dependencies = {
             "nvim-lua/plenary.nvim",
-            "hrsh7th/nvim-cmp",
             "nvim-telescope/telescope.nvim",
             "nvim-treesitter/nvim-treesitter",
         },
@@ -176,7 +175,7 @@ return {
                     default_tags = { "daily-notes" },
                 },
                 completion = {
-                    nvim_cmp = true,
+                    nvim_cmp = false,
                     min_chars = 2,
                 },
                 note_id_func = function(title)
@@ -312,9 +311,9 @@ return {
             -- end, { desc = "建立 CSS 目錄" })
         end,
         keys = {
-            { "<leader>mpp", "<cmd>MarkdownPreview<cr>", desc = "Markdown Preview" },
-            { "<leader>ms", "<cmd>MarkdownPreviewStop<cr>", desc = "Stop Preview" },
-            { "<leader>mt", "<cmd>MarkdownPreviewToggle<cr>", desc = "Toggle Preview" },
+            { "<leader>mpp", "<cmd>MarkdownPreview<cr>", desc = "開啟 Markdown 預覽" },
+            { "<leader>ms", "<cmd>MarkdownPreviewStop<cr>", desc = "停止 Markdown 預覽" },
+            { "<leader>mt", "<cmd>MarkdownPreviewToggle<cr>", desc = "切換 Markdown 預覽" },
             -- 主題切換快捷鍵 (已註解 - 暫時不使用)
             -- { "<leader>mtd", "<cmd>MarkdownThemeDark<cr>", desc = "Dark Theme" },
             -- { "<leader>mtl", "<cmd>MarkdownThemeLight<cr>", desc = "Light Theme" },
@@ -364,8 +363,8 @@ return {
             end, {})
         end,
         keys = {
-            { "<leader>mpo", "<cmd>PeekOpen<cr>", desc = "Peek Open" },
-            { "<leader>mpc", "<cmd>PeekClose<cr>", desc = "Peek Close" },
+            { "<leader>mpo", "<cmd>PeekOpen<cr>", desc = "開啟 Peek 預覽" },
+            { "<leader>mpc", "<cmd>PeekClose<cr>", desc = "關閉 Peek 預覽" },
         },
     },
 

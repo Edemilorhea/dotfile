@@ -72,18 +72,13 @@ return {
     },
 
     -- LazyGit 整合
+    -- 注意：\lg 已移除，改用 floaterm \tg (tools.lua)
+    -- LazyVim 內建的 \gg / \gG 也可使用
     {
         "kdheepak/lazygit.nvim",
         cmd = "LazyGit",
         cond = not vim.g.vscode,
         dependencies = { "nvim-lua/plenary.nvim" },
-        keys = {
-            {
-                "<leader>lg",
-                "<cmd>LazyGit<CR>",
-                desc = "開啟 LazyGit",
-            },
-        },
         config = function()
             vim.g.lazygit_floating_window_winblend = 0
             vim.g.lazygit_floating_window_scaling_factor = 0.9

@@ -1,34 +1,68 @@
 return {
   "stevearc/conform.nvim",
-  opts = function()
+  keys = {
+    {
+      "<leader>cf",
+      function()
+        require("conform").format({
+          async = true,
+          lsp_format = "fallback",
+        })
+      end,
+      mode = { "n", "v" },
+      desc = "格式化",
+    },
+  },
+  opts = function(_, opts)
+    local function has_config(ctx, names)
+      local filename = ctx.filename
+      if not filename or filename == "" then
+        return false
+      end
+
+      if filename:match("unnamed_temp") then
+        return false
+      end
+
+      if vim.fn.filereadable(filename) == 0 then
+        return false
+      end
+
+      return vim.fs.find(names, {
+        path = vim.fs.dirname(filename),
+        upward = true,
+      })[1] ~= nil
+    end
+
     ---@type conform.setupOpts
-    local opts = {
-      formatters_by_ft = {
-        lua = { "stylua" },
-        python = { "black" },
-        javascript = { "prettier" },
-        typescript = { "prettier" },
-        javascriptreact = { "prettier" },
-        typescriptreact = { "prettier" },
-        json = { "dprint" },
-        jsonc = { "dprint" },
-        yaml = { "prettier" },
-        html = { "prettier" },
-        css = { "prettier" },
-        scss = { "prettier" },
-        less = { "prettier" },
-        vue = { "prettier" },
-        svelte = { "prettier" },
-        go = { "gofmt" },
-        rust = { "rustfmt" },
-        c = { "clang_format" },
-        cpp = { "clang_format" },
-        java = { "google-java-format" },
-        php = { "php_cs_fixer" },
-        sh = { "shfmt" },
-        fish = { "fish_indent" },
-      },
-      formatters = {
+    opts = opts or {}
+    opts.formatters_by_ft = vim.tbl_deep_extend("force", opts.formatters_by_ft or {}, {
+      lua = { "stylua" },
+      python = { "black" },
+      javascript = { "dprint", "biome", "prettier", stop_after_first = true },
+      typescript = { "dprint", "biome", "prettier", stop_after_first = true },
+      javascriptreact = { "dprint", "biome", "prettier", stop_after_first = true },
+      typescriptreact = { "dprint", "biome", "prettier", stop_after_first = true },
+      json = { "dprint", "biome", "prettier", stop_after_first = true },
+      jsonc = { "dprint", "biome", "prettier", stop_after_first = true },
+      yaml = { "prettier" },
+      html = { "prettier" },
+      css = { "prettier" },
+      scss = { "prettier" },
+      less = { "prettier" },
+      vue = { "prettier" },
+      svelte = { "prettier" },
+      go = { "gofmt" },
+      rust = { "rustfmt" },
+      c = { "clang_format" },
+      cpp = { "clang_format" },
+      java = { "google-java-format" },
+      php = { "php_cs_fixer" },
+      sh = { "shfmt" },
+      fish = { "fish_indent" },
+    })
+
+    opts.formatters = vim.tbl_deep_extend("force", opts.formatters or {}, {
         stylua = {
           prepend_args = { "--indent-type", "Spaces", "--indent-width", "4" },
         },
@@ -37,6 +71,26 @@ return {
         },
         prettier = {
           prepend_args = { "--tab-width", "4", "--use-tabs", "false" },
+          condition = function(_, ctx)
+            return has_config(ctx, {
+              ".prettierrc",
+              ".prettierrc.json",
+              ".prettierrc.json5",
+              ".prettierrc.yml",
+              ".prettierrc.yaml",
+              ".prettierrc.js",
+              ".prettierrc.cjs",
+              ".prettierrc.mjs",
+              "prettier.config.js",
+              "prettier.config.cjs",
+              "prettier.config.mjs",
+            })
+          end,
+        },
+        biome = {
+          condition = function(_, ctx)
+            return has_config(ctx, { "biome.json", "biome.jsonc" })
+          end,
         },
         gofmt = {
           prepend_args = { "-s" },
@@ -61,19 +115,20 @@ return {
         },
         dprint = {
           command = vim.fn.expand("~/.dprint/bin/dprint"),
+          condition = function(_, ctx)
+            return has_config(ctx, { "dprint.json", "dprint.jsonc" })
+          end,
           args = function(_, ctx)
             return {
               "fmt",
               "--stdin",
               ctx.filename,
-              "--config",
-              vim.fn.stdpath("config") .. "/dprint.json",
             }
           end,
           stdin = true,
         },
-      },
-    }
+      })
+
     return opts
   end,
 }
