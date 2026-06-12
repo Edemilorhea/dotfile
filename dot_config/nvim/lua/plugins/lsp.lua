@@ -57,6 +57,22 @@ return {
                             tsserver = {
                                 maxTsServerMemory = 4096, -- 限制記憶體使用
                             },
+                            -- 關閉內建 validate（專案使用 ESLint，避免重複診斷）
+                            validate = {
+                                enable = false,
+                            },
+                            -- 關閉內建 format（使用 conform.nvim）
+                            format = {
+                                enable = false,
+                            },
+                        },
+                        javascript = {
+                            validate = {
+                                enable = false,
+                            },
+                            format = {
+                                enable = false,
+                            },
                         },
                         -- Monorepo 優化
                         vtsls = {
