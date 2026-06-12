@@ -6,6 +6,10 @@ require("keymap.general").setup()
 
 require("keymap.hotKeyMaps").setup()
 
+if not vim.g.vscode then
+    require("keymap.neovim").setup()
+end
+
 if vim.g.vscode then
     require("keymap.vscode").setup()
 end
