@@ -58,6 +58,16 @@ vim.api.nvim_create_autocmd("FileType", {
     end,
 })
 
+-- LspAttach 時強制關閉 inlay hints（預設不顯示，用 <C-c><C-c> 手動開關）
+vim.api.nvim_create_autocmd("LspAttach", {
+    callback = function(args)
+        local client = vim.lsp.get_client_by_id(args.data.client_id)
+        if client and client.name == "vtsls" then
+            vim.lsp.inlay_hint.enable(false, { bufnr = args.buf })
+        end
+    end,
+})
+
 if vim.fn.has("win32") == 1 or vim.fn.has("win64") == 1 then
     local im_select_path = "im-select-imm.exe"
 
