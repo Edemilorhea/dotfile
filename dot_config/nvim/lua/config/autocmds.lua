@@ -59,12 +59,14 @@ vim.api.nvim_create_autocmd("FileType", {
 })
 
 -- LspAttach 時強制關閉 inlay hints（預設不顯示，用 <C-c><C-c> 手動開關）
+-- 延遲執行確保在 LazyVim 啟用之後再關閉
 vim.api.nvim_create_autocmd("LspAttach", {
     callback = function(args)
-        local client = vim.lsp.get_client_by_id(args.data.client_id)
-        if client and client.name == "vtsls" then
-            vim.lsp.inlay_hint.enable(false, { bufnr = args.buf })
-        end
+        vim.defer_fn(function()
+            if vim.api.nvim_buf_is_valid(args.buf) then
+                vim.lsp.inlay_hint.enable(false, { bufnr = args.buf })
+            end
+        end, 100)
     end,
 })
 
