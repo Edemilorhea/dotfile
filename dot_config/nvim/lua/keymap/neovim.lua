@@ -28,12 +28,23 @@ function M.setup()
     vim.keymap.set("n", "<leader>xq", "<cmd>Trouble qflist toggle<cr>", { desc = "Quickfix list" })
     -- 摺疊相關：使用 Neovim 原生摺疊 (nvim-ufo 已停用)
 
-    -- Inlay Hints 開關（雙擊 Ctrl+C，類似 JetBrains 按兩下 Ctrl）
-    vim.keymap.set("n", "<C-c><C-c>", function()
+    -- Inlay Hints 開關（使用 <leader>uh，避免 <C-c> 衝突）
+    vim.keymap.set("n", "<leader>uh", function()
         local enabled = vim.lsp.inlay_hint.is_enabled({ bufnr = 0 })
         vim.lsp.inlay_hint.enable(not enabled, { bufnr = 0 })
         vim.notify("Inlay Hints: " .. (not enabled and "ON" or "OFF"), vim.log.levels.INFO)
     end, { desc = "開關 Inlay Hints" })
+
+    -- 按住 <C-h> 臨時顯示 Inlay Hints，鬆開隱藏（類似 JetBrains 按住 Ctrl）
+    vim.keymap.set("n", "<C-h>", function()
+        vim.lsp.inlay_hint.enable(true, { bufnr = 0 })
+        -- 100ms 後自動關閉（模擬按住效果）
+        vim.defer_fn(function()
+            if vim.api.nvim_buf_is_valid(0) then
+                vim.lsp.inlay_hint.enable(false, { bufnr = 0 })
+            end
+        end, 2000)
+    end, { desc = "臨時顯示 Inlay Hints (2秒)" })
 end
 
 return M
