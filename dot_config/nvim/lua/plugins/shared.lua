@@ -119,11 +119,12 @@ return {
         config = function(_, opts)
             require("mini.comment").setup(opts)
         end,
-        keys = {
-            { "<C-/>", "gcc", mode = "n", remap = true, desc = "註解目前行" },
-            { "<C-_>", "gcc", mode = "n", remap = true, desc = "註解目前行" },
-            { "<C-/>", "gc", mode = "v", remap = true, desc = "註解選取範圍" },
-            { "<C-_>", "gc", mode = "v", remap = true, desc = "註解選取範圍" },
-        },
+        -- 鍵綁定改在 config/keymaps.lua 統一管理，避免衝突
+        -- keys = {
+        --     { "<C-/>", "gcc", mode = "n", remap = true, desc = "註解目前行" },
+        --     { "<C-_>", "gcc", mode = "n", remap = true, desc = "註解目前行" },
+        --     { "<C-/>", "gc", mode = "v", remap = true, desc = "註解選取範圍" },
+        --     { "<C-_>", "gc", mode = "v", remap = true, desc = "註解選取範圍" },
+        -- },
     },
 }
