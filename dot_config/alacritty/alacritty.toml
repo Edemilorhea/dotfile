@@ -92,6 +92,8 @@ builtin_box_drawing = true
 background = "#1c1f24"
 foreground = "#c0c5ce"
 
+
+
 # 游標顏色
 [colors.cursor]
 text = "#1c1f24"
@@ -194,8 +196,7 @@ chars = "\x1b[24;5~"
 [[keyboard.bindings]]
 key = "Slash"
 mods = "Control"
-chars = "\u001b[9;8~"
-
+chars = "\u001f" 
 
 # ================================================================
 # 8. 滑鼠設定 (Mouse)

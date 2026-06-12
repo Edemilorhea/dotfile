@@ -63,6 +63,10 @@ function M.setup()
         -- Ctrl+Q 作為 Visual Block（替代 Ctrl+V，避免終端貼上衝突）
         vim.keymap.set({ "n", "x" }, "<C-q>", "<C-v>", { desc = "進入區塊選取模式" })
 
+        -- Alacritty: Ctrl+/ 鍵碼修正
+        vim.keymap.set('n', '<C-_>', 'gcc', { noremap = true, silent = true })
+        vim.keymap.set('v', '<C-_>', 'gc',  { noremap = true, silent = true })
+
         -- 視窗導航：由 tmux-navigation 插件處理 (psmux/tmux 整合)
 
         -- LazyVim 配置重載
