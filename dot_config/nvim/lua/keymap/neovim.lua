@@ -35,16 +35,15 @@ function M.setup()
         vim.notify("Inlay Hints: " .. (not enabled and "ON" or "OFF"), vim.log.levels.INFO)
     end, { desc = "開關 Inlay Hints" })
 
-    -- 按住 <C-h> 臨時顯示 Inlay Hints，鬆開隱藏（類似 JetBrains 按住 Ctrl）
-    vim.keymap.set("n", "<C-h>", function()
+    -- 臨時顯示 Inlay Hints（按 <C-i> 顯示 3 秒後自動關閉）
+    vim.keymap.set("n", "<C-i>", function()
         vim.lsp.inlay_hint.enable(true, { bufnr = 0 })
-        -- 100ms 後自動關閉（模擬按住效果）
         vim.defer_fn(function()
             if vim.api.nvim_buf_is_valid(0) then
                 vim.lsp.inlay_hint.enable(false, { bufnr = 0 })
             end
-        end, 2000)
-    end, { desc = "臨時顯示 Inlay Hints (2秒)" })
+        end, 3000)
+    end, { desc = "臨時顯示 Inlay Hints (3秒)" })
 end
 
 return M
