@@ -4,12 +4,25 @@
 return {
   -- 主題設定 (只在 Neovim 中使用)
   {
-    "olimorris/onedarkpro.nvim",
+    "tiagovla/tokyodark.nvim",
     lazy = false,
     priority = 1000,
     cond = not vim.g.vscode,
-    config = function()
-      vim.cmd("colorscheme onedark")
+    opts = {
+      transparent_background = false,
+      gamma = 1.00,
+      styles = {
+        comments = { italic = true },
+        keywords = { italic = true },
+        identifiers = { italic = true },
+        functions = {},
+        variables = {},
+      },
+      terminal_colors = true,
+    },
+    config = function(_, opts)
+      require("tokyodark").setup(opts)
+      vim.cmd("colorscheme tokyodark")
     end,
   },
   
