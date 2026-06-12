@@ -19,16 +19,30 @@ vim.api.nvim_create_autocmd("User", {
     callback = function()
         -- 完全移除 LazyVim 預設的 <C-/> 終端機綁定
         print("移除 LazyVim 預設 terminal 綁定，改為註解功能")
-        -- 移除所有模式的 <C-/> 和 <C-_> 綁定
+        -- 移除所有模式的 <C-/> 和 <C-_> 綁定（LazyVim 使用小寫 <c-/>）
         for _, mode in ipairs({ "n", "i", "v", "x", "s", "o", "t" }) do
             pcall(vim.keymap.del, mode, "<C-/>")
             pcall(vim.keymap.del, mode, "<C-_>")
+            pcall(vim.keymap.del, mode, "<c-/>")
+            pcall(vim.keymap.del, mode, "<c-_>")
         end
-        -- 設定為註解功能（使用 mini.comment 的 gcc/gc）
-        vim.keymap.set("n", "<C-/>", "gcc", { remap = true, desc = "註解目前行" })
-        vim.keymap.set("n", "<C-_>", "gcc", { remap = true, desc = "註解目前行" })
-        vim.keymap.set("v", "<C-/>", "gc", { remap = true, desc = "註解選取範圍" })
-        vim.keymap.set("v", "<C-_>", "gc", { remap = true, desc = "註解選取範圍" })
+        -- 設定為註解功能（直接呼叫 mini.comment 的 API）
+        vim.keymap.set("n", "<C-/>", function()
+            require("mini.comment").toggle_lines(vim.fn.line("."), vim.fn.line("."))
+        end, { desc = "註解目前行" })
+        vim.keymap.set("n", "<C-_>", function()
+            require("mini.comment").toggle_lines(vim.fn.line("."), vim.fn.line("."))
+        end, { desc = "註解目前行" })
+        vim.keymap.set("v", "<C-/>", function()
+            local start_line = vim.fn.line("'<")
+            local end_line = vim.fn.line("'>")
+            require("mini.comment").toggle_lines(start_line, end_line)
+        end, { desc = "註解選取範圍" })
+        vim.keymap.set("v", "<C-_>", function()
+            local start_line = vim.fn.line("'<")
+            local end_line = vim.fn.line("'>")
+            require("mini.comment").toggle_lines(start_line, end_line)
+        end, { desc = "註解選取範圍" })
 
         -- 覆蓋 LazyVim 預設格式化，改走 conform 的 formatter chain：dprint → biome → prettier → LSP
         pcall(vim.keymap.del, "n", "<leader>cf")
