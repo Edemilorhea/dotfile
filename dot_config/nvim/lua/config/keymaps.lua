@@ -17,12 +17,14 @@ end
 vim.api.nvim_create_autocmd("User", {
     pattern = "VeryLazy",
     callback = function()
-        -- 安全地移除 LazyVim 綁定
-        print("移除terminal 快捷鍵綁定")
-        pcall(vim.keymap.del, "n", "<C-/>")
-        pcall(vim.keymap.del, "t", "<C-/>")
-        pcall(vim.keymap.del, "n", "<C-_>")
-        pcall(vim.keymap.del, "t", "<C-_>")
+        -- 完全移除 LazyVim 預設的 <C-/> 終端機綁定
+        print("移除 LazyVim 預設 terminal 綁定，改為註解功能")
+        -- 移除所有模式的 <C-/> 和 <C-_> 綁定
+        for _, mode in ipairs({ "n", "i", "v", "x", "s", "o", "t" }) do
+            pcall(vim.keymap.del, mode, "<C-/>")
+            pcall(vim.keymap.del, mode, "<C-_>")
+        end
+        -- 設定為註解功能（使用 mini.comment 的 gcc/gc）
         vim.keymap.set("n", "<C-/>", "gcc", { remap = true, desc = "註解目前行" })
         vim.keymap.set("n", "<C-_>", "gcc", { remap = true, desc = "註解目前行" })
         vim.keymap.set("v", "<C-/>", "gc", { remap = true, desc = "註解選取範圍" })
