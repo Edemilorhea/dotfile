@@ -65,6 +65,27 @@ return {
                             format = {
                                 enable = false,
                             },
+                            -- 關閉所有 inlay hints（預設不顯示，用 <C-c><C-c> 手動開關）
+                            inlayHints = {
+                                parameterNames = {
+                                    enabled = "none", -- "none" | "literals" | "all"
+                                },
+                                parameterTypes = {
+                                    enabled = false,
+                                },
+                                variableTypes = {
+                                    enabled = false,
+                                },
+                                functionLikeReturnTypes = {
+                                    enabled = false,
+                                },
+                                enumMemberValues = {
+                                    enabled = false,
+                                },
+                                propertyDeclarationTypes = {
+                                    enabled = false,
+                                },
+                            },
                         },
                         javascript = {
                             validate = {
@@ -72,6 +93,26 @@ return {
                             },
                             format = {
                                 enable = false,
+                            },
+                            inlayHints = {
+                                parameterNames = {
+                                    enabled = "none",
+                                },
+                                parameterTypes = {
+                                    enabled = false,
+                                },
+                                variableTypes = {
+                                    enabled = false,
+                                },
+                                functionLikeReturnTypes = {
+                                    enabled = false,
+                                },
+                                enumMemberValues = {
+                                    enabled = false,
+                                },
+                                propertyDeclarationTypes = {
+                                    enabled = false,
+                                },
                             },
                         },
                         -- Monorepo 優化
