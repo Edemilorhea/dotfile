@@ -35,8 +35,8 @@ function M.setup()
         vim.notify("Inlay Hints: " .. (not enabled and "ON" or "OFF"), vim.log.levels.INFO)
     end, { desc = "開關 Inlay Hints" })
 
-    -- 臨時顯示 Inlay Hints（按 <C-i> 顯示 3 秒後自動關閉）
-    vim.keymap.set("n", "<C-i>", function()
+    -- 臨時顯示 Inlay Hints（按 <leader>ih 顯示 3 秒後自動關閉）
+    vim.keymap.set("n", "<leader>ih", function()
         vim.lsp.inlay_hint.enable(true, { bufnr = 0 })
         vim.defer_fn(function()
             if vim.api.nvim_buf_is_valid(0) then
