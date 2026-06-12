@@ -187,11 +187,7 @@ function M.setup()
         end, opts)
     end
 
-    -- 註解功能
-    vim.keymap.set("n", "<C-/>", "gcc", { remap = true, desc = "Comment line" })
-    vim.keymap.set("n", "<C-_>", "gcc", { remap = true, desc = "Comment line" })
-    vim.keymap.set("v", "<C-/>", "gc", { remap = true, desc = "Comment selection" })
-    vim.keymap.set("v", "<C-_>", "gc", { remap = true, desc = "Comment selection" })
+    -- 註解功能：由 shared.lua mini.comment + keymaps.lua VeryLazy 處理
 
     -- 視窗導航快捷鍵（這些在 VSCode 中不需要，因為 Ctrl+hjkl 已用於游標移動）
     -- 純 Neovim 環境下的視窗切換會在 lua/config/keymaps.lua 中設定

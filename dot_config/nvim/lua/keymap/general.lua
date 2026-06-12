@@ -63,11 +63,7 @@ function M.setup()
         -- Ctrl+Q 作為 Visual Block（替代 Ctrl+V，避免終端貼上衝突）
         vim.keymap.set({ "n", "x" }, "<C-q>", "<C-v>", { desc = "進入區塊選取模式" })
 
-        -- 視窗導航快捷鍵（Ctrl+hjkl）
-        vim.keymap.set("n", "<C-h>", "<C-w>h", { desc = "移到左側視窗" })
-        vim.keymap.set("n", "<C-j>", "<C-w>j", { desc = "移到下方視窗" })
-        vim.keymap.set("n", "<C-k>", "<C-w>k", { desc = "移到上方視窗" })
-        vim.keymap.set("n", "<C-l>", "<C-w>l", { desc = "移到右側視窗" })
+        -- 視窗導航：由 tmux-navigation 插件處理 (psmux/tmux 整合)
 
         -- LazyVim 配置重載
         local function reload_lazyvim()

@@ -34,13 +34,7 @@ function M.setup()
     })
 
 
-    -- LSP 快捷鍵
-    vim.keymap.set("n", "gd", vim.lsp.buf.definition, {
-        desc = "跳轉至定義",
-    })
-    vim.keymap.set("n", "ca", vim.lsp.buf.code_action, {
-        desc = "LSP 程式碼動作",
-    })
+    -- LSP 快捷鍵：gd/ca 由 LazyVim 內建處理
 
     -- 僅為了 WhichKey 顯示用，不重新綁定
     vim.api.nvim_create_autocmd("VimEnter", {

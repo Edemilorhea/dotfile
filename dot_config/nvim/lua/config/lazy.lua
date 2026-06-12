@@ -18,20 +18,16 @@ require("lazy").setup({
     spec = {
         -- add LazyVim and import its plugins
         { "LazyVim/LazyVim", import = "lazyvim.plugins" },
-        -- VSCode 環境僅載入必要插件
-        vim.g.vscode and { import = "plugins.shared" }
-            or {
-                -- 結構化插件分類 (按載入順序)
-                { import = "plugins.shared" }, -- VSCode + Neovim 共用插件
-                { import = "plugins.blink" }, -- blink.cmp 覆寫配置
-                { import = "plugins.development" }, -- 開發工具 (兩邊都需要)
-                { import = "plugins.formatting", cond = not vim.g.vscode }, -- 格式化設定 (conform.nvim)
-                { import = "plugins.tools", cond = not vim.g.vscode }, -- 工具插件 (Telescope、浮動終端等)
-                { import = "plugins.neovim-only", cond = not vim.g.vscode }, -- 純 Neovim 插件
-                { import = "plugins.ui-restructured", cond = not vim.g.vscode }, -- UI 插件
-                { import = "plugins.which-key", cond = not vim.g.vscode }, -- which-key 中文化覆寫
-                { import = "plugins.markdown-enhanced", cond = not vim.g.vscode }, -- Markdown 生態系統
-            },
+        -- 結構化插件分類 (init.lua 已處理 VSCode 分支，此處只載入 Neovim 插件)
+        { import = "plugins.shared" }, -- VSCode + Neovim 共用插件
+        { import = "plugins.blink" }, -- blink.cmp 覆寫配置
+        { import = "plugins.development" }, -- 開發工具
+        { import = "plugins.formatting" }, -- 格式化設定 (conform.nvim)
+        { import = "plugins.tools" }, -- 工具插件 (Telescope、浮動終端等)
+        { import = "plugins.neovim-only" }, -- 純 Neovim 插件
+        { import = "plugins.ui-restructured" }, -- UI 插件
+        { import = "plugins.which-key" }, -- which-key 中文化覆寫
+        { import = "plugins.markdown-enhanced" }, -- Markdown 生態系統
     },
     defaults = {
         -- 啟用 lazy loading 以提升啟動速度
