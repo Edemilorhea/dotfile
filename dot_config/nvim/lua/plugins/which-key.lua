@@ -104,6 +104,7 @@ return {
         { "<leader>xl", desc = "Location 清單（Trouble）" },
         { "<leader>xt", desc = "Todo 清單（Trouble）" },
         { "<leader>xT", desc = "Todo / Fix / FIXME（Trouble）" },
+        { "<leader>xm", desc = "切換診斷多行顯示" },
       },
     },
   },

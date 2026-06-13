@@ -26,6 +26,10 @@ function M.setup()
     vim.keymap.set("n", "<leader>xx", vim.diagnostic.open_float, { desc = "Show line diagnostic" })
     vim.keymap.set("n", "<leader>xl", "<cmd>Trouble loclist toggle<cr>", { desc = "Location list" })
     vim.keymap.set("n", "<leader>xq", "<cmd>Trouble qflist toggle<cr>", { desc = "Quickfix list" })
+    -- 切換行內診斷多行展開 (tiny-inline-diagnostic)
+    vim.keymap.set("n", "<leader>xm", function()
+        require("tiny-inline-diagnostic").toggle_multilines()
+    end, { desc = "切換診斷多行顯示" })
     -- 摺疊相關：使用 Neovim 原生摺疊 (nvim-ufo 已停用)
 
     -- Inlay Hints 開關（使用 <leader>uh，避免 <C-c> 衝突）
