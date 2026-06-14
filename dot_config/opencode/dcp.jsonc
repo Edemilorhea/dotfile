@@ -2,6 +2,9 @@
   "$schema": "https://raw.githubusercontent.com/Opencode-DCP/opencode-dynamic-context-pruning/master/dcp.schema.json",
   "pruneNotificationType": "toast",
   "compress": {
+    "minContextLimit": "50%",
+    "maxContextLimit": "75%",
+    "iterationNudgeThreshold": 40,
     "nudgeFrequency": 100,
     "nudgeForce": "soft"
   }
