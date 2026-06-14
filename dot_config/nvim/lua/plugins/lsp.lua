@@ -14,9 +14,9 @@ return {
             opts.codelens.enabled = false
             opts.document_highlight = opts.document_highlight or {}
             opts.document_highlight.enabled = true
-            -- 啟用 LazyVim 原生 LSP 折疊功能
+            -- LSP 折疊已停用，改用 treesitter 折疊（vim.treesitter.foldexpr），避免兩套 fold 同時重算
             opts.folds = opts.folds or {}
-            opts.folds.enabled = true
+            opts.folds.enabled = false
 
             -- 語言伺服器設定
             opts.servers = opts.servers or {}
@@ -58,9 +58,9 @@ return {
                         tsserver = {
                             maxTsServerMemory = 4096, -- 限制記憶體使用
                         },
-                        -- 關閉內建 validate（專案使用 ESLint，避免重複診斷）
+                        -- 開啟內建 validate（恢復 TypeScript 即時診斷）
                         validate = {
-                            enable = false,
+                            enable = true,
                         },
                         -- 關閉內建 format（使用 conform.nvim）
                         format = {
@@ -90,7 +90,7 @@ return {
                     },
                     javascript = {
                         validate = {
-                            enable = false,
+                            enable = true,
                         },
                         format = {
                             enable = false,
@@ -128,7 +128,9 @@ return {
             }
 
             -- OmniSharp (C# LSP) 自訂設定
+            -- 改用 roslyn.nvim 為主,OmniSharp 不自動啟動,僅作手動 fallback (:LspStart omnisharp)
             opts.servers.omnisharp = {
+                autostart = false,
                 handlers = {
                     ["textDocument/definition"] = function(...)
                         local ok, omnisharp_extended = pcall(require, "omnisharp_extended")
@@ -195,7 +197,13 @@ return {
         cond = function()
             return not vim.g.vscode
         end,
-        opts = {},
+        opts = {
+            -- roslyn (C# LSP) 由 Crashdummyy registry 提供,roslyn.nvim 需要
+            registries = {
+                "github:mason-org/mason-registry",
+                "github:Crashdummyy/mason-registry",
+            },
+        },
     },
     {
         "mason-org/mason-lspconfig.nvim",
@@ -219,6 +227,11 @@ return {
                 "omnisharp",
                 "pyright",
                 "marksman",
+            },
+            -- omnisharp: 仍由 Mason 安裝/更新,但不自動啟動 (改用 roslyn.nvim;需要時 :LspStart omnisharp)
+            -- roslyn: 由 roslyn.nvim 接管啟動,排除以避免雙重啟動 (雙保險)
+            automatic_enable = {
+                exclude = { "omnisharp", "roslyn" },
             },
         },
     },

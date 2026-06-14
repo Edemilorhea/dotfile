@@ -17,7 +17,7 @@ vim.g.markdown_fenced_languages = {
 
 opt.number = true
 wo.relativenumber = true
-opt.syntax = "on"
+-- 不再設 syntax="on"，避免與 treesitter 雙重高亮（純 Neovim 用 treesitter，VSCode 用內建高亮）
 opt.clipboard = "unnamedplus"
 opt.ignorecase = true
 opt.smartcase = true
@@ -36,7 +36,8 @@ opt.termguicolors = true
 
 if not g.vscode then
     opt.foldmethod = "expr"
-    opt.foldexpr = "nvim_treesitter#foldexpr()"
+    opt.foldexpr = "v:lua.vim.treesitter.foldexpr()"
+    opt.foldtext = "v:lua.vim.treesitter.foldtext()"
     opt.foldenable = true
     opt.foldlevel = 99
     opt.foldlevelstart = 99
@@ -56,17 +57,7 @@ vim.defer_fn(function()
     })
 end, 50)
 
-if vim.fn.has("win32") == 1 then
-    vim.g.clipboard = {
-        name = "win32-std-clip",
-        copy = {
-            ["+"] = "clip.exe",
-            ["*"] = "clip.exe",
-        },
-        paste = {
-            ["+"] = 'powershell.exe -c [Console]::Out.Write($(Get-Clipboard -Raw).tostring().replace("`r", ""))',
-            ["*"] = 'powershell.exe -c [Console]::Out.Write($(Get-Clipboard -Raw).tostring().replace("`r", ""))',
-        },
-        cache_enabled = 0,
-    }
-end
+-- 剪貼簿改由 Neovim 自動偵測 provider，不再手動指定 PowerShell（避免每次 yank/paste 啟動行程造成卡頓）：
+--   Windows → win32yank.exe（需自行安裝並加入 PATH）
+--   WSL/SSH → 同樣安裝 win32yank.exe 可直接走 Windows 剪貼簿
+--   原生 Linux → wl-copy/wl-paste（Wayland）或 xclip/xsel（X11）

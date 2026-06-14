@@ -27,6 +27,7 @@ return {
   -- Neo-tree 檔案管理器 (只在 Neovim 中使用)
   {
     "nvim-neo-tree/neo-tree.nvim",
+    enabled = false, -- 已停用，改用 Snacks Explorer（<leader>e / <leader>E）
     cmd = { "Neotree" },
     cond = not vim.g.vscode,
     keys = {

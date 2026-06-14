@@ -58,20 +58,18 @@ return {
         },
     },
     {
-        -- Float term
+        -- Float term（改為按鍵/命令觸發的 lazy load，加速啟動）
         "voldikss/vim-floaterm",
-        lazy = false,
-        config = function()
-            local keymap = vim.keymap
-
-            keymap.set("n", "<leader>tc", ":FloatermNew --height=0.95 --width=0.95<CR>", { desc = "新增終端機" })
-            keymap.set("n", "<leader>tt", ":FloatermToggle<CR>", { desc = "切換終端機" })
-            keymap.set("n", "<leader>tp", ":FloatermPrev<CR>", { desc = "上一個終端機" })
-            keymap.set("n", "<leader>tn", ":FloatermNext<CR>", { desc = "下一個終端機" })
-            keymap.set("n", "<leader>tg", ":FloatermNew --height=0.95 --width=0.95 lazygit<CR>", { desc = "開啟 Lazygit" })
-            keymap.set("n", "<leader>tq", ":FloatermKill<CR>", { desc = "關閉終端機" })
-            keymap.set("n", "<leader>th", ":FloatermHide<CR>", { desc = "隱藏終端機" })
-        end,
+        cmd = { "FloatermNew", "FloatermToggle", "FloatermPrev", "FloatermNext", "FloatermKill", "FloatermHide" },
+        keys = {
+            { "<leader>tc", ":FloatermNew --height=0.95 --width=0.95<CR>", desc = "新增終端機" },
+            { "<leader>tt", ":FloatermToggle<CR>", desc = "切換終端機" },
+            { "<leader>tp", ":FloatermPrev<CR>", desc = "上一個終端機" },
+            { "<leader>tn", ":FloatermNext<CR>", desc = "下一個終端機" },
+            { "<leader>tg", ":FloatermNew --height=0.95 --width=0.95 lazygit<CR>", desc = "開啟 Lazygit" },
+            { "<leader>tq", ":FloatermKill<CR>", desc = "關閉終端機" },
+            { "<leader>th", ":FloatermHide<CR>", desc = "隱藏終端機" },
+        },
     },
     {
         -- Tmux & neovim navigator

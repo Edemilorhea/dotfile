@@ -63,6 +63,11 @@ function M.setup()
         -- Ctrl+Q 作為 Visual Block（替代 Ctrl+V，避免終端貼上衝突）
         vim.keymap.set({ "n", "x" }, "<C-q>", "<C-v>", { desc = "進入區塊選取模式" })
 
+        -- Insert / Command-line (含 / 搜尋) 模式：Ctrl+V 貼上系統剪貼簿
+        -- Normal 模式維持預設 Ctrl+V = Visual Block
+        vim.keymap.set("i", "<C-v>", "<C-r>+", { desc = "貼上系統剪貼簿" })
+        vim.keymap.set("c", "<C-v>", "<C-r>+", { desc = "貼上系統剪貼簿" })
+
         -- Alacritty: Ctrl+/ 鍵碼修正
         vim.keymap.set('n', '<C-_>', 'gcc', { noremap = true, silent = true })
         vim.keymap.set('v', '<C-_>', 'gc',  { noremap = true, silent = true })

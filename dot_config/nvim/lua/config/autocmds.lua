@@ -71,11 +71,15 @@ vim.api.nvim_create_autocmd("LspAttach", {
 })
 
 if vim.fn.has("win32") == 1 or vim.fn.has("win64") == 1 then
-    local im_select_path = "im-select-imm.exe"
+    local im_select_path = "im-select.exe"
 
-    vim.api.nvim_create_autocmd("InsertLeave", {
-        callback = function()
-            os.execute(im_select_path .. " 1033") -- 離開 Insert 模式自動切回英文
-        end,
-    })
+    -- 僅在 im-select.exe 存在於 PATH 時註冊，避免未安裝的機器報 E475
+    if vim.fn.executable(im_select_path) == 1 then
+        vim.api.nvim_create_autocmd("InsertLeave", {
+            callback = function()
+                -- 非阻塞呼叫，避免每次離開 Insert 模式同步 spawn 行程凍結 UI
+                vim.fn.jobstart({ im_select_path, "1033" }, { detach = true })
+            end,
+        })
+    end
 end

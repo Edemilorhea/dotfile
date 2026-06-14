@@ -3,7 +3,7 @@ return {
     event = "LazyFile",
     opts = {
         -- Event to trigger linters
-        events = { "BufWritePost", "BufReadPost", "InsertLeave" },
+        events = { "BufWritePost", "BufReadPost" },
         linters_by_ft = {
             fish = { "fish" },
             markdown = {}, -- 改為空陣列，關閉 markdown linting

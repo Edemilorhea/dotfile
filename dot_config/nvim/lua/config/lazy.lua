@@ -28,6 +28,7 @@ require("lazy").setup({
         { import = "plugins.ui-restructured" }, -- UI 插件
         { import = "plugins.which-key" }, -- which-key 中文化覆寫
         { import = "plugins.markdown-enhanced" }, -- Markdown 生態系統
+        { import = "plugins.csharp" }, -- C# roslyn.nvim + nvim-dap 除錯
     },
     defaults = {
         -- 啟用 lazy loading 以提升啟動速度
