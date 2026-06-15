@@ -34,7 +34,13 @@ function M.setup()
         end
     end
 
-    vim.cmd([[cnoreabbrev <expr> q (getcmdtype() == ':' && getcmdline() ==# 'q') ? 'lua SmartQuit()' : 'q']])
+    -- 只在命令列剛好是單獨的 q 時按 Enter 才轉走，:q! :wq :qa 等完全不受影響
+    vim.keymap.set("c", "<CR>", function()
+        if vim.fn.getcmdtype() == ":" and vim.fn.getcmdline() == "q" then
+            return "<C-u>lua SmartQuit()<CR>"
+        end
+        return "<CR>"
+    end, { expr = true })
     -- 視窗分割管理
     vim.keymap.set("n", "<leader>sv", "<cmd>vsplit<cr>", { desc = "Split vertically" })
     vim.keymap.set("n", "<leader>sh", "<cmd>split<cr>", { desc = "Split horizontally" })

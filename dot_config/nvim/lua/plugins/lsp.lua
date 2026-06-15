@@ -30,10 +30,9 @@ return {
                 },
             }
 
-            -- ESLint 已停用 (專案不需要)
-            opts.servers.eslint = {
-                enabled = false,
-            }
+            -- ESLint: 交給 nvim-lspconfig 上游內建 gating 處理
+            -- 只有專案存在 ESLint config (.eslintrc* / eslint.config.*) 或
+            -- package.json 含 eslintConfig 時才會自動啟動,沒有則不啟動也不報錯。
 
             -- 明確停用 ts_ls (使用 vtsls 取代)
             opts.servers.ts_ls = {
@@ -223,7 +222,7 @@ return {
                 "cssls",
                 "tailwindcss",  -- Tailwind CSS LSP
                 "emmet_ls",
-                -- "eslint",    -- ESLint LSP (已停用,專案不需要)
+                "eslint",       -- ESLint LSP (有 config 才自動啟動)
                 "omnisharp",
                 "pyright",
                 "marksman",
