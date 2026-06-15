@@ -1,6 +1,8 @@
 -- 必須在所有載入之前設定 mapleader
 -- vim.g.mapleader = "\\"
 -- vim.g.maplocalleader = "\\"
+vim.opt.fileformats = { "unix", "dos" }
+vim.opt.fileformat = "unix"
 
 -- VSCode 環境最小化載入
 if vim.g.vscode then

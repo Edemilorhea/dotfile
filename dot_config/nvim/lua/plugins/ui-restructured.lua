@@ -3,10 +3,25 @@
 
 return {
   -- 主題設定 (只在 Neovim 中使用)
+  -- 優先使用 jb.nvim，失敗則 fallback 到 tokyonight
   {
-    "folke/tokyonight.nvim",
+    "catppuccin/nvim",
+    name = "catppuccin",
     lazy = false,
     priority = 1000,
+    cond = not vim.g.vscode,
+    config = function()
+      local ok = pcall(vim.cmd, "colorscheme catppuccin")
+      if not ok then
+        vim.notify("catppuccin 載入失敗，切換至 tokyonight", vim.log.levels.WARN)
+        vim.cmd("colorscheme tokyonight")
+      end
+    end,
+  },
+  {
+    "folke/tokyonight.nvim",
+    lazy = true, -- 作為 fallback，不主動套用
+    priority = 900,
     cond = not vim.g.vscode,
     opts = {
       transparent = false,
@@ -18,10 +33,6 @@ return {
         variables = {},
       },
     },
-    config = function(_, opts)
-      require("tokyonight").setup(opts)
-      vim.cmd("colorscheme tokyonight")
-    end,
   },
   
   -- Neo-tree 檔案管理器 (只在 Neovim 中使用)
@@ -225,7 +236,7 @@ return {
     cond = not vim.g.vscode,
     opts = {
       options = {
-        theme = "tokyonight",
+        theme = "auto",
         section_separators = { left = "", right = "" },
         component_separators = { left = "", right = "" },
         globalstatus = true,
