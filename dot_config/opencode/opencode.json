@@ -731,6 +731,60 @@
                     "*": "ask"
                 }
             }
+        },
+        // === Subagent model assignments ===
+        // Planning / review tier: opus / fable-5
+        "TaskManager": {
+            "model": "anthropic/claude-opus-4-8"
+        },
+        "ContextScout": {
+            "model": "anthropic/claude-fable-5"
+        },
+        "CodeReviewer": {
+            "model": "anthropic/claude-opus-4-8"
+        },
+        "dotnet-code-reviewer": {
+            "model": "anthropic/claude-opus-4-8"
+        },
+        "ContextOrganizer": {
+            "model": "anthropic/claude-fable-5"
+        },
+        "Navigator": {
+            "model": "anthropic/claude-fable-5"
+        },
+        "Facilitator": {
+            "model": "anthropic/claude-opus-4-8"
+        },
+        // Implementation / execution tier: sonnet-4.6 / kimi-2.6 / gpt-5.5
+        "CoderAgent": {
+            "model": "anthropic/claude-sonnet-4-6"
+        },
+        "TestEngineer": {
+            "model": "opencode-go/kimi-k2.6"
+        },
+        "BuildAgent": {
+            "model": "anthropic/claude-sonnet-4-6"
+        },
+        "DocWriter": {
+            "model": "openai/gpt-5.5"
+        },
+        "OpenFrontendSpecialist": {
+            "model": "anthropic/claude-sonnet-4-6"
+        },
+        "OpenDevopsSpecialist": {
+            "model": "openai/gpt-5.5"
+        },
+        "ExternalScout": {
+            "model": "opencode-go/kimi-k2.6"
+        },
+        "Deconstructor": {
+            "model": "anthropic/claude-sonnet-4-6"
+        },
+        "Mentor": {
+            "model": "anthropic/claude-sonnet-4-6"
+        },
+        "Eval Runner": {
+            "model": "anthropic/claude-sonnet-4-6"
         }
     }
 }
