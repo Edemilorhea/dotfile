@@ -30,9 +30,11 @@ return {
                 },
             }
 
-            -- ESLint: 交給 nvim-lspconfig 上游內建 gating 處理
-            -- 只有專案存在 ESLint config (.eslintrc* / eslint.config.*) 或
-            -- package.json 含 eslintConfig 時才會自動啟動,沒有則不啟動也不報錯。
+            -- ESLint: 由開關 vim.g.eslint_enabled 控制 (預設關閉)
+            -- 用 \uE 或 :EslintToggle 即時切換;啟用後仍需專案有 ESLint config 才會附著。
+            opts.servers.eslint = {
+                enabled = vim.g.eslint_enabled,
+            }
 
             -- 明確停用 ts_ls (使用 vtsls 取代)
             opts.servers.ts_ls = {
@@ -230,7 +232,8 @@ return {
             -- omnisharp: 仍由 Mason 安裝/更新,但不自動啟動 (改用 roslyn.nvim;需要時 :LspStart omnisharp)
             -- roslyn: 由 roslyn.nvim 接管啟動,排除以避免雙重啟動 (雙保險)
             automatic_enable = {
-                exclude = { "omnisharp", "roslyn" },
+                exclude = vim.g.eslint_enabled and { "omnisharp", "roslyn" }
+                    or { "omnisharp", "roslyn", "eslint" },
             },
         },
     },

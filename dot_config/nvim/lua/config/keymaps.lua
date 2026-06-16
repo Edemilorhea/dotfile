@@ -14,6 +14,22 @@ if vim.g.vscode then
     require("keymap.vscode").setup()
 end
 
+-- ESLint LSP 開關 (即時切換,狀態存於 vim.g.eslint_enabled;預設於 options.lua 設為 false)
+if not vim.g.vscode then
+    vim.api.nvim_create_user_command("EslintToggle", function()
+        vim.g.eslint_enabled = not vim.g.eslint_enabled
+        if vim.g.eslint_enabled then
+            vim.cmd("LspStart eslint")
+            vim.notify("ESLint 已啟用", vim.log.levels.INFO)
+        else
+            vim.cmd("LspStop eslint")
+            vim.notify("ESLint 已停用", vim.log.levels.WARN)
+        end
+    end, { desc = "切換 ESLint LSP" })
+
+    vim.keymap.set("n", "<leader>uE", "<cmd>EslintToggle<cr>", { desc = "Toggle ESLint" })
+end
+
 vim.api.nvim_create_autocmd("User", {
     pattern = "VeryLazy",
     callback = function()

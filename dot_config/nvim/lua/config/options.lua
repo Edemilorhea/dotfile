@@ -7,6 +7,9 @@ local wo = vim.wo
 vim.g.mapleader = "\\"
 vim.g.maplocalleader = "\\"
 
+-- ESLint LSP 開關 (預設關閉,用 \uE 或 :EslintToggle 即時切換)
+vim.g.eslint_enabled = false
+
 vim.g.markdown_fenced_languages = {
     "csharp=cs",
     "cs",
