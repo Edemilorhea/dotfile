@@ -31,6 +31,12 @@ AppData/Roaming/nushell/history.txt
 .config/opencode/plugins/**
 .config/opencode/tool/**
 
+# OpenCode - 備份檔與測試設定
+.config/opencode/*.bak
+.config/opencode/opencode.json.bak-*
+.config/opencode/opencode.json.tui-migration.bak
+.config/opencode/opencode-test-no-pty.json
+
 # Neovim - 暫存與快取
 .config/nvim/.tmp/**
 
