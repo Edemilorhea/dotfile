@@ -19,6 +19,16 @@ $env.PYENV_VIRTUALENV_DISABLE_PROMPT = 1
 # carapace 補全時不分大小寫（"1" 啟用）
 $env.CARAPACE_MATCH = "1"
 
+# 預設編輯器（Linux / macOS / WSL）
+# SUDO_EDITOR 讓 `sudoedit /etc/xxx` 用 nvim 編輯系統檔：
+#   nvim 以「你的身份 + 你的設定/插件」開啟，僅在寫入時借用 root 權限（最安全）。
+# Windows 的 nvim 路徑/行為不同，故僅限非 windows 設定。
+if $nu.os-info.name != "windows" {
+    $env.EDITOR = "nvim"
+    $env.VISUAL = "nvim"
+    $env.SUDO_EDITOR = "nvim"
+}
+
 # ================================
 # PATH 擴充（Windows）
 # ================================
