@@ -1,0 +1,16 @@
+{
+  "library": "olimorris/onedarkpro.nvim",
+  "package": "onedarkpro.nvim",
+  "version": "current",
+  "last_updated": "2026-06-11T00:00:00Z",
+  "files": [
+    {
+      "filename": "lazyvim-lazy-lualine.md",
+      "topic": "lazy.nvim LazyVim setup, colorscheme names, lualine compatibility",
+      "tech_stack": "lazy.nvim, LazyVim, Neovim",
+      "fetched": "2026-06-11T00:00:00Z",
+      "source": "Context7 API + official README/GitHub API",
+      "official_docs": "https://github.com/olimorris/onedarkpro.nvim"
+    }
+  ]
+}
