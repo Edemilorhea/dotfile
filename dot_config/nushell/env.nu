@@ -196,3 +196,23 @@ if $nu.os-info.name != "windows" {
         }
     }
 }
+
+# pnpm
+$env.PNPM_HOME = "/home/tc/.local/share/pnpm"
+$env.PATH = ($env.PATH | split row (char esep) | prepend ($env.PNPM_HOME | path join "bin") )
+# pnpm end
+
+# ================================
+# 機器專屬環境變數（不進 chezmoi repo）
+# ================================
+# 在這裡放：機器特定的環境變數、PATH 擴充、API key、proxy 等。
+# 每台機器自行建立 ~/.config/nushell/local-env.nu，不會被 chezmoi 追蹤。
+#
+# 為何分成 local-env.nu 與 local.nu？
+#   - local-env.nu：在 env.nu 階段載入，適合「環境變數 / PATH」（需早期就位）。
+#   - local.nu    ：在 config.nu 階段載入，適合「別名 / 自訂函數」。
+#
+# 注意：nushell 的 source 要求靜態路徑，不能用變數，故用固定路徑 + 存在判斷。
+if ($"($nu.home-dir)/.config/nushell/local-env.nu" | path exists) {
+    source ~/.config/nushell/local-env.nu
+}

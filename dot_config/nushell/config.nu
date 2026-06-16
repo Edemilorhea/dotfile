@@ -359,15 +359,24 @@ if (which atuin | is-not-empty) {
 # fnm 是 nvm 的快速替代品，用 Rust 寫的 Node.js 版本管理工具
 # 它需要設定 FNM_MULTISHELL_PATH 和對應的 PATH 才能切換 node 版本
 # 注意：nushell 不能直接 eval bash 輸出，所以手動解析 `fnm env --shell bash` 的輸出
-if (which fnm | is-not-empty) {
-    let multishell = (^fnm env --shell bash
+# 用絕對路徑呼叫 fnm，避免 PATH 順序問題導致 which 成立但 ^fnm 找不到
+# 僅限 Unix（WSL / Linux / macOS）：Windows 的 fnm 不在 ~/.local/bin，且 --shell bash 不適用。
+let fnm_bin = ($nu.home-dir | path join ".local" "bin" "fnm")
+if ($nu.os-info.name != "windows") and ($fnm_bin | path exists) {
+    # 1. 解析 `fnm env` 的所有 export 成 record（此步會建立 multishell 目錄）
+    let fnm_vars = (^$fnm_bin env --shell bash
         | lines
-        | where { |l| $l | str contains "FNM_MULTISHELL_PATH=" }
-        | first
-        | str replace 'export FNM_MULTISHELL_PATH="' ""
-        | str trim --char '"')
-    $env.FNM_MULTISHELL_PATH = $multishell
-    $env.PATH = ($env.PATH | prepend $"($multishell)/bin")
+        | where { |l| $l | str starts-with "export " }
+        | parse 'export {name}="{value}"'
+        # 排除 PATH（fnm 的 PATH 行含 "$PATH" 變數，解析後會是壞值；PATH 由下方自行處理）
+        | where name != "PATH"
+        | reduce --fold {} { |it, acc| $acc | upsert $it.name $it.value })
+    # 2. 注入 fnm 環境變數（FNM_DIR、FNM_MULTISHELL_PATH 等）
+    load-env $fnm_vars
+    # 3. 把 multishell bin 加到 PATH 最前面，讓 node 優先於 Windows node.exe
+    $env.PATH = ($env.PATH | prepend $"($fnm_vars.FNM_MULTISHELL_PATH)/bin")
+    # 4. 環境就緒後才啟用 node 版本，建立 multishell bin 內的 node symlink
+    with-env $fnm_vars { ^$fnm_bin use default --install-if-missing | ignore }
 }
 
 # ================================
@@ -402,6 +411,18 @@ $env.config.hooks.pre_prompt = [{||
 # 這裡用 overlay use 搭配固定路徑，local.nu 不存在時不報錯。
 if ("~/.config/nushell/local.nu" | path expand | path exists) {
     overlay use ("~/.config/nushell/local.nu" | path expand)
+}
+
+# ================================
+# 將 Windows (/mnt/c) 路徑降到最低優先級
+# ================================
+# 放在 config.nu 最尾端，確保涵蓋 env.nu / local.nu 所有 PATH 設定。
+# 僅在 WSL 執行(偵測 /proc/version 含 microsoft)：
+# 先去重(uniq)再以 sort-by 穩定排序：starts-with "/mnt/c" 為 false 的(Linux)
+# 排前面、true 的(Windows)排後面，組內原順序不變，不刪除任何路徑。
+# 非 WSL(macOS / 純 Linux / Windows)完全跳過此段。
+if ("/proc/version" | path exists) and ((open /proc/version | str downcase | str contains "microsoft")) {
+    $env.PATH = ($env.PATH | split row (char esep) | uniq | sort-by { |p| $p | str starts-with "/mnt/c" })
 }
 
 # ================================
