@@ -46,3 +46,9 @@ AppData/Roaming/nushell/history.txt
 # Neovim - 本機 local 設定
 .config/nvim/.claude/**
 .config/nvim/lua/.claude/**
+
+# 機器專屬 local 設定（每台機器各自獨立，絕不同步）
+# 只忽略實際的 local 檔；.example 範本仍會進 repo 當範本。
+.config/nushell/local.nu
+.config/nushell/local-env.nu
+.zshrc.local

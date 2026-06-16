@@ -1,0 +1,25 @@
+# ============================================================
+# local-env.nu — 機器專屬環境變數範本
+# ============================================================
+# 用法：複製本檔為 local-env.nu，依本機需求修改。
+#   cp local-env.nu.example local-env.nu
+#
+# 載入時機：env.nu 尾端（環境變數 / PATH 階段）。
+# 此檔不會被 chezmoi 追蹤，每台機器各自獨立。
+# ------------------------------------------------------------
+
+# --- 範例 1：機器專屬 PATH 擴充 ---
+# if ("/opt/some-tool/bin" | path exists) {
+#     $env.PATH = ($env.PATH | prepend "/opt/some-tool/bin")
+# }
+
+# --- 範例 2：公司 / 機器專屬環境變數 ---
+# $env.HTTP_PROXY  = "http://proxy.company.com:8080"
+# $env.HTTPS_PROXY = "http://proxy.company.com:8080"
+# $env.NO_PROXY    = "localhost,127.0.0.1"
+
+# --- 範例 3：API key / secret（勿提交到任何 repo） ---
+# $env.OPENAI_API_KEY = "sk-..."
+
+# --- 範例 4：機器專屬工具根目錄 ---
+# $env.JAVA_HOME = "/usr/lib/jvm/java-21"
