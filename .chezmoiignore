@@ -30,3 +30,13 @@ AppData/Roaming/nushell/history.txt
 # OpenAgentsControl - plugins / tool
 .config/opencode/plugins/**
 .config/opencode/tool/**
+
+# Neovim - 暫存與快取
+.config/nvim/.tmp/**
+
+# Neovim - 二進位檔（改用套件管理器安裝）
+.config/nvim/im-select-imm.exe
+
+# Neovim - 本機 local 設定
+.config/nvim/.claude/**
+.config/nvim/lua/.claude/**
