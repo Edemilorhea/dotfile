@@ -3,12 +3,6 @@ local M = {}
 function M.setup()
     -- Buffer 快捷鍵 (只在純 Neovim 環境中設定)
     if not vim.g.vscode then
-        vim.keymap.set("n", "<Tab>", "<cmd>BufferLineCycleNext<CR>", {
-            desc = "切換到下一個 Buffer",
-        })
-        vim.keymap.set("n", "<S-Tab>", "<cmd>BufferLineCyclePrev<CR>", {
-            desc = "切換到上一個 Buffer",
-        })
         vim.keymap.set("n", "<leader>bc", "<cmd>BufferLinePickClose<CR>", {
             desc = "選擇關閉 Buffer",
         })

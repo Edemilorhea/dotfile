@@ -8,8 +8,6 @@ function M.setup()
 
     -- 只在 Neovim 中使用的功能按鍵
     -- Buffer 管理
-    vim.keymap.set("n", "<Tab>", "<cmd>bnext<cr>", { desc = "Next buffer" })
-    vim.keymap.set("n", "<S-Tab>", "<cmd>bprevious<cr>", { desc = "Previous buffer" })
     vim.keymap.set("n", "<leader>bd", "<cmd>bdelete<cr>", { desc = "Delete buffer" })
 
     -- 智慧 :q — 多 buffer 關 buffer、最後一個才退出、split 裡正常關 split

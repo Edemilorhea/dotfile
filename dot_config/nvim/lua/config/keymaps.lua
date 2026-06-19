@@ -19,10 +19,16 @@ if not vim.g.vscode then
     vim.api.nvim_create_user_command("EslintToggle", function()
         vim.g.eslint_enabled = not vim.g.eslint_enabled
         if vim.g.eslint_enabled then
-            vim.cmd("LspStart eslint")
+            vim.lsp.enable("eslint")
+            -- 對當前已開啟的 buffer 重新觸發附掛
+            vim.cmd("edit")
             vim.notify("ESLint 已啟用", vim.log.levels.INFO)
         else
-            vim.cmd("LspStop eslint")
+            vim.lsp.enable("eslint", false)
+            -- 立即停掉已附掛的 eslint client
+            for _, client in ipairs(vim.lsp.get_clients({ name = "eslint" })) do
+                vim.lsp.stop_client(client.id)
+            end
             vim.notify("ESLint 已停用", vim.log.levels.WARN)
         end
     end, { desc = "切換 ESLint LSP" })
