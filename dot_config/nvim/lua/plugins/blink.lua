@@ -30,15 +30,13 @@ return {
         -- 補全設定
         completion = {
             accept = {
+                -- 關閉 auto_brackets：避免對每個 C# 補全項做 semantic 解析判斷是否補括號
+                -- （C# 補全項目多，會拖慢選單）
                 auto_brackets = {
-                    enabled = true,
+                    enabled = false,
                 },
             },
-            menu = {
-                draw = {
-                    treesitter = { "lsp" },
-                },
-            },
+            -- 移除 draw.treesitter：不對每個補全項跑 treesitter 高亮，加快選單繪製
             documentation = {
                 auto_show = true,
                 auto_show_delay_ms = 200,

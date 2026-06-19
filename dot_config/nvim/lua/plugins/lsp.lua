@@ -12,8 +12,10 @@ return {
             opts.inlay_hints.enabled = false
             opts.codelens = opts.codelens or {}
             opts.codelens.enabled = false
+            -- 關閉 document_highlight：避免游標停留時對 Roslyn 發送 textDocument/documentHighlight
+            -- 請求（大型 solution 回應慢，是 C# 卡頓主因之一）
             opts.document_highlight = opts.document_highlight or {}
-            opts.document_highlight.enabled = true
+            opts.document_highlight.enabled = false
             -- LSP 折疊已停用，改用 treesitter 折疊（vim.treesitter.foldexpr），避免兩套 fold 同時重算
             opts.folds = opts.folds or {}
             opts.folds.enabled = false
