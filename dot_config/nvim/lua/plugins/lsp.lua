@@ -130,47 +130,6 @@ return {
                 },
             }
 
-            -- OmniSharp (C# LSP) 自訂設定
-            -- 改用 roslyn.nvim 為主,OmniSharp 不自動啟動,僅作手動 fallback (:LspStart omnisharp)
-            opts.servers.omnisharp = {
-                autostart = false,
-                handlers = {
-                    ["textDocument/definition"] = function(...)
-                        local ok, omnisharp_extended = pcall(require, "omnisharp_extended")
-                        if ok then
-                            return omnisharp_extended.definition_handler(...)
-                        end
-                        return vim.lsp.handlers["textDocument/definition"](...)
-                    end,
-                    ["textDocument/typeDefinition"] = function(...)
-                        local ok, omnisharp_extended = pcall(require, "omnisharp_extended")
-                        if ok then
-                            return omnisharp_extended.type_definition_handler(...)
-                        end
-                        return vim.lsp.handlers["textDocument/typeDefinition"](...)
-                    end,
-                    ["textDocument/references"] = function(...)
-                        local ok, omnisharp_extended = pcall(require, "omnisharp_extended")
-                        if ok then
-                            return omnisharp_extended.references_handler(...)
-                        end
-                        return vim.lsp.handlers["textDocument/references"](...)
-                    end,
-                    ["textDocument/implementation"] = function(...)
-                        local ok, omnisharp_extended = pcall(require, "omnisharp_extended")
-                        if ok then
-                            return omnisharp_extended.implementation_handler(...)
-                        end
-                        return vim.lsp.handlers["textDocument/implementation"](...)
-                    end,
-                },
-                settings = {
-                    FormattingOptions = { EnableEditorConfigSupport = true },
-                    RoslynExtensionsOptions = { EnableAnalyzersSupport = true },
-                    Sdk = { IncludePrereleases = true },
-                },
-            }
-
             -- Marksman (Markdown LSP) 自訂設定
             opts.servers.marksman = {
                 root_dir = function(fname)
@@ -227,15 +186,13 @@ return {
                 "tailwindcss",  -- Tailwind CSS LSP
                 "emmet_ls",
                 "eslint",       -- ESLint LSP (有 config 才自動啟動)
-                "omnisharp",
                 "pyright",
                 "marksman",
             },
-            -- omnisharp: 仍由 Mason 安裝/更新,但不自動啟動 (改用 roslyn.nvim;需要時 :LspStart omnisharp)
-            -- roslyn: 由 roslyn.nvim 接管啟動,排除以避免雙重啟動 (雙保險)
+            -- roslyn: 由 roslyn.nvim 接管啟動,排除以避免自動啟動衝突
             automatic_enable = {
-                exclude = vim.g.eslint_enabled and { "omnisharp", "roslyn" }
-                    or { "omnisharp", "roslyn", "eslint" },
+                exclude = vim.g.eslint_enabled and { "roslyn" }
+                    or { "roslyn", "eslint" },
             },
         },
     },

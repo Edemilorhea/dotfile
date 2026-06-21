@@ -38,13 +38,13 @@ opt.langmenu = "zh_TW.UTF-8"
 opt.termguicolors = true
 
 if not g.vscode then
-    opt.foldmethod = "expr"
-    opt.foldexpr = "v:lua.vim.treesitter.foldexpr()"
-    opt.foldtext = "v:lua.vim.treesitter.foldtext()"
-    opt.foldenable = true
+    -- fold 顯示改由 nvim-ufo 接管（見 lua/plugins/neovim-only.lua）。
+    -- 不再設 foldmethod="expr" / foldexpr / foldtext，避免與 ufo provider 衝突
+    -- 以及 treesitter foldtext 在 JSX/TSX 巢狀表達式回傳空字串的問題。
+    opt.foldcolumn = "1"
     opt.foldlevel = 99
     opt.foldlevelstart = 99
-    opt.foldcolumn = "1"
+    opt.foldenable = true
 end
 
 -- 延遲載入縮排設定以加速啟動

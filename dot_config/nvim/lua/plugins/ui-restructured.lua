@@ -3,11 +3,34 @@
 
 return {
   -- 主題設定 (只在 Neovim 中使用)
-  -- 優先使用 tokyonight (moon)，失敗則 fallback 到 catppuccin
+  -- 主題：rose-pine-moon (透明背景)；備用：tokyonight / catppuccin
   {
-    "folke/tokyonight.nvim",
+    "rose-pine/neovim",
+    name = "rose-pine",
     lazy = false,
     priority = 1000,
+    cond = not vim.g.vscode,
+    opts = {
+      variant = "moon",
+      dark_variant = "moon",
+      styles = {
+        italic = true,
+        transparency = true, -- 透明背景
+      },
+    },
+    config = function(_, opts)
+      require("rose-pine").setup(opts)
+      local ok = pcall(vim.cmd, "colorscheme rose-pine-moon")
+      if not ok then
+        vim.notify("rose-pine 載入失敗，切換至 tokyonight", vim.log.levels.WARN)
+        vim.cmd("colorscheme tokyonight-night")
+      end
+    end,
+  },
+  -- tokyonight 備用主題 (可用 :colorscheme tokyonight-night 切換)
+  {
+    "folke/tokyonight.nvim",
+    lazy = true,
     cond = not vim.g.vscode,
     opts = {
       style = "night",
@@ -22,11 +45,6 @@ return {
     },
     config = function(_, opts)
       require("tokyonight").setup(opts)
-      local ok = pcall(vim.cmd, "colorscheme tokyonight-night")
-      if not ok then
-        vim.notify("tokyonight 載入失敗，切換至 catppuccin", vim.log.levels.WARN)
-        vim.cmd("colorscheme catppuccin")
-      end
     end,
   },
   {

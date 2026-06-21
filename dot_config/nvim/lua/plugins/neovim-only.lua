@@ -1,15 +1,60 @@
 -- plugins/neovim-only.lua
 -- 只在 Neovim 中使用的插件
 return {
-    -- 程式碼折疊：已改用 LazyVim 15.x 原生 LSP 折疊
-    -- nvim-ufo 已停用，避免與原生功能衝突
-    -- 如需啟用 nvim-ufo，請在 lua/plugins/lsp.lua 中設定 folds.enabled = false
+    -- 程式碼折疊：使用 nvim-ufo（解決 treesitter foldtext 在 JSX/TSX 巢狀表達式
+    -- 回傳空字串、導致摺疊列整行空白的問題）。lsp.lua 已設 folds.enabled = false。
     {
         "kevinhwang91/nvim-ufo",
-        enabled = false, -- 停用，改用 LazyVim 原生 LSP 折疊
+        enabled = true,
         dependencies = { "kevinhwang91/promise-async" },
         event = "BufReadPost",
         cond = not vim.g.vscode,
+        init = function()
+            -- ufo 需要很高的 foldlevel，否則開檔會被全部摺疊
+            vim.o.foldcolumn = "1"
+            vim.o.foldlevel = 99
+            vim.o.foldlevelstart = 99
+            vim.o.foldenable = true
+        end,
+        config = function()
+            -- 摺疊列顯示：保留第一行內容 + 顯示折疊行數（取代空白問題）
+            local handler = function(virtText, lnum, endLnum, width, truncate)
+                local newVirtText = {}
+                local suffix = ("  󰁂 %d lines"):format(endLnum - lnum)
+                local sufWidth = vim.fn.strdisplaywidth(suffix)
+                local targetWidth = width - sufWidth
+                local curWidth = 0
+                for _, chunk in ipairs(virtText) do
+                    local chunkText = chunk[1]
+                    local chunkWidth = vim.fn.strdisplaywidth(chunkText)
+                    if targetWidth > curWidth + chunkWidth then
+                        table.insert(newVirtText, chunk)
+                    else
+                        chunkText = truncate(chunkText, targetWidth - curWidth)
+                        table.insert(newVirtText, { chunkText, chunk[2] })
+                        chunkWidth = vim.fn.strdisplaywidth(chunkText)
+                        if curWidth + chunkWidth < targetWidth then
+                            suffix = suffix .. (" "):rep(targetWidth - curWidth - chunkWidth)
+                        end
+                        break
+                    end
+                    curWidth = curWidth + chunkWidth
+                end
+                table.insert(newVirtText, { suffix, "MoreMsg" })
+                return newVirtText
+            end
+
+            require("ufo").setup({
+                fold_virt_text_handler = handler,
+                provider_selector = function()
+                    return { "treesitter", "indent" }
+                end,
+            })
+
+            -- ufo 強化版 zR / zM（跨整個 buffer 展開／摺疊）
+            vim.keymap.set("n", "zR", require("ufo").openAllFolds, { desc = "Open all folds" })
+            vim.keymap.set("n", "zM", require("ufo").closeAllFolds, { desc = "Close all folds" })
+        end,
     },
 
     -- Markdown 自動列表
