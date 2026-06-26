@@ -53,5 +53,6 @@
   "ts-comments.nvim": { "branch": "main", "commit": "123a9fb12e7229342f807ec9e6de478b1102b041" },
   "vim-floaterm": { "branch": "master", "commit": "bb4ba7952e906408e1f83b215f55ffe57efcade6" },
   "vim-visualrepeat": { "branch": "master", "commit": "93f6bb50e49b239fc8a69fee5bbac5dfdac8e9cf" },
-  "which-key.nvim": { "branch": "main", "commit": "3aab2147e74890957785941f0c1ad87d0a44c15a" }
+  "which-key.nvim": { "branch": "main", "commit": "3aab2147e74890957785941f0c1ad87d0a44c15a" },
+  "yanky.nvim": { "branch": "main", "commit": "020c22d0cfa60358569e49d1d7b91630f175aef0" }
 }

@@ -29,6 +29,9 @@ return {
             debounce = 150,
             max_file_size = 5.0,
 
+            -- 停用 latex 渲染 (未安裝 latex parser / utftex，避免健檢警告)
+            latex = { enabled = false },
+
             heading = {
                 enabled = true,
                 sign = true,
@@ -61,7 +64,9 @@ return {
                 position = "left",
                 language_pad = 2,
                 width = "full",
-                pad = 3,
+                -- v8.x: pad 已移除，改用 left_pad / right_pad
+                left_pad = 3,
+                right_pad = 3,
                 border = "thick",
                 above = "▀",
                 below = "▄",
@@ -109,7 +114,7 @@ return {
                 alignment_indicator = "━",
                 head = "RenderMarkdownTableHead",
                 row = "RenderMarkdownTableRow",
-                filler = "RenderMarkdownTableFill",
+                -- v8.12.0: filler 已移除，head/row 已涵蓋邊框/填充高亮
             },
 
             link = {

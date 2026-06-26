@@ -32,11 +32,9 @@ return {
                 },
             }
 
-            -- ESLint: 由開關 vim.g.eslint_enabled 控制 (預設關閉)
-            -- 用 \uE 或 :EslintToggle 即時切換;啟用後仍需專案有 ESLint config 才會附著。
-            opts.servers.eslint = {
-                enabled = vim.g.eslint_enabled,
-            }
+            -- ESLint: 設 enabled=false 讓 LazyVim 把它加進 mason automatic_enable exclude。
+            -- 實際的 root_dir gating 與啟用控制由 lua/plugins/eslint.lua 接管。
+            opts.servers.eslint = { enabled = false }
 
             -- 明確停用 ts_ls (使用 vtsls 取代)
             opts.servers.ts_ls = {
@@ -185,15 +183,13 @@ return {
                 "cssls",
                 "tailwindcss",  -- Tailwind CSS LSP
                 "emmet_ls",
-                "eslint",       -- ESLint LSP (有 config 才自動啟動)
+                "eslint",       -- ESLint LSP (安裝但不自動啟用,由 eslint.lua 控制)
                 "pyright",
                 "marksman",
             },
-            -- roslyn: 由 roslyn.nvim 接管啟動,排除以避免自動啟動衝突
-            automatic_enable = {
-                exclude = vim.g.eslint_enabled and { "roslyn" }
-                    or { "roslyn", "eslint" },
-            },
+            -- roslyn 由 roslyn.nvim 接管,排除避免衝突。
+            -- eslint 由 LazyVim 透過 opts.servers.eslint.enabled=false 自動加入 exclude。
+            automatic_enable = { exclude = { "roslyn" } },
         },
     },
 }

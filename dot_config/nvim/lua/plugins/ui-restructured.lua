@@ -193,6 +193,16 @@ return {
     cond = not vim.g.vscode,
     opts = function(_, opts)
       opts.explorer = opts.explorer or {}
+      -- 彩虹縮排:每層縮排線不同色
+      opts.indent = opts.indent or {}
+      opts.indent.indent = vim.tbl_deep_extend("force", opts.indent.indent or {}, {
+        char = "│",
+        hl = {
+          "SnacksIndent1", "SnacksIndent2", "SnacksIndent3",
+          "SnacksIndent4", "SnacksIndent5", "SnacksIndent6",
+        },
+      })
+      opts.indent.scope = vim.tbl_deep_extend("force", opts.indent.scope or {}, { char = "│" })
     end,
     keys = {
       {
@@ -232,6 +242,8 @@ return {
     opts = {
       options = {
         mode = "buffers",
+        numbers = "ordinal", -- tab 顯示視覺序號 1,2,3…（搭配 \1~\9 快跳）
+        sort_by = "insert_at_end", -- 新 buffer 加在最後、保留手動排序（同 VSCode 規則）
         diagnostics = "nvim_lsp",
         separator_style = "slant",
         show_buffer_close_icons = true,

@@ -25,8 +25,10 @@ if not vim.g.vscode then
             vim.notify("ESLint 已啟用", vim.log.levels.INFO)
         else
             vim.lsp.enable("eslint", false)
-            -- 立即停掉已附掛的 eslint client
+            -- 立即停掉已附掛的 eslint client,並清除其殘留診斷(含 pull diagnostics)
             for _, client in ipairs(vim.lsp.get_clients({ name = "eslint" })) do
+                vim.diagnostic.reset(vim.lsp.diagnostic.get_namespace(client.id, true))
+                vim.diagnostic.reset(vim.lsp.diagnostic.get_namespace(client.id, false))
                 vim.lsp.stop_client(client.id)
             end
             vim.notify("ESLint 已停用", vim.log.levels.WARN)

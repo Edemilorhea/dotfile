@@ -10,20 +10,16 @@ function M.setup()
     -- Buffer 管理
     vim.keymap.set("n", "<leader>bd", "<cmd>bdelete<cr>", { desc = "Delete buffer" })
 
-    -- 智慧 :q — 多 buffer 關 buffer、最後一個才退出、split 裡正常關 split
+    -- 智慧 :q — 統一以「關 buffer」為主，最後一個才退出
+    -- :q 永遠不碰 window，split 佈局由 Snacks 保留；關分割窗請用 \sx
     -- 只攔截單獨的 :q，不影響 :q! :wq :qa :qall 及巨集
     function _G.SmartQuit()
-        -- 在 split 裡 → 原生 quit，只關這個分割
-        if vim.fn.winnr("$") > 1 then
-            vim.cmd("quit")
-            return
-        end
         -- 計算 listed buffer 數量
         local listed = vim.tbl_filter(function(b)
             return vim.bo[b].buflisted and vim.api.nvim_buf_is_valid(b)
         end, vim.api.nvim_list_bufs())
         if #listed > 1 then
-            -- 多 buffer → 智慧關 buffer（Snacks 有未存檔提示）
+            -- 多 buffer → 關 buffer，保留 window 佈局（split 不會被拆）
             local ok = pcall(function() require("snacks").bufdelete() end)
             if not ok then vim.cmd("bdelete") end
         else

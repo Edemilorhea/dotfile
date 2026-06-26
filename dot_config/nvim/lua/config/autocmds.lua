@@ -83,3 +83,42 @@ if vim.fn.has("win32") == 1 or vim.fn.has("win64") == 1 then
         })
     end
 end
+
+-- Snacks indent 配色:彩虹縮排整體調暗(每層仍不同色)+ scope 線青色突出
+local function set_indent_hl()
+    local ok, p = pcall(require, "rose-pine.palette")
+    if not ok then
+        return
+    end
+    -- 把顏色往背景混,降低亮度/飽和 → 變低調
+    local function blend(c1, c2, t)
+        local function split(h)
+            h = h:gsub("#", "")
+            return tonumber(h:sub(1, 2), 16), tonumber(h:sub(3, 4), 16), tonumber(h:sub(5, 6), 16)
+        end
+        local r1, g1, b1 = split(c1)
+        local r2, g2, b2 = split(c2)
+        return string.format(
+            "#%02x%02x%02x",
+            math.floor(r1 + (r2 - r1) * t + 0.5),
+            math.floor(g1 + (g2 - g1) * t + 0.5),
+            math.floor(b1 + (b2 - b1) * t + 0.5)
+        )
+    end
+    local dim = function(c)
+        return blend(c, p.base, 0.45)
+    end
+    -- 非當前彩虹層:每層不同色但整體變暗、低調
+    vim.api.nvim_set_hl(0, "SnacksIndent1", { fg = dim(p.love) }) -- 玫紅
+    vim.api.nvim_set_hl(0, "SnacksIndent2", { fg = dim(p.gold) }) -- 金
+    vim.api.nvim_set_hl(0, "SnacksIndent3", { fg = dim(p.rose) }) -- 粉橘
+    vim.api.nvim_set_hl(0, "SnacksIndent4", { fg = dim(p.pine) }) -- 藍
+    vim.api.nvim_set_hl(0, "SnacksIndent5", { fg = dim(p.foam) }) -- 青
+    vim.api.nvim_set_hl(0, "SnacksIndent6", { fg = dim(p.iris) }) -- 紫
+    -- 當前 scope 線:亮青色加粗,最突出
+    vim.api.nvim_set_hl(0, "SnacksIndentScope", { fg = p.foam, bold = true })
+    vim.api.nvim_set_hl(0, "SnacksIndentChunk", { fg = p.foam, bold = true })
+end
+
+vim.api.nvim_create_autocmd("ColorScheme", { pattern = "rose-pine*", callback = set_indent_hl })
+set_indent_hl() -- 啟動時立即套用

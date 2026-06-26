@@ -74,19 +74,47 @@ function M.setup()
 
         -- 視窗導航：由 tmux-navigation 插件處理 (psmux/tmux 整合)
 
-        -- LazyVim 配置重載
-        local function reload_lazyvim()
-            local ok, reload = pcall(require, "lazy.core.reload")
-            if ok and reload and reload.reload then
-                reload.reload()
-                vim.cmd("source $MYVIMRC")
-                vim.cmd("doautocmd ColorScheme")
-                vim.notify("🔁 LazyVim 設定已重新載入", vim.log.levels.INFO)
+        -- 重新載入「無狀態」設定模組（options / autocmds / keymap）
+        -- ⚠️ plugin（bufferline 等）有狀態，無法熱重載，需完整重啟 Neovim
+        local function reload_config()
+            -- 要重載的模組：清快取 → 重新 require → 呼叫 setup（若有）
+            local modules = {
+                { name = "config.options", setup = false },
+                { name = "config.autocmds", setup = false },
+                { name = "keymap.general", setup = true },
+                { name = "keymap.hotKeyMaps", setup = true },
+                { name = "keymap.neovim", setup = true },
+            }
+
+            local failed = {}
+            for _, mod in ipairs(modules) do
+                package.loaded[mod.name] = nil -- 清快取，強制重讀檔
+                local ok, m = pcall(require, mod.name)
+                if ok then
+                    if mod.setup and type(m) == "table" and type(m.setup) == "function" then
+                        local sok = pcall(m.setup)
+                        if not sok then
+                            table.insert(failed, mod.name .. " (setup)")
+                        end
+                    end
+                else
+                    table.insert(failed, mod.name)
+                end
+            end
+
+            if #failed == 0 then
+                vim.notify(
+                    "🔁 設定已重載（options / autocmds / keymap）\n💡 plugin 變更請完整重啟 Neovim",
+                    vim.log.levels.INFO
+                )
             else
-                vim.notify("❌ LazyVim reload 失敗", vim.log.levels.ERROR)
+                vim.notify(
+                    "⚠️ 部分模組重載失敗：\n" .. table.concat(failed, "\n"),
+                    vim.log.levels.WARN
+                )
             end
         end
-        vim.keymap.set("n", "<leader>r", reload_lazyvim, { desc = "重新載入 LazyVim 設定" })
+        vim.keymap.set("n", "<leader>r", reload_config, { desc = "重新載入設定 (options/keymap)" })
     end
 end
 

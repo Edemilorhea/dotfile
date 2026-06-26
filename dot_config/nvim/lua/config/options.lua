@@ -10,6 +10,15 @@ vim.g.maplocalleader = "\\"
 -- ESLint LSP 開關 (預設關閉,用 \uE 或 :EslintToggle 即時切換)
 vim.g.eslint_enabled = false
 
+-- 啟動時即把 mason bin 加入 PATH，避免 mason 延遲載入時
+-- tree-sitter-cli 等工具在 :checkhealth（未開專案時 mason 未載入）找不到
+if not g.vscode then
+    local mason_bin = vim.fn.stdpath("data") .. "/mason/bin"
+    if vim.fn.isdirectory(mason_bin) == 1 and not string.find(vim.env.PATH or "", mason_bin, 1, true) then
+        vim.env.PATH = mason_bin .. (vim.fn.has("win32") == 1 and ";" or ":") .. vim.env.PATH
+    end
+end
+
 vim.g.markdown_fenced_languages = {
     "csharp=cs",
     "cs",

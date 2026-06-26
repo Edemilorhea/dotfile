@@ -90,28 +90,16 @@ return {
     },
 
     -- Treesitter 語法高亮和解析
-    -- LazyVim 15.x: 使用 LazyVim 原生的 treesitter 配置
-    -- 不需要自訂配置，LazyVim 會自動處理
+    -- LazyVim 15.x (main branch): 僅補充額外 parser，其餘交給 LazyVim 處理
+    -- 移除 event 覆寫 (LazyVim 已設 LazyFile/VeryLazy)，opts_extend 會自動合併此清單
     {
         "nvim-treesitter/nvim-treesitter",
-        event = { "BufReadPost", "BufNewFile" },
         opts = {
             ensure_installed = {
-                "lua",
-                "vim",
-                "vimdoc",
-                "query",
-                "html",
-                "javascript",
                 "vue",
-                "css",
-                "python",
                 "c_sharp",
-                "typescript",
                 "sql",
                 "mermaid",
-                "markdown",
-                "bash",
             },
         },
     },
