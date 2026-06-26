@@ -4,8 +4,7 @@
 Import-Module PSReadLine
 Import-Module PSFzf
 Import-Module -Name Terminal-Icons
-Set-PSReadLineOption -PredictionSource HistoryAndPlugin
-Set-PSReadLineOption -PredictionViewStyle ListView
+# 預測功能移至檔案後段，並加上互動式環境判斷 (避免 Neovim 等非互動呼叫時噴錯)
 # Terminal-Icons 智慧載入 (自動修復損壞的設定)
 #function Initialize-TerminalIcons {
 #    $configRoot = Join-Path ([Environment]::GetFolderPath('ApplicationData')) 'powershell\Community\Terminal-Icons'
@@ -45,7 +44,7 @@ oh-my-posh init pwsh --config "$env:POSH_THEMES_PATH\M365Princess.omp.json" | In
 # ================================
 # 🧩 WinGet 指令不存在提示
 # ================================
-Import-Module -Name Microsoft.WinGet.CommandNotFound
+# (已移除此處重複 Import；改由檔尾 PowerToys 官方區塊統一載入)
 
 # ================================
 # 🧠 Zoxide 智慧跳轉 (會自動處理 zi 與 fzf 的整合)
@@ -146,7 +145,7 @@ Set-Alias tlzh tldrzhtw
 Set-Alias tl tldr
 Set-Alias nav navi
 
-$env:WEZTERM_LOG = "debug"
+# $env:WEZTERM_LOG = "debug"  # 已停用 debug 日誌 (會拖慢 wezterm 並產生大量 log)
 $env:PATH += ";$env:USERPROFILE\.config"
 
 # ================================
@@ -179,9 +178,11 @@ function fcd {
 }
 
 
-# 預測選項
-Set-PSReadLineOption -PredictionSource HistoryAndPlugin  # 歷史記錄 + 插件
-Set-PSReadLineOption -PredictionViewStyle ListView       # 清單檢視
+# 預測選項 (僅在互動式且輸出未被重新導向時啟用，避免 Neovim/非互動呼叫噴錯)
+if ($Host.Name -eq 'ConsoleHost' -and -not [Console]::IsOutputRedirected) {
+    Set-PSReadLineOption -PredictionSource HistoryAndPlugin  # 歷史記錄 + 插件
+    Set-PSReadLineOption -PredictionViewStyle ListView       # 清單檢視
+}
 Set-PSReadLineOption -MaximumHistoryCount 10000         # 歷史記錄數量
 
 # 快捷鍵設定
