@@ -52,3 +52,57 @@ AppData/Roaming/nushell/history.txt
 .config/nushell/local.nu
 .config/nushell/local-env.nu
 .zshrc.local
+
+# Claude - runtime/cache/session/sensitive data
+.claude/.claude
+.claude/.credentials.json
+.claude/.last-cleanup
+.claude/cache/**
+.claude/chrome/**
+.claude/debug/**
+.claude/history.jsonl
+.claude/ide/**
+.claude/mcp-needs-auth-cache.json
+.claude/output-modes/**
+.claude/paste-cache/**
+.claude/projects/**
+.claude/session-env/**
+.claude/sessions/**
+.claude/stats-cache.json
+.claude/telemetry/**
+
+# Gemini - runtime/cache/session/sensitive data
+.gemini/.tmp/**
+.gemini/antigravity/**
+.gemini/antigravity-browser-profile/**
+.gemini/google_accounts.json
+.gemini/history/**
+.gemini/installation_id
+.gemini/mcp-oauth-tokens-v2.json
+.gemini/oauth_creds.json
+.gemini/projects.json
+.gemini/settings.json.orig
+.gemini/state.json
+.gemini/tmp/**
+.gemini/trustedFolders.json
+.gemini/user_id
+
+# psmux - runtime state and logs
+.psmux/*.key
+.psmux/*.port
+.psmux/*.sid
+.psmux/*.log
+.psmux/last_session
+.psmux/next_session_id
+.psmux/logs/**
+.psmux/resurrect/**
+
+# Backups / temporary / test-only files
+.config/psmux/backups/**
+.config/psmux/*.backup
+.config/psmux/*.bak*
+.config/zellij/*.bak
+.config/zellij/layouts/test-builtin.kdl
+.config/zellij/layouts/test-compact.kdl
+.config/zellij/layouts/test-simple.kdl
+.config/zellij/layouts/test-zjframes.kdl

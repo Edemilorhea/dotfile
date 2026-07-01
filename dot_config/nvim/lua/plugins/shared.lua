@@ -127,4 +127,29 @@ return {
         --     { "<C-_>", "gc", mode = "v", remap = true, desc = "註解選取範圍" },
         -- },
     },
+
+    -- Yanky 覆寫：Visual mode 貼上不污染 register
+    {
+        "gbprod/yanky.nvim",
+        keys = {
+            { "p", '"_dP', mode = "x", desc = "貼上且保留原剪貼簿" },
+        },
+    },
+
+    -- util.project 覆寫：移除 dashboard 重複的 Projects 按鈕
+    {
+        "folke/snacks.nvim",
+        optional = true,
+        opts = function(_, opts)
+            if opts.dashboard and opts.dashboard.preset and opts.dashboard.preset.keys then
+                -- 移除 util.project 插入的 "Projects (util.project)" 項目
+                for i, key in ipairs(opts.dashboard.preset.keys) do
+                    if type(key) == "table" and key.desc and key.desc:find("util%.project") then
+                        table.remove(opts.dashboard.preset.keys, i)
+                        break
+                    end
+                end
+            end
+        end,
+    },
 }

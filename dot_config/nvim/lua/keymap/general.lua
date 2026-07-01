@@ -72,7 +72,12 @@ function M.setup()
         vim.keymap.set('n', '<C-_>', 'gcc', { noremap = true, silent = true })
         vim.keymap.set('v', '<C-_>', 'gc',  { noremap = true, silent = true })
 
-        -- 視窗導航：由 tmux-navigation 插件處理 (psmux/tmux 整合)
+        -- 視窗導航：原生 Neovim window 切換（不依賴 tmux-navigation 插件）
+        -- <C-h> 需搭配 Alacritty 送出 \x1b[104;5u，避免終端機將 Ctrl+H 解讀為 Backspace
+        vim.keymap.set("n", "<C-h>", "<C-w>h", { desc = "切換左視窗" })
+        vim.keymap.set("n", "<C-j>", "<C-w>j", { desc = "切換下視窗" })
+        vim.keymap.set("n", "<C-k>", "<C-w>k", { desc = "切換上視窗" })
+        vim.keymap.set("n", "<C-l>", "<C-w>l", { desc = "切換右視窗" })
 
         -- 重新載入「無狀態」設定模組（options / autocmds / keymap）
         -- ⚠️ plugin（bufferline 等）有狀態，無法熱重載，需完整重啟 Neovim

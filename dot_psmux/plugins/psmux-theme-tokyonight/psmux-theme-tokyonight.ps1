@@ -71,7 +71,7 @@ $syncInd = if ($showSync -eq 'on') { "#{?pane_synchronized,#[fg=$($p.orange)]#[b
 $paneCount = if ($showPanes -eq 'on') { "#{?#{e|>:#{window_panes}#,1},#[fg=$($p.comment)]  #{window_panes},}" } else { '' }
 
 & $PSMUX set -g status on 2>&1 | Out-Null
-& $PSMUX set -g status-position bottom 2>&1 | Out-Null
+& $PSMUX set -g status-position (Get-Opt '@tokyonight-status-position' 'bottom') 2>&1 | Out-Null
 & $PSMUX set -g status-justify left 2>&1 | Out-Null
 & $PSMUX set -g status-interval 5 2>&1 | Out-Null
 & $PSMUX set -g status-style "bg=$($p.bg),fg=$($p.fg)" 2>&1 | Out-Null

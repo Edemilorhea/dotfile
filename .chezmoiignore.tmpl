@@ -149,3 +149,61 @@ chocolatey/**
 .DS_Store
 Thumbs.db
 desktop.ini
+
+# ------------------------------------------------------------
+# 10. AI 工具 runtime/cache/session/sensitive data
+# ------------------------------------------------------------
+# Claude - keep user-authored agents/commands/rules, ignore generated state
+.claude/.claude
+.claude/.credentials.json
+.claude/.last-cleanup
+.claude/cache/**
+.claude/chrome/**
+.claude/debug/**
+.claude/history.jsonl
+.claude/ide/**
+.claude/mcp-needs-auth-cache.json
+.claude/output-modes/**
+.claude/paste-cache/**
+.claude/projects/**
+.claude/session-env/**
+.claude/sessions/**
+.claude/stats-cache.json
+.claude/telemetry/**
+
+# Gemini - keep user-authored agents/commands/rules, ignore auth and state
+.gemini/.tmp/**
+.gemini/antigravity/**
+.gemini/antigravity-browser-profile/**
+.gemini/google_accounts.json
+.gemini/history/**
+.gemini/installation_id
+.gemini/mcp-oauth-tokens-v2.json
+.gemini/oauth_creds.json
+.gemini/projects.json
+.gemini/settings.json.orig
+.gemini/state.json
+.gemini/tmp/**
+.gemini/trustedFolders.json
+.gemini/user_id
+
+# ------------------------------------------------------------
+# 11. psmux runtime state and local backups
+# ------------------------------------------------------------
+.psmux/*.key
+.psmux/*.port
+.psmux/*.sid
+.psmux/*.log
+.psmux/last_session
+.psmux/next_session_id
+.psmux/logs/**
+.psmux/resurrect/**
+
+.config/psmux/backups/**
+.config/psmux/*.backup
+.config/psmux/*.bak*
+.config/zellij/*.bak
+.config/zellij/layouts/test-builtin.kdl
+.config/zellij/layouts/test-compact.kdl
+.config/zellij/layouts/test-simple.kdl
+.config/zellij/layouts/test-zjframes.kdl

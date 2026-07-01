@@ -63,6 +63,21 @@ function M.setup()
         vim.notify("Inlay Hints: " .. (not enabled and "ON" or "OFF"), vim.log.levels.INFO)
     end, { desc = "開關 Inlay Hints" })
 
+    -- 顯示當前工作目錄完整路徑
+    vim.keymap.set("n", "<leader>i.", function()
+        local root = LazyVim.root()
+        local cwd = vim.fn.getcwd()
+        if root == cwd then
+            vim.notify(" " .. root, vim.log.levels.INFO, { title = "工作目錄" })
+        else
+            vim.notify(
+                " Root: " .. root .. "\n CWD:  " .. cwd,
+                vim.log.levels.INFO,
+                { title = "工作目錄" }
+            )
+        end
+    end, { desc = "顯示工作目錄路徑" })
+
     -- 臨時顯示 Inlay Hints（按 <leader>ih 顯示 3 秒後自動關閉）
     vim.keymap.set("n", "<leader>ih", function()
         vim.lsp.inlay_hint.enable(true, { bufnr = 0 })
