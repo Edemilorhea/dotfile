@@ -15,11 +15,11 @@ function M.setup()
             desc = "Buffer 左移",
         })
 
-        -- 數字快跳：\1~\9 跳到 bufferline 上「畫面實際第 N 個」buffer
-        -- 用 go_to(i, false) → visible 視覺位置，pin 移到最前時也能正確對應
+        -- 數字快跳：\1~\9 跳到完整清單中「實際順序第 N 個」buffer
+        -- 用 go_to(i, true) → absolute 實際位置，不受畫面截斷/捲動影響
         for i = 1, 9 do
             vim.keymap.set("n", "<leader>" .. i, function()
-                require("bufferline").go_to(i, false)
+                require("bufferline").go_to(i, true)
             end, { desc = "跳到 Buffer " .. i })
         end
     end

@@ -26,9 +26,15 @@ return {
                 vim.cmd("colorscheme tokyonight-night")
             end
 
+            vim.api.nvim_set_hl(0, "@keyword.tsx", { fg = "#6C95EB" })
+            vim.api.nvim_set_hl(0, "@keyword.conditional.tsx", { fg = "#6C95EB" })
+            vim.api.nvim_set_hl(0, "@keyword.return.tsx", { fg = "#6C95EB" })
             vim.api.nvim_set_hl(0, "@function.call.tsx", { fg = "#39cc9b" })
             vim.api.nvim_set_hl(0, "@lsp.type.function.typescriptreact", { fg = "#39cc9b" })
             vim.api.nvim_set_hl(0, "@tag.attribute.tsx", { fg = "#6c95eb" })
+            vim.api.nvim_set_hl(0, "@tag.tsx", { fg = "#4EC9B0" })
+            vim.api.nvim_set_hl(0, "@tag.builtin.tsx", { fg = "#4EC9B0" })
+            vim.api.nvim_set_hl(0, "@comment", { fg = "#85ba59", italic = true })
         end,
     },
     -- tokyonight 備用主題 (可用 :colorscheme tokyonight-night 切換)

@@ -48,6 +48,10 @@ function M.setup()
     -- Visual 模式下貼上不覆蓋暫存器，保護黑洞寄存器
     vim.keymap.set("x", "p", '"zdP', { desc = "貼上且保留原剪貼簿" })
 
+    -- Mark 跳轉：互換 ' 和 ` 的功能，讓 'a 直接跳到 mark 的精確位置
+    vim.keymap.set({ "n", "v", "o" }, "'", "`", { desc = "跳到 mark 精確位置（與 ` 互換）" })
+    vim.keymap.set({ "n", "v", "o" }, "`", "'", { desc = "跳到 mark 行首非空白（與 ' 互換）" })
+
     -- 基本文字選取和移動（兩邊通用）
     vim.keymap.set("n", "H", "^", { desc = "移到行首非空白字元" })
     vim.keymap.set("n", "L", "$", { desc = "移到行尾" })

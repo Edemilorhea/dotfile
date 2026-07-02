@@ -104,6 +104,30 @@ return {
         },
     },
 
+    -- 彩虹括號：依照巢狀層級顯示不同顏色
+    -- 注意：html/jsx/tsx/vue 使用 rainbow-parens，只彩虹括號，不彩虹 tag 層級
+    {
+        "HiPhish/rainbow-delimiters.nvim",
+        event = "LazyFile",
+        cond = not vim.g.vscode,
+        config = function()
+            local rainbow_delimiters = require("rainbow-delimiters")
+
+            vim.g.rainbow_delimiters = {
+                strategy = {
+                    [""] = rainbow_delimiters.strategy["global"],
+                },
+                query = {
+                    [""] = "rainbow-delimiters", -- 其他語言：括號 + block
+                    html = "rainbow-parens", -- HTML：只有括號，tag 不變色
+                    jsx = "rainbow-parens",
+                    tsx = "rainbow-parens",
+                    vue = "rainbow-parens",
+                },
+            }
+        end,
+    },
+
     -- LazyGit 整合
     -- 注意：\lg 已移除，改用 floaterm \tg (tools.lua)
     -- LazyVim 內建的 \gg / \gG 也可使用
@@ -119,4 +143,3 @@ return {
         end,
     },
 }
-
