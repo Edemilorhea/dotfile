@@ -1,6 +1,0 @@
-{
-  "monorepo": "psmux/psmux-plugins",
-  "url": "https://github.com/psmux/psmux-plugins.git",
-  "name": "psmux-logging",
-  "org": "psmux-plugins"
-}
