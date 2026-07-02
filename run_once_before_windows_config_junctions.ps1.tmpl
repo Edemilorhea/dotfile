@@ -75,6 +75,7 @@ Ensure-Junction -Source "$env:USERPROFILE\.config\nvim" -Target "$env:LOCALAPPDA
 {{- end }}
 
 Ensure-Junction -Source "$env:USERPROFILE\.config\alacritty" -Target "$env:APPDATA\alacritty"
+Ensure-Junction -Source "$env:USERPROFILE\.config\nushell" -Target "$env:APPDATA\nushell"
 Ensure-Junction -Source "$env:USERPROFILE\.config\zellij" -Target "$env:APPDATA\zellij"
 Ensure-Junction -Source "$env:USERPROFILE\.config\tabby" -Target "$env:APPDATA\tabby"
 

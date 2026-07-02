@@ -6,7 +6,12 @@
 .config/opencode/README.md
 .config/opencode/opencode-notifier*.json
 .config/opencode/tui.json.newversion
-AppData/Roaming/nushell/history.txt
+
+# nushell - runtime 與生成檔 (junction 後實體在 .config/nushell)
+.config/nushell/history.*
+.config/nushell/vendor/**
+.config/nushell/oh-my-posh.nu
+.config/nushell/zoxide.nu
 
 # OpenAgentsControl - skills (OAC 提供，不需管理)
 .config/opencode/skills/browser-automation
