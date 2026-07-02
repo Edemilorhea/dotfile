@@ -1,0 +1,14 @@
+{{- if eq .chezmoi.os "windows" -}}
+$ErrorActionPreference = 'Stop'
+$ppmPath = "$env:USERPROFILE\.psmux\plugins\ppm"
+if (-not (Test-Path -LiteralPath $ppmPath)) {
+    Write-Host "[ppm] Installing psmux plugin manager..."
+    git clone --depth 1 https://github.com/psmux/psmux-plugins.git "$env:TEMP\psmux-plugins-bootstrap"
+    New-Item -ItemType Directory -Path "$env:USERPROFILE\.psmux\plugins" -Force | Out-Null
+    Copy-Item "$env:TEMP\psmux-plugins-bootstrap\ppm" $ppmPath -Recurse
+    Remove-Item "$env:TEMP\psmux-plugins-bootstrap" -Recurse -Force
+    Write-Host "[ppm] Done. 在 psmux 內按 Prefix+I 安裝 psmux.conf 宣告的插件"
+} else {
+    Write-Host "[ppm] Already installed, skipping."
+}
+{{- end -}}

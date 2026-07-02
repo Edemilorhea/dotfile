@@ -88,15 +88,8 @@ AppData/Roaming/nushell/history.txt
 .gemini/trustedFolders.json
 .gemini/user_id
 
-# psmux - runtime state and logs
-.psmux/*.key
-.psmux/*.port
-.psmux/*.sid
-.psmux/*.log
-.psmux/last_session
-.psmux/next_session_id
-.psmux/logs/**
-.psmux/resurrect/**
+# psmux - 插件與 runtime 全為執行產物 (ppm 管理插件、resurrect 存 session)，不進版控
+.psmux/**
 
 # Backups / temporary / test-only files
 .config/psmux/backups/**
