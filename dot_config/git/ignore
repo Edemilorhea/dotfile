@@ -1,0 +1,3 @@
+# 全域 gitignore (~/.config/git/ignore)
+# 防止 Claude Code 的本機權限設定被 commit 進任何專案
+**/.claude/settings.local.json
