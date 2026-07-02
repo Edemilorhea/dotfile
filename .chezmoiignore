@@ -51,6 +51,7 @@ AppData/Roaming/nushell/history.txt
 # 只忽略實際的 local 檔；.example 範本仍會進 repo 當範本。
 .config/nushell/local.nu
 .config/nushell/local-env.nu
+.config/git/config.local
 .zshrc.local
 
 # Claude - runtime/cache/session/sensitive data

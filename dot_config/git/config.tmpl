@@ -81,3 +81,12 @@
     lg = log --oneline --graph --decorate --all
     last = log -1 HEAD
     unstage = reset HEAD --
+
+# ============================================================
+# 本機覆寫層 (機器專屬設定，不進版控)
+# 身分 (user.name/email)、proxy、credential 等本機差異寫在
+# ~/.config/git/config.local，後讀覆蓋上面的共用設定。
+# 檔案不存在時 Git 會靜默跳過，不會報錯。
+# ============================================================
+[include]
+    path = config.local
