@@ -68,13 +68,9 @@ AppData/Roaming/Code/**
 # ------------------------------------------------------------
 # 5. 終端機配置
 # ------------------------------------------------------------
-# WezTerm 配置檔在 home 目錄 (跨平台通用)
-# .wezterm.lua 不需要忽略，但平台專用的 projects 檔案需要處理
-
-# Linux/macOS 專用 WezTerm 配置目錄
-{{- if eq .chezmoi.os "windows" }}
-.config/wezterm/**
-{{- end }}
+# WezTerm 配置已收斂至 .config/wezterm (跨平台通用，WezTerm 原生支援此路徑)
+# wezterm_local.lua 為本機專用配置，絕不同步 (.example 範本仍會進 repo)
+.config/wezterm/wezterm_local.lua
 
 # Tabby (主要在 Windows 使用)
 {{- if or (eq .chezmoi.os "linux") (eq .chezmoi.os "darwin") }}
