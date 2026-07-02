@@ -74,9 +74,6 @@ Write-Host '[Config Junction Setup] Starting Windows config junctions setup...'
 Ensure-Junction -Source "$env:USERPROFILE\.config\nvim" -Target "$env:LOCALAPPDATA\nvim"
 {{- end }}
 
-# psmux config symlink: ~/.psmux.conf -> ~/.config/psmux/psmux.conf
-Ensure-Symlink -Source "$env:USERPROFILE\.config\psmux\psmux.conf" -Target "$env:USERPROFILE\.psmux.conf"
-
 Ensure-Junction -Source "$env:USERPROFILE\.config\alacritty" -Target "$env:APPDATA\alacritty"
 Ensure-Junction -Source "$env:USERPROFILE\.config\zellij" -Target "$env:APPDATA\zellij"
 Ensure-Junction -Source "$env:USERPROFILE\.config\tabby" -Target "$env:APPDATA\tabby"

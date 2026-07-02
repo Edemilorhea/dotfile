@@ -72,6 +72,11 @@ AppData/Roaming/Code/**
 # wezterm_local.lua 為本機專用配置，絕不同步 (.example 範本仍會進 repo)
 .config/wezterm/wezterm_local.lua
 
+# psmux (Windows-only 工具，非 Windows 平台不需要 ~/.psmux.conf symlink)
+{{- if ne .chezmoi.os "windows" }}
+.psmux.conf
+{{- end }}
+
 # Tabby (主要在 Windows 使用)
 {{- if or (eq .chezmoi.os "linux") (eq .chezmoi.os "darwin") }}
 AppData/Roaming/tabby/**
