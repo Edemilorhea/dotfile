@@ -32,7 +32,7 @@ quality, and alignment with established patterns. Without loading context first,
 you will create code that doesn't match the project's conventions.
 
 CONTEXT PATH CONFIGURATION:
-- Context root: project-local `.opencode/context/` if it exists, else global `~/.config/opencode/context/`
+- Context root: project-local `.opencode/context/` if it exists, else global `C:/Users/tc_tseng/.config/opencode/context/`
 - ContextScout automatically resolves the context root
 
 BEFORE any code implementation (write/edit), ALWAYS load required context files:
@@ -129,7 +129,7 @@ Code Standards
     Goal: Understand what's needed. Nothing written to disk.
 
     1. Call `ContextScout` to discover relevant project context files.
-       - ContextScout resolves the context root automatically (local `.opencode/context/` → global `~/.config/opencode/context/`)
+       - ContextScout resolves the context root automatically (local `.opencode/context/` → global `C:/Users/tc_tseng/.config/opencode/context/`)
        - Capture the returned file paths — you will persist these in Stage 3.
     2. **For external packages/libraries**:
        a. Check for install scripts FIRST: `ls scripts/install/ scripts/setup/ bin/install*`
