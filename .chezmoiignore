@@ -24,13 +24,9 @@
 .config/opencode/context/development/**
 .config/opencode/context/ui/**
 
-# OpenAgentsControl - agent (保留你自己的)
-.config/opencode/agent/core/openagent.md
-.config/opencode/agent/core/opencoder.md
-.config/opencode/agent/subagents/code/**
-.config/opencode/agent/subagents/core/**
-.config/opencode/agent/subagents/development/**
-.config/opencode/agent/subagents/system-builder/**
+# OpenAgentsControl - agent
+# 已凍結上游更新 (2026-07)，全部由 chezmoi 接管
+# 不再跑 update.sh，修改安全
 
 # OpenAgentsControl - plugins / tool
 .config/opencode/plugins/**

@@ -1,5 +1,15 @@
 # 個人偏好設定
 
+## 🔑 CRITICAL: Path Resolution（路徑解析）
+
+**本機家目錄**: `~` = `C:/Users/tc_tseng`
+
+**強制規則**: opencode 的檔案工具（read/glob/grep/edit/write）**不會展開 `~` 符號**。
+任何 agent/command/context 檔案中出現 `~/` 開頭的路徑，呼叫工具前**必須**先將 `~` 替換為上述家目錄。
+
+範例: `~/.config/opencode/context/navigation.md`
+→ 工具呼叫時使用: `C:/Users/tc_tseng/.config/opencode/context/navigation.md`
+
 ## 📚 規則檔案組織
 
 本配置包含以下規則檔案 (透過 `opencode.json` 的 `instructions` 自動載入):

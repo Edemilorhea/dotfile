@@ -1,0 +1,21 @@
+{{- if ne .chezmoi.os "windows" -}}
+#!/bin/bash
+# 為機器專屬設定檔建立初始檔案（若尚未存在則從範本複製）
+# local.nu      - 別名 / 自訂函數（config.nu 階段載入）
+# local-env.nu  - 環境變數 / PATH（env.nu 階段載入）
+# run_once: 內容不變就只執行一次
+
+NU_CONFIG_DIR="$HOME/.config/nushell"
+
+for pair in "local.nu.example:local.nu" "local-env.nu.example:local-env.nu"; do
+  example="${pair%%:*}"
+  target="${pair##*:}"
+  example_path="$NU_CONFIG_DIR/$example"
+  target_path="$NU_CONFIG_DIR/$target"
+
+  if [ -f "$example_path" ] && [ ! -f "$target_path" ]; then
+    cp "$example_path" "$target_path"
+    echo "[Nushell Local Setup] Created: $target_path"
+  fi
+done
+{{- end -}}

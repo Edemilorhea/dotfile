@@ -1,0 +1,24 @@
+{{- if eq .chezmoi.os "windows" -}}
+$ErrorActionPreference = 'Stop'
+
+# 為機器專屬設定檔建立初始檔案（若尚未存在則從範本複製）
+# local.nu      - 別名 / 自訂函數（config.nu 階段載入）
+# local-env.nu  - 環境變數 / PATH（env.nu 階段載入）
+
+$nuConfigDir = "$env:USERPROFILE\.config\nushell"
+
+$files = @(
+    @{ Example = 'local.nu.example'; Target = 'local.nu' }
+    @{ Example = 'local-env.nu.example'; Target = 'local-env.nu' }
+)
+
+foreach ($f in $files) {
+    $examplePath = Join-Path $nuConfigDir $f.Example
+    $targetPath = Join-Path $nuConfigDir $f.Target
+
+    if ((Test-Path -LiteralPath $examplePath) -and -not (Test-Path -LiteralPath $targetPath)) {
+        Copy-Item -LiteralPath $examplePath -Destination $targetPath
+        Write-Host "[Nushell Local Setup] Created: $targetPath"
+    }
+}
+{{- end -}}
