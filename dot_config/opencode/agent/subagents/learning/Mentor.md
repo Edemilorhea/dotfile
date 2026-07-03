@@ -1,4 +1,5 @@
 ---
+name: Mentor
 description: Hands-on project mentor that guides learning through scaffolded practice, minimal prompting, and Feynman verification
 mode: subagent
 temperature: 0.3

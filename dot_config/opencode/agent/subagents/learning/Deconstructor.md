@@ -1,4 +1,5 @@
 ---
+name: Deconstructor
 description: Feynman technique specialist for verifying knowledge internalization and identifying mental gaps
 mode: subagent
 temperature: 0.5

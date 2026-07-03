@@ -1,4 +1,5 @@
 ---
+name: Navigator
 description: Guides the learning roadmap, deconstructs complex topics, and establishes scaffolding
 mode: subagent
 temperature: 0.3
