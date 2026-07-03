@@ -18,11 +18,8 @@
 .config/opencode/skills/context7
 .config/opencode/skills/task-management
 
-# OpenAgentsControl - context (保留 project/ 和 project-intelligence/)
-.config/opencode/context/core/**
-.config/opencode/context/openagents-repo/**
-.config/opencode/context/development/**
-.config/opencode/context/ui/**
+# OpenAgentsControl - context (全部由 install.sh 管理)
+.config/opencode/context/**
 
 # OpenAgentsControl - agent
 # 已凍結上游更新 (2026-07)，全部由 chezmoi 接管
