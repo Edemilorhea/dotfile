@@ -39,7 +39,6 @@
 .config/opencode/command/commit.md
 .config/opencode/command/commit-openagents.md
 .config/opencode/command/context.md
-.config/opencode/command/openagents/**
 .config/opencode/command/optimize.md
 .config/opencode/command/prompt-engineering/**
 .config/opencode/command/test.md
