@@ -110,22 +110,7 @@ WHY THIS MATTERS:
       <action>Analyze feature and create structured JSON plan</action>
       <prerequisites>Context loaded (Stage 0 complete)</prerequisites>
       <process>
-        1. Check for planning agent outputs (Enhanced Schema):
-           - **ArchitectureAnalyzer**: Load `.tmp/tasks/{feature}/contexts.json` if exists
-             - Extract `bounded_context` and `module` fields for task.json
-             - Map subtasks to appropriate bounded contexts
-           - **StoryMapper**: Load `.tmp/planning/{feature}/map.json` if exists
-             - Extract `vertical_slice` identifiers for subtasks
-             - Use story breakdown for subtask creation
-           - **PrioritizationEngine**: Load `.tmp/planning/prioritized.json` if exists
-             - Extract `rice_score`, `wsjf_score`, `release_slice` for task.json
-             - Use prioritization to order subtasks
-           - **ContractManager**: Load `.tmp/contracts/{context}/{service}/contract.json` if exists
-             - Extract `contracts` array for task.json and relevant subtasks
-             - Identify contract dependencies between subtasks
-           - **ADRManager**: Check `docs/adr/` for relevant ADRs
-             - Extract `related_adrs` array for task.json and subtasks
-             - Apply architectural constraints from ADRs
+        1. Check for planning agent outputs (Enhanced Schema) — see `<enhanced_schema_integration>` below for the full agent/file/field mapping. If any exist, extract their fields into the plan.
 
         2. Analyze the feature to identify:
            - Core objective and scope
@@ -419,78 +404,17 @@ Before any status update or file modification:
   </line_number_precision>
 
   <planning_agent_integration>
-    <architecture_analyzer>
-      <input_file>.tmp/tasks/{feature}/contexts.json</input_file>
-      <fields_extracted>
-        - bounded_context: DDD bounded context (e.g., "authentication", "billing")
-        - module: Module/package name (e.g., "@app/auth", "payment-service")
-      </fields_extracted>
-      <usage>
-        When ArchitectureAnalyzer output exists:
-        1. Load contexts.json
-        2. Extract bounded_context for task.json
-        3. Map subtasks to appropriate bounded contexts
-        4. Set module field for each subtask based on context mapping
-      </usage>
-    </architecture_analyzer>
+    Optional fields (`bounded_context`, `module`, `vertical_slice`, `contracts`, `related_adrs`, `rice_score`, `wsjf_score`, `release_slice`) can be populated from upstream planning-agent outputs, if present:
 
-    <story_mapper>
-      <input_file>.tmp/planning/{feature}/map.json</input_file>
-      <fields_extracted>
-        - vertical_slice: Feature slice identifier (e.g., "user-registration", "checkout-flow")
-      </fields_extracted>
-      <usage>
-        When StoryMapper output exists:
-        1. Load map.json
-        2. Extract vertical_slice identifiers
-        3. Map subtasks to appropriate slices
-        4. Use story breakdown to inform subtask creation
-      </usage>
-    </story_mapper>
+    | Agent | Input file | Fields |
+    |---|---|---|
+    | ArchitectureAnalyzer | `.tmp/tasks/{feature}/contexts.json` | `bounded_context`, `module` |
+    | StoryMapper | `.tmp/planning/{feature}/map.json` | `vertical_slice` |
+    | PrioritizationEngine | `.tmp/planning/prioritized.json` | `rice_score`, `wsjf_score`, `release_slice` |
+    | ContractManager | `.tmp/contracts/{context}/{service}/contract.json` | `contracts` |
+    | ADRManager | `docs/adr/{seq}-{title}.md` | `related_adrs` |
 
-    <prioritization_engine>
-      <input_file>.tmp/planning/prioritized.json</input_file>
-      <fields_extracted>
-        - rice_score: RICE prioritization (Reach, Impact, Confidence, Effort)
-        - wsjf_score: WSJF prioritization (Business Value, Time Criticality, Risk Reduction, Job Size)
-        - release_slice: Release identifier (e.g., "v1.2.0", "Q1-2026", "MVP")
-      </fields_extracted>
-      <usage>
-        When PrioritizationEngine output exists:
-        1. Load prioritized.json
-        2. Extract scores for task.json
-        3. Use release_slice to group related tasks
-        4. Order subtasks by priority scores
-      </usage>
-    </prioritization_engine>
-
-    <contract_manager>
-      <input_file>.tmp/contracts/{context}/{service}/contract.json</input_file>
-      <fields_extracted>
-        - contracts: Array of API/interface contracts (type, name, path, status, description)
-      </fields_extracted>
-      <usage>
-        When ContractManager output exists:
-        1. Load contract.json files for relevant bounded contexts
-        2. Extract contracts array for task.json
-        3. Map contracts to subtasks that implement or depend on them
-        4. Identify contract dependencies between subtasks
-      </usage>
-    </contract_manager>
-
-    <adr_manager>
-      <input_file>docs/adr/{seq}-{title}.md</input_file>
-      <fields_extracted>
-        - related_adrs: Array of ADR references (id, path, title, decision)
-      </fields_extracted>
-      <usage>
-        When relevant ADRs exist:
-        1. Search docs/adr/ for relevant architectural decisions
-        2. Extract related_adrs array for task.json
-        3. Map ADRs to subtasks that must follow those decisions
-        4. Include ADR constraints in acceptance criteria
-      </usage>
-    </adr_manager>
+    Check for these files before planning; if none exist, skip enhanced fields entirely — task creation proceeds normally. Full field-mapping details and fully-populated JSON examples: `{{ .chezmoi.homeDir | replace "\\" "/" }}/.config/opencode/docs/agent-references/task-manager-enhanced-schema.md`.
   </planning_agent_integration>
 
   <populating_enhanced_fields>
@@ -500,117 +424,6 @@ Before any status update or file modification:
     <step_4>Map fields to subtasks where relevant (e.g., bounded_context, contracts, related_adrs)</step_4>
     <step_5>Maintain backward compatibility: omit fields if planning agent outputs don't exist</step_5>
   </populating_enhanced_fields>
-
-  <example_enhanced_task>
-    ```json
-    {
-      "id": "user-authentication",
-      "name": "User Authentication System",
-      "status": "active",
-      "objective": "Implement JWT-based authentication with refresh tokens",
-      "context_files": [
-        {
-          "path": "{{ .chezmoi.homeDir | replace "\\" "/" }}/.config/opencode/context/core/standards/code-quality.md",
-          "lines": "53-95",
-          "reason": "Pure function patterns for auth service"
-        },
-        {
-          "path": "{{ .chezmoi.homeDir | replace "\\" "/" }}/.config/opencode/context/core/standards/security-patterns.md",
-          "lines": "120-145",
-          "reason": "JWT validation rules"
-        }
-      ],
-      "reference_files": ["src/middleware/auth.middleware.ts"],
-      "exit_criteria": ["All tests passing", "JWT tokens signed with RS256"],
-      "subtask_count": 5,
-      "completed_count": 0,
-      "created_at": "2026-02-14T10:00:00Z",
-      "bounded_context": "authentication",
-      "module": "@app/auth",
-      "vertical_slice": "user-login",
-      "contracts": [
-        {
-          "type": "api",
-          "name": "AuthAPI",
-          "path": "src/api/auth.contract.ts",
-          "status": "defined",
-          "description": "REST endpoints for login, logout, refresh"
-        }
-      ],
-      "related_adrs": [
-        {
-          "id": "ADR-003",
-          "path": "docs/adr/003-jwt-authentication.md",
-          "title": "Use JWT for stateless authentication"
-        }
-      ],
-      "rice_score": {
-        "reach": 10000,
-        "impact": 3,
-        "confidence": 90,
-        "effort": 4,
-        "score": 6750
-      },
-      "wsjf_score": {
-        "business_value": 9,
-        "time_criticality": 8,
-        "risk_reduction": 7,
-        "job_size": 4,
-        "score": 6
-      },
-      "release_slice": "v1.0.0"
-    }
-    ```
-  </example_enhanced_task>
-
-  <example_enhanced_subtask>
-    ```json
-    {
-      "id": "user-authentication-02",
-      "seq": "02",
-      "title": "Implement JWT service with token generation and validation",
-      "status": "pending",
-      "depends_on": ["01"],
-      "parallel": false,
-      "context_files": [
-        {
-          "path": "{{ .chezmoi.homeDir | replace "\\" "/" }}/.config/opencode/context/core/standards/code-quality.md",
-          "lines": "53-72",
-          "reason": "Pure function patterns"
-        },
-        {
-          "path": "{{ .chezmoi.homeDir | replace "\\" "/" }}/.config/opencode/context/core/standards/security-patterns.md",
-          "lines": "120-145",
-          "reason": "JWT signing and validation rules"
-        }
-      ],
-      "reference_files": ["src/config/jwt.config.ts"],
-      "suggested_agent": "CoderAgent",
-      "acceptance_criteria": [
-        "JWT tokens signed with RS256 algorithm",
-        "Access tokens expire in 15 minutes",
-        "Token validation includes signature and expiry checks"
-      ],
-      "deliverables": ["src/auth/jwt.service.ts", "src/auth/jwt.service.test.ts"],
-      "bounded_context": "authentication",
-      "module": "@app/auth",
-      "contracts": [
-        {
-          "type": "interface",
-          "name": "JWTService",
-          "path": "src/auth/jwt.service.ts",
-          "status": "implemented"
-        }
-      ],
-      "related_adrs": [
-        {
-          "id": "ADR-003",
-          "path": "docs/adr/003-jwt-authentication.md"
-        }
-      ]
-    }
-    ```
-  </example_enhanced_subtask>
 </enhanced_schema_integration>
 
 <cli_integration>
