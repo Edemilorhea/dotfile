@@ -42,6 +42,8 @@
 2. `bash install.sh developer --install-dir ~/.config/opencode` — 選 **Skip existing**，補齊 context 參考庫等
 3. **絕對不要跑 update.sh**（無腦覆蓋、無 merge 機制）
 
+**編輯/新增 agent 或 command 提示詞時**，套用 CodeStyle.md §3 的品質準則（尤其「重複邏輯」「死引用」「沒有實際收益的複雜度」）——prompt 檔案是治理 agent 行為的 config-as-code，同樣的壞味道判準適用。
+
 ## 語言設定
 
 - 強制使用繁體中文回答，除非使用者明確要求其他語言
