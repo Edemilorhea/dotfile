@@ -21,15 +21,12 @@
 # OpenAgentsControl - context (全部由 install.sh 管理)
 .config/opencode/context/**
 
-# OpenAgentsControl - agent/command (OAC 產物由 install.sh 管理)
-# selfmade/ 是自製的，由 chezmoi 管理（不在排除範圍）
-.config/opencode/agent/core/**
+# OpenAgentsControl - agent (OAC 產物由 install.sh 管理)
+# selfmade/ 和下方列出的核心 agent 由 chezmoi 管理
 .config/opencode/agent/content/**
 .config/opencode/agent/data/**
 .config/opencode/agent/meta/**
 .config/opencode/agent/eval-runner.md
-.config/opencode/agent/subagents/code/**
-.config/opencode/agent/subagents/core/**
 .config/opencode/agent/subagents/development/**
 .config/opencode/agent/subagents/system-builder/**
 .config/opencode/agent/subagents/planning/**
