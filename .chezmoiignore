@@ -21,9 +21,34 @@
 # OpenAgentsControl - context (全部由 install.sh 管理)
 .config/opencode/context/**
 
-# OpenAgentsControl - agent
-# 已凍結上游更新 (2026-07)，全部由 chezmoi 接管
-# 不再跑 update.sh，修改安全
+# OpenAgentsControl - agent/command (OAC 產物由 install.sh 管理)
+# selfmade/ 是自製的，由 chezmoi 管理（不在排除範圍）
+.config/opencode/agent/core/**
+.config/opencode/agent/content/**
+.config/opencode/agent/data/**
+.config/opencode/agent/meta/**
+.config/opencode/agent/eval-runner.md
+.config/opencode/agent/subagents/code/**
+.config/opencode/agent/subagents/core/**
+.config/opencode/agent/subagents/development/**
+.config/opencode/agent/subagents/system-builder/**
+.config/opencode/agent/subagents/planning/**
+.config/opencode/agent/subagents/test/**
+.config/opencode/agent/subagents/utils/**
+.config/opencode/command/add-context.md
+.config/opencode/command/analyze-patterns.md
+.config/opencode/command/build-context-system.md
+.config/opencode/command/clean.md
+.config/opencode/command/commit.md
+.config/opencode/command/commit-openagents.md
+.config/opencode/command/context.md
+.config/opencode/command/openagents/**
+.config/opencode/command/optimize.md
+.config/opencode/command/prompt-engineering/**
+.config/opencode/command/test.md
+.config/opencode/command/test-new-command.md
+.config/opencode/command/validate-repo.md
+.config/opencode/command/worktrees.md
 
 # OpenAgentsControl - plugins / tool
 .config/opencode/plugins/**
