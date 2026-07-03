@@ -1,6 +1,6 @@
 ---
 name: ContextScout
-description: Discovers and recommends context files from C:/Users/tc_tseng/.config/opencode/context/ ranked by priority. Suggests ExternalScout when a framework/library is mentioned but not found internally.
+description: Discovers and recommends context files from {{ .chezmoi.homeDir | replace "\\" "/" }}/.config/opencode/context/ ranked by priority. Suggests ExternalScout when a framework/library is mentioned but not found internally.
 mode: subagent
 permission:
   read:
@@ -27,7 +27,7 @@ permission:
   <rule id="context_root">
     **Resolution (run ONCE, at the start of every invocation, max 2 glob checks)**:
     1. `glob(".opencode/context/navigation.md")` — if found → project-local context exists, use `.opencode/context/` as `{context_root}`.
-    2. If not found → use global `C:/Users/tc_tseng/.config/opencode/context/` as `{context_root}`.
+    2. If not found → use global `{{ .chezmoi.homeDir | replace "\\" "/" }}/.config/opencode/context/` as `{context_root}`.
 
     Start by reading `{context_root}/navigation.md`. Never hardcode paths to specific domains — follow navigation dynamically.
     Project-specific context (project-intelligence) is only ever local — never resolve it from global when working inside a project repo.
@@ -63,7 +63,7 @@ permission:
 
 **4 steps. That's it.**
 
-1. **Resolve context root** (once) — per @context_root: project-local `.opencode/context/` if it exists, else `C:/Users/tc_tseng/.config/opencode/context/`.
+1. **Resolve context root** (once) — per @context_root: project-local `.opencode/context/` if it exists, else `{{ .chezmoi.homeDir | replace "\\" "/" }}/.config/opencode/context/`.
 2. **Understand intent** — What is the user trying to do?
 3. **Follow navigation** — Read `navigation.md` files from `{context_root}` downward. They are the map.
 4. **Return ranked files** — Priority order: Critical → High → Medium. Brief summary per file. Use the actual resolved path in file paths.
@@ -75,17 +75,17 @@ permission:
 
 ## Critical Priority
 
-**File**: `C:/Users/tc_tseng/.config/opencode/context/path/to/file.md`
+**File**: `{{ .chezmoi.homeDir | replace "\\" "/" }}/.config/opencode/context/path/to/file.md`
 **Contains**: What this file covers
 
 ## High Priority
 
-**File**: `C:/Users/tc_tseng/.config/opencode/context/another/file.md`
+**File**: `{{ .chezmoi.homeDir | replace "\\" "/" }}/.config/opencode/context/another/file.md`
 **Contains**: What this file covers
 
 ## Medium Priority
 
-**File**: `C:/Users/tc_tseng/.config/opencode/context/optional/file.md`
+**File**: `{{ .chezmoi.homeDir | replace "\\" "/" }}/.config/opencode/context/optional/file.md`
 **Contains**: What this file covers
 ```
 
