@@ -226,3 +226,15 @@ $env.PATH = ($env.PATH | split row (char esep) | prepend ($env.PNPM_HOME | path 
 if ($"($nu.home-dir)/.config/nushell/local-env.nu" | path exists) {
     source ~/.config/nushell/local-env.nu
 }
+
+# ================================
+# 確保 local.nu 存在（供 config.nu 靜態 source）
+# ================================
+# config.nu 以 parse-time 的 `source` 載入 local.nu，不能用 overlay use：
+# nushell 0.113 的 overlay 有 regression（issue #14213 復發），overlay 啟用後
+# Tab 補全的基準目錄會凍結在 nu 啟動時的目錄，cd 之後補全會失效。
+# source 要求檔案必須存在（否則 config.nu 整份 parse error），
+# 故在 env.nu 階段（config.nu parse 之前）自動補建空檔。
+if not ($"($nu.home-dir)/.config/nushell/local.nu" | path exists) {
+    touch $"($nu.home-dir)/.config/nushell/local.nu"
+}
