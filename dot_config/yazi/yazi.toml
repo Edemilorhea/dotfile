@@ -1,0 +1,28 @@
+[tasks]
+preload_workers = 10
+fetch_workers = 10
+
+[plugin]
+prepend_preloaders = [
+  { url = "*/node_modules/*", run = "noop" },
+  { url = "*/.git/*", run = "noop" },
+  { url = "*/dist/*", run = "noop" },
+  { url = "*/bin/*", run = "noop" },
+  { url = "*/obj/*", run = "noop" },
+]
+
+[opener]
+editor = [
+  { run = 'nvim %s', block = true, desc = "Neovim" },
+  { run = 'code %s', orphan = true, desc = "VS Code" },
+]
+open = [
+  { run = 'start "" %s1', orphan = true, desc = "Windows 預設" },
+]
+
+[open]
+prepend_rules = [
+  { mime = "text/*",          use = "editor" },
+  { mime = "image/*",         use = "open" },
+  { mime = "application/pdf", use = "open" },
+]
