@@ -1,11 +1,27 @@
 {{- if eq .chezmoi.os "windows" -}}
 $ErrorActionPreference = 'Stop'
 
-# 為機器專屬設定檔建立初始檔案（若尚未存在則從範本複製）
+# 為機器專屬設定檔建立初始檔案（機器專屬、不進 chezmoi repo，已在 .chezmoiignore 排除）
 # local.nu      - 別名 / 自訂函數（config.nu 階段載入）
 # local-env.nu  - 環境變數 / PATH（env.nu 階段載入）
+#
+# 為何一定要建立這兩個檔？
+#   env.nu / config.nu 以 parse-time 的 `source` 載入它們；parse-time source
+#   要求檔案在 nushell 解析前就存在，否則整份設定 parse error（無法啟動）。
+#   env.nu 內的 run-time `touch` 救不了自己的 parse-time source（雞生蛋），
+#   故必須由本腳本在 nushell 啟動前確保檔案存在。
+#
+# 為何用 .config\nushell（而非 AppData\Roaming\nushell）？
+#   junction: AppData\Roaming\nushell -> .config\nushell（同一實體目錄）。
+#   直接對 junction 的 target（.config\nushell）操作，不依賴 junction 是否已建立。
 
 $nuConfigDir = "$env:USERPROFILE\.config\nushell"
+
+# 確保目錄存在（junction 尚未建立、或首次 setup 順序在 junction 腳本之前時仍可運作）
+if (-not (Test-Path -LiteralPath $nuConfigDir)) {
+    New-Item -ItemType Directory -Path $nuConfigDir -Force | Out-Null
+    Write-Host "[Nushell Local Setup] Created dir: $nuConfigDir"
+}
 
 $files = @(
     @{ Example = 'local.nu.example'; Target = 'local.nu' }
@@ -16,9 +32,23 @@ foreach ($f in $files) {
     $examplePath = Join-Path $nuConfigDir $f.Example
     $targetPath = Join-Path $nuConfigDir $f.Target
 
-    if ((Test-Path -LiteralPath $examplePath) -and -not (Test-Path -LiteralPath $targetPath)) {
-        Copy-Item -LiteralPath $examplePath -Destination $targetPath
-        Write-Host "[Nushell Local Setup] Created: $targetPath"
+    if (Test-Path -LiteralPath $targetPath) {
+        continue
+    }
+
+    try {
+        if (Test-Path -LiteralPath $examplePath) {
+            Copy-Item -LiteralPath $examplePath -Destination $targetPath
+            Write-Host "[Nushell Local Setup] Created from example: $targetPath"
+        }
+        else {
+            # fallback：範本不存在時仍建立空檔，保證 parse-time source 必定成功
+            New-Item -ItemType File -Path $targetPath -Force | Out-Null
+            Write-Host "[Nushell Local Setup] Created empty: $targetPath"
+        }
+    }
+    catch {
+        Write-Warning "[Nushell Local Setup] Failed to create $targetPath : $_"
     }
 }
 {{- end -}}
