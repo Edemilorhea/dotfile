@@ -86,10 +86,12 @@ return {
         { "<leader>gd", desc = "Git diff hunks" },
         { "<leader>gD", desc = "Git diff origin" },
         { "<leader>gf", desc = "目前檔案 Git 歷史" },
+        { "<leader>gh", desc = "Diffview：目前檔案歷史" },
         { "<leader>gl", desc = "Git log" },
         { "<leader>gL", desc = "Git log（目前目錄）" },
         { "<leader>gs", desc = "Git 狀態" },
         { "<leader>gS", desc = "Git stash" },
+        { "<leader>gv", desc = "Diffview：對比目前變更" },
 
         -- ── Markdown（obsidian / preview / peek）──────
         { "<leader>mt", desc = "生成 Wiki 格式 TOC" },

@@ -236,6 +236,8 @@
 | `\gf` | Git Current File History     | `[LazyVim]`                                                   |
 | `\gd` | Git Diff (hunks)             | `[LazyVim]`                                                   |
 | `\gD` | Git Diff (origin)            | `[LazyVim]`                                                   |
+| `\gv` | Diffview：對比目前變更       | `[自訂]` `plugins/neovim-only.lua`                            |
+| `\gh` | Diffview：目前檔案歷史       | `[自訂]` `plugins/neovim-only.lua`                            |
 | `\gB` | Git Browse (open)            | `[LazyVim]`                                                   |
 | `\gY` | Git Browse (copy)            | `[LazyVim]`                                                   |
 | `\gi` | GitHub Issues (open)         | `[LazyVim]`                                                   |
