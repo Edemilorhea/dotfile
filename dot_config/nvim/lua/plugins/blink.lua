@@ -29,6 +29,9 @@ return {
         
         -- 補全設定
         completion = {
+            list = {
+                selection = { preselect = false, auto_insert = false },
+            },
             accept = {
                 -- 關閉 auto_brackets：避免對每個 C# 補全項做 semantic 解析判斷是否補括號
                 -- （C# 補全項目多，會拖慢選單）

@@ -79,5 +79,7 @@ Ensure-Junction -Source "$env:USERPROFILE\.config\nushell" -Target "$env:APPDATA
 Ensure-Junction -Source "$env:USERPROFILE\.config\zellij" -Target "$env:APPDATA\zellij"
 Ensure-Junction -Source "$env:USERPROFILE\.config\tabby" -Target "$env:APPDATA\tabby"
 
+Ensure-Symlink -Source "$env:USERPROFILE\.config\yazi\yazi.toml" -Target "$env:APPDATA\yazi\config\yazi.toml"
+
 Write-Host '[Config Junction Setup] Complete!'
 {{- end -}}

@@ -41,7 +41,7 @@ return {
         { "<leader>:", desc = "命令歷史" },
         { "<leader>`", desc = "切換上一個 Buffer" },
         { "<leader>?", desc = "顯示目前 Buffer 快捷鍵" },
-        { "<leader>r", desc = "重新載入 LazyVim 設定" },
+        { "<leader>rr", desc = "重啟 Neovim 並還原上次 Session" },
 
         -- ── Buffer 管理 ───────────────────────────────
         { "<leader>bb", desc = "切換上一個 Buffer" },

@@ -28,4 +28,15 @@ return {
             "hrsh7th/cmp-emoji",
         },
     },
+
+    -- Code Playground - 單檔程式碼快速執行 (僅支援 dotnet/typescript/python/go 等，無 JS/HTML/CSS/React/Vue)
+    {
+        "GustavEikaas/code-playground.nvim",
+        cmd = "Code",
+        opts = {
+            split_direction = "vsplit", -- split | vsplit
+            auto_change_cwd = false,
+            animation = "wave", -- wave | spinner
+        },
+    },
 }

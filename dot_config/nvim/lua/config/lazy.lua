@@ -28,6 +28,7 @@ require("lazy").setup({
         { import = "plugins.ui-restructured" }, -- UI 插件
         { import = "plugins.which-key" }, -- which-key 中文化覆寫
         { import = "plugins.markdown-enhanced" }, -- Markdown 生態系統
+        { import = "plugins.translator" }, -- 翻譯外掛 (vim-translator + pantran.nvim)
         -- { import = "plugins.csharp" }, -- C# roslyn.nvim + nvim-dap 除錯 (spec 檔不存在，已停用)
     },
     -- 停用 luarocks 探測 (無插件需要 luarocks，避免健檢 ❌ hererocks/lua 5.1 警告)

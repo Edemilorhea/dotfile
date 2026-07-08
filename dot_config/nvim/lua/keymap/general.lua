@@ -83,47 +83,44 @@ function M.setup()
         vim.keymap.set("n", "<C-k>", "<C-w>k", { desc = "切換上視窗" })
         vim.keymap.set("n", "<C-l>", "<C-w>l", { desc = "切換右視窗" })
 
-        -- 重新載入「無狀態」設定模組（options / autocmds / keymap）
-        -- ⚠️ plugin（bufferline 等）有狀態，無法熱重載，需完整重啟 Neovim
-        local function reload_config()
-            -- 要重載的模組：清快取 → 重新 require → 呼叫 setup（若有）
-            local modules = {
-                { name = "config.options", setup = false },
-                { name = "config.autocmds", setup = false },
-                { name = "keymap.general", setup = true },
-                { name = "keymap.hotKeyMaps", setup = true },
-                { name = "keymap.neovim", setup = true },
-            }
+        -- 完整重啟 Neovim 並自動還原上一個 Session
+        -- 用 <leader>rr（雙鍵）取代原本的 <leader>r，避免跟其他 <leader>r* 鍵誤觸
+        --
+        -- 為什麼要這樣繞：
+        -- LazyVim 的 LSP/Treesitter/gitsigns 是靠 LazyFile 事件（= BufReadPost/BufNewFile/
+        -- BufWritePre）延遲載入。session 還原時 source session 檔會開檔案並觸發 BufReadPost，
+        -- 進而載入這些 plugin 並 attach LSP。但這只有在「整個啟動流程完全跑完、所有 lazy
+        -- handler 就緒後」才會正確運作 —— 這正是 <leader>ql 手動還原時的時機。
+        -- 若在 VeryLazy callback 內同步還原（太早、又是巢狀 autocmd），BufReadPost 事件無法
+        -- 正確驅動 LazyFile → LSP 不會 attach。
+        -- 解法：寫 flag 檔 → plain :restart → 新 process 在 VimEnter 後用 vim.schedule
+        --       把還原排到啟動流程的最尾端，模擬手動按 <leader>ql 的時機。
+        local restart_flag = vim.fn.stdpath("state") .. "/restart_session_pending"
+        vim.keymap.set("n", "<leader>rr", function()
+            local f = io.open(restart_flag, "w")
+            if f then
+                f:close()
+            end
+            vim.cmd("restart")
+        end, { desc = "重啟 Neovim 並還原上次 Session" })
 
-            local failed = {}
-            for _, mod in ipairs(modules) do
-                package.loaded[mod.name] = nil -- 清快取，強制重讀檔
-                local ok, m = pcall(require, mod.name)
-                if ok then
-                    if mod.setup and type(m) == "table" and type(m.setup) == "function" then
-                        local sok = pcall(m.setup)
-                        if not sok then
-                            table.insert(failed, mod.name .. " (setup)")
+        -- 新 process 啟動：若偵測到 restart flag，於 VimEnter 之後 defer 還原 session。
+        -- 用 nested + vim.schedule 確保排在所有啟動 autocmd（含 LazyFile handler 註冊）之後。
+        if vim.uv.fs_stat(restart_flag) then
+            os.remove(restart_flag)
+            vim.api.nvim_create_autocmd("VimEnter", {
+                once = true,
+                nested = true, -- 允許 source session 時開檔案觸發的 BufReadPost 再驅動其他 autocmd
+                callback = function()
+                    vim.schedule(function()
+                        local ok, persistence = pcall(require, "persistence")
+                        if ok then
+                            persistence.load({ last = true })
                         end
-                    end
-                else
-                    table.insert(failed, mod.name)
-                end
-            end
-
-            if #failed == 0 then
-                vim.notify(
-                    "🔁 設定已重載（options / autocmds / keymap）\n💡 plugin 變更請完整重啟 Neovim",
-                    vim.log.levels.INFO
-                )
-            else
-                vim.notify(
-                    "⚠️ 部分模組重載失敗：\n" .. table.concat(failed, "\n"),
-                    vim.log.levels.WARN
-                )
-            end
+                    end)
+                end,
+            })
         end
-        vim.keymap.set("n", "<leader>r", reload_config, { desc = "重新載入設定 (options/keymap)" })
     end
 end
 
