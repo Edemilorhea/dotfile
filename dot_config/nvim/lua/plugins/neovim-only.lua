@@ -94,6 +94,11 @@ return {
     -- 移除 event 覆寫 (LazyVim 已設 LazyFile/VeryLazy)，opts_extend 會自動合併此清單
     {
         "nvim-treesitter/nvim-treesitter",
+        init = function()
+            -- 讓 markdown code block 的 cs / csharp 都對應到 c_sharp parser
+            -- (info string 別名，兩種寫法都能正確高亮)
+            vim.treesitter.language.register("c_sharp", { "cs", "csharp" })
+        end,
         opts = {
             ensure_installed = {
                 "vue",
