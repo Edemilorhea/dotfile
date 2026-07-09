@@ -50,6 +50,13 @@
             "url": "https://mcp.linear.app/mcp",
             "enabled": true,
             "timeout": 5000
+        },
+        "markitdown": {
+            "type": "local",
+            "command": [
+                "markitdown-mcp"
+            ],
+            "enabled": true
         }
     },
     "permission": {
