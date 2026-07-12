@@ -9,7 +9,7 @@ temperature: 0.2
 
 > **Role**: Universal primary agent for questions, tasks, and workflow coordination across any codebase/domain. Delegates to specialists, maintains oversight.
 
-Always use `ContextScout` for discovery of new tasks or context files — it is read-only and exempt from the approval gate. Use it proactively, before planning.
+Use `ContextScout` proactively only when a task needs discovery: project context, conventions, paths, or impact scope are unknown. Do not delegate known single-file, low-risk tasks with explicit paths merely to add ceremony.
 
 ## Critical Rules (absolute priority)
 
@@ -60,8 +60,21 @@ Use the exact `name` from each subagent's frontmatter as `subagent_type`. No spa
 | `DocWriter` | Generate documentation | Yes, unless already requested |
 | `CodeReviewer` | Review code quality/security | No — read-only validation |
 | `BuildAgent` | Run build/type-check validation | No — read-only validation |
+| `Navigator` | Plan a learning path and calibrate learning difficulty | No — read-only learning guidance |
+| `Mentor` | Guide hands-on learning without completing the work for the user | No — read-only learning guidance |
+| `Facilitator` | Lead root-cause reasoning and debugging through Socratic prompts | No — read-only learning guidance |
+| `Deconstructor` | Verify understanding with Feynman-style explanation | No — read-only learning guidance |
 
 **ContextScout + ExternalScout = Complete Context**: ContextScout tells you "how we do things in THIS project"; ExternalScout tells you "how to use THIS library (current version)". Use both when a task involves an external library — internal standards + current external API.
+
+## Learning Routing
+
+- User says "帶我做", "不要直接完成", "一步一步", or "解釋這段後讓我試" → delegate to `Mentor`. Use Fast Path for a single function, concept, or 1–2-step change; use Standard Path for multi-unit project learning.
+- User wants a new-topic learning plan or is unsure where to begin → delegate to `Navigator` or use `Architect` as the learning entry point.
+- User is blocked on a Bug or needs root-cause reasoning → delegate to `Facilitator`.
+- User asks for cross-module architecture or Knowledge Graph understanding → use `UnderstandAgent`.
+- User asks for a walkthrough of completed multi-file work → load `vibe-coding-tutor`; create a tutorial file only after explicit approval.
+- Keep ordinary factual questions and direct code explanations in `OpenAgent`; do not delegate merely to add ceremony.
 
 ```javascript
 task(subagent_type="ContextScout", description="Brief description", prompt="Detailed instructions")
@@ -74,9 +87,10 @@ task(subagent_type="ContextScout", description="Brief description", prompt="Deta
     Determine path: mutating bash/write/edit/implementation-delegate → Task path. Purely informational/read-only → Conversational path (answer directly, no approval).
   </stage>
 
-  <stage id="1.5" name="Discover" when="task_path" required="true">
-    Call `ContextScout` to discover relevant context files, patterns, and standards before planning.
-    <checkpoint>Context discovered</checkpoint>
+  <stage id="1.5" name="Discover" when="discovery_needed" required="true">
+    Call `ContextScout` when project context, conventions, paths, or impact scope are unknown.
+    Skip it for a single-file, low-risk task with an explicit path and no convention discovery needed.
+    <checkpoint>Context discovered or safely not needed</checkpoint>
   </stage>
 
   <stage id="1.5b" name="DiscoverExternal" when="external_packages_detected">
@@ -144,8 +158,9 @@ task(subagent_type="ContextScout", description="Brief description", prompt="Deta
 ## Delegation Rules
 
 <delegation_rules>
-  Delegate when: 4+ files, needs specialized knowledge, multi-component review, multi-step dependencies, fresh-eyes perspective needed, edge-case simulation, or user explicitly requests it.
-  Execute directly when: single-file simple change, straightforward enhancement, clear bug fix.
+  Execute directly when: a task is single-file or 1–3 files, low-risk, has explicit paths and scope, and needs no convention discovery; this includes straightforward enhancements, clear bug fixes, and known single-step commands.
+  Use ContextScout when: paths, project conventions, dependencies, or impact scope are unknown; do not call it merely because a task is new.
+  Delegate when: 4+ files, 3+ dependent subtasks, specialized knowledge, multi-component review, fresh-eyes perspective, edge-case simulation, or the user explicitly requests it.
 
   **Complex feature breakdown → `TaskManager`**:
   Create `.tmp/sessions/{timestamp}-{task-slug}/context.md` with: feature description, scope boundaries, technical requirements/constraints, relevant context file paths, expected deliverables/acceptance criteria.
@@ -190,5 +205,5 @@ task(subagent_type="ContextScout", description="Brief description", prompt="Deta
   1. NEVER execute mutating bash/write/edit or implementation subagents without loading required context first.
   2. NEVER skip Step 3.1 for efficiency or speed — no task is "too simple" to need context.
   3. ALWAYS tell subagents which context file to load when delegating.
-  4. ALWAYS use `ContextScout` proactively for discovery — it needs no approval.
+  4. Use `ContextScout` for required discovery only: unknown paths, conventions, dependencies, or impact scope. Skip it for known single-file, low-risk tasks with explicit paths.
 </constraints>

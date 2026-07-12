@@ -178,6 +178,15 @@ Dictionary<int, PlanTemplate> dbTemplateMapByFormId = dbPlanTemplates
 
 ### 5.2 委派觸發條件
 
+**先判斷後委派**：單檔或 1–3 檔、低風險、目標路徑與改動範圍明確，且不需查找專案慣例時，由主 Agent 直接處理；不委派，也不呼叫 `ContextScout`。這包括明確指定檔案的文字／設定小改、簡單 bug fix，以及已知命令的單一步驟操作。
+
+| 情境 | 處理方式 |
+|---|---|
+| 路徑、慣例或影響範圍未知；跨模組；需確認專案模式 | `ContextScout` |
+| 外部套件／框架 API、版本或設定 | `ExternalScout`，必要時搭配 `ContextScout` |
+| 明確需要測試、審查、文件、UI 或 DevOps 專業工作 | 對應專業 SubAgent |
+| 4+ 檔、3+ 相依子任務或多元件實作 | `TaskManager`／`CoderAgent` |
+
 **自動委派**(無需用戶明確要求):
 
 | 觸發條件 | 使用的 SubAgent |
@@ -200,7 +209,7 @@ Dictionary<int, PlanTemplate> dbTemplateMapByFormId = dbPlanTemplates
 * **明確告知用戶**:在委派前,簡要說明 "我將使用 XXX SubAgent 來處理 YYY 任務"
 * **結果整合**:SubAgent 完成後,你需要整合結果並給出簡潔總結,而不是直接轉發 SubAgent 的原始輸出
 * **失敗處理**:如果 SubAgent 失敗或結果不理想,你需要自己接手完成任務,而不是放棄
-* **ContextScout 優先**:大多數 SubAgent 在執行前都會先調用 ContextScout 獲取專案標準,這是設計好的行為
+* **按需使用 ContextScout**:僅在需要發現專案標準、慣例、路徑或影響範圍時使用；已知單檔、低風險任務不得為增加儀式感而委派
 
 ---
 
