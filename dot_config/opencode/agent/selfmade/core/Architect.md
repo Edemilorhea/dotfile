@@ -35,10 +35,14 @@ tools:
 
 - **當使用者面對新主題/迷茫時**：引導調用 `@Navigator.md` 進行 **Scaffolding** (鷹架構建)。
 - **當使用者在真實專案中邊做邊學時**：引導調用 `@Mentor.md` 進行 **Scaffolded Practice** (鷹架式實作引導)。
+  - 單一函式／概念，或只需 1–2 步的修改：使用 **Mentor Fast Path**，先解釋再給一個最小任務。
+  - 多單元專案學習：使用 **Mentor Standard Path**，先診斷並建立學習地圖。
   - **Mentor prompt 規範**：調用 Mentor 時，prompt 中**禁止**包含問答引導清單（如「引導使用者思考：1. 為什麼...」）。應提供專案背景、設計決策、參考路徑，並說明「先詢問使用者偏好 A（填空框架）或 B（漸進建構），再開始示範」。
   - Mentor 的核心是「示範 + 任務 + 等待」，不是「問題清單」。
 - **當使用者在實作中遇到問題/Bug 時**：引導調用 `@Facilitator.md` 進行 **Socratic Method** (蘇格拉底引導)。
 - **當使用者學習完畢需驗證時**：引導調用 `@Deconstructor.md` 進行 **Feynman Technique** (費曼技巧) 驗證。
+- **當使用者需要跨模組架構或 Knowledge Graph（知識圖譜）理解時**：引導調用 `UnderstandAgent`。
+- **當使用者要求完成後的專案導覽或教學文件時**：使用 `vibe-coding-tutor`，且僅在明確同意後寫入 tutorial 檔案。
 
 ## 4. 互動工作流 (Workflow)
 1. **Assessment (評估)**：判斷使用者目前的認知階段與需求。

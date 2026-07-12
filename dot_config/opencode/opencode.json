@@ -12,7 +12,7 @@
         "@franlol/opencode-md-table-formatter@latest",
         "@mohak34/opencode-notifier@latest",
         // "@different-ai/opencode-browser",
-        "@tarquinen/opencode-dcp",
+        "@tarquinen/opencode-dcp@3.1.14",
         "opencode-large-image-optimizer@latest",
         "opencode-chrome-devtools",
         "opencode-openai-codex-auth",
@@ -209,6 +209,7 @@
                 "external_directory": "ask",
                 "doom_loop": "allow",
                 "bash": {
+                    "*": "ask",
                     "Get-ChildItem": "allow",
                     "Get-ChildItem *": "allow",
                     "Get-Content": "allow",
@@ -448,8 +449,7 @@
                     "poweroff*": "deny",
                     "kill -9 *": "deny",
                     "killall *": "deny",
-                    "pkill *": "deny",
-                    "*": "ask"
+                    "pkill *": "deny"
                 },
                 "powershell": {
                     "Get-*": "allow",
