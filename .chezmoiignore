@@ -7,7 +7,9 @@
 .config/opencode/tui.json.newversion
 
 # nushell - runtime 與生成檔 (junction 後實體在 .config/nushell)
+.config/nushell/.tmp/**
 .config/nushell/history.*
+.config/nushell/ok/**
 .config/nushell/vendor/**
 .config/nushell/oh-my-posh.nu
 .config/nushell/zoxide.nu
