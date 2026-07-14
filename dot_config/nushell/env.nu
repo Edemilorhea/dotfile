@@ -4,6 +4,14 @@
 # 這個檔案專門設定環境變數與 PATH，在 config.nu 之前執行。
 # 適合放：$env.XXX 設定、PATH 擴充、外部工具橋接（keychain、nix 等）
 
+# 啟動診斷：只在啟動前設定 NU_STARTUP_DEBUG=1 時記錄。
+# 此標記可區分卡住發生在 env.nu、config.nu，或首次 prompt 之前。
+if (($env.NU_STARTUP_DEBUG? | default "0") == "1") {
+    let startup_log = ($nu.home-dir | path join "nu-startup-debug.log")
+    let timestamp = (date now | format date "%Y-%m-%dT%H:%M:%S%.3f%z")
+    $"[ENV_ENTER] ($timestamp)\n" | save --append $startup_log
+}
+
 # ================================
 # 基本環境變數
 # ================================

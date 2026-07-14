@@ -1,10 +1,9 @@
 .config/opencode/node_modules/**
-.config/opencode/bun.lock
+.config/opencode/.opencode/node_modules/**
+.config/opencode/.tmp/**
+.config/opencode/vendor/**
 .config/opencode/antigravity-accounts.json
-.config/opencode/package.json
-.config/opencode/package-lock.json
-.config/opencode/README.md
-.config/opencode/opencode-notifier*.json
+.config/opencode/opencode-notifier-state.json
 .config/opencode/tui.json.newversion
 
 # nushell - runtime 與生成檔 (junction 後實體在 .config/nushell)
@@ -13,42 +12,9 @@
 .config/nushell/oh-my-posh.nu
 .config/nushell/zoxide.nu
 
-# OpenAgentsControl - skills (OAC 提供，不需管理)
-.config/opencode/skills/browser-automation
-.config/opencode/skills/context7
-.config/opencode/skills/task-management
-
-# OpenAgentsControl - context (全部由 install.sh 管理)
-.config/opencode/context/**
-
-# OpenAgentsControl - agent (OAC 產物由 install.sh 管理)
-# selfmade/ 和下方列出的核心 agent 由 chezmoi 管理
-.config/opencode/agent/content/**
-.config/opencode/agent/data/**
-.config/opencode/agent/meta/**
-.config/opencode/agent/eval-runner.md
-.config/opencode/agent/subagents/development/**
-.config/opencode/agent/subagents/system-builder/**
-.config/opencode/agent/subagents/planning/**
-.config/opencode/agent/subagents/test/**
-.config/opencode/agent/subagents/utils/**
-.config/opencode/command/add-context.md
-.config/opencode/command/analyze-patterns.md
-.config/opencode/command/build-context-system.md
-.config/opencode/command/clean.md
-.config/opencode/command/commit.md
-.config/opencode/command/commit-openagents.md
-.config/opencode/command/context.md
-.config/opencode/command/optimize.md
-.config/opencode/command/prompt-engineering/**
-.config/opencode/command/test.md
-.config/opencode/command/test-new-command.md
-.config/opencode/command/validate-repo.md
-.config/opencode/command/worktrees.md
-
-# OpenAgentsControl - plugins / tool
-.config/opencode/plugins/**
-.config/opencode/tool/**
+# OpenCode runtime state and embedded dependency trees
+.config/opencode/plugins/**/.git/**
+.config/opencode/plugins/**/node_modules/**
 
 # OpenCode - 備份檔與測試設定
 .config/opencode/*.bak

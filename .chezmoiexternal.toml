@@ -1,0 +1,11 @@
+# Fixed, review-only OAC vendor candidate. This never writes into active
+# OpenCode paths; promotion into dot_config/opencode requires a separate,
+# hash-reviewed migration step.
+[".config/opencode/vendor/openagentscontrol"]
+type = "archive"
+url = "https://github.com/darrenhinde/OpenAgentsControl/archive/ef3836efd659e451b6dbb8eee7d3213ba39f5aec.tar.gz"
+stripComponents = 1
+exact = true
+
+[".config/opencode/vendor/openagentscontrol".checksum]
+sha256 = "5228974504b810f90ae22e8d4d7b2f970bb007dec855dcd04b1cf8ea93818a6e"

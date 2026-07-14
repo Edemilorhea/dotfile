@@ -4,9 +4,8 @@
 # 這個檔案設定 nushell 的行為、外觀、快捷鍵、自訂函數等。
 # 環境變數請放 env.nu，這裡專注在 shell 行為設定。
 
-# 日誌等級（TRACE / DEBUG / INFO / WARN / ERROR）
-# 開發設定時可設 TRACE 看詳細載入資訊，平常可移除或設 WARN
-$env.NU_LOG_LEVEL = "TRACE"
+# Nushell 內部診斷日誌請以 CLI 啟用，確保可在設定載入失敗前寫入檔案：
+# nu -i --log-level trace --log-target file --log-file ~/nu-internal-trace.log
 
 # ================================
 # Prompt（命令提示符）
@@ -123,6 +122,111 @@ def myhelp [] {
 # tldrzhtw：tldr 繁體中文版
 def tldrzhtw [cmd: string] {
     tldr -L zh_TW $cmd
+}
+
+# ================================
+# 可信專案指令（project / p）
+# ================================
+# 信任名單只保存 canonical 專案根目錄；專案命令在子行程執行，
+# 不使用 overlay，避免 Nushell 0.113 的 Tab 補全 regression。
+# 專案根目錄需包含 .nu/project.nu，並以 `def main` 作為入口。
+def __project-trust-file [] {
+    $nu.home-dir | path join ".config" "nushell" "trusted-projects.nuon"
+}
+
+def __project-trusted-roots [] {
+    let trust_file = (__project-trust-file)
+    if not ($trust_file | path exists) { return [] }
+
+    try {
+        open $trust_file | where { |root| $root | describe | str starts-with "string" }
+    } catch {
+        print $"⚠️ 無法讀取可信專案清單：($trust_file)"
+        []
+    }
+}
+
+def __project-root [directory: string] {
+    let current = try { $directory | path expand --strict } catch { return null }
+
+    __project-trusted-roots
+    | each { |root|
+        let canonical_root = try { $root | path expand --strict } catch { return null }
+        if $canonical_root == null { return null }
+
+        let relative = ($current | path relative-to $canonical_root)
+        let first_component = ($relative | path split | first)
+        if $first_component != ".." { $canonical_root } else { null }
+    }
+    | compact
+    | sort-by { |root| $root | str length }
+    | last
+}
+
+def "project trust" [directory?: string] {
+    let requested_root = ($directory | default $env.PWD)
+    let root = try { $requested_root | path expand --strict } catch {
+        print $"❌ 無法解析專案路徑：($requested_root)"
+        return
+    }
+    let module = ($root | path join ".nu" "project.nu")
+    if not ($module | path exists) {
+        print $"❌ 找不到專案入口：($module)"
+        return
+    }
+
+    let trusted_roots = (__project-trusted-roots)
+    if $root in $trusted_roots {
+        print $"✓ 已信任：($root)"
+        return
+    }
+
+    (($trusted_roots | append $root) | to nuon) | save --force (__project-trust-file)
+    print $"✓ 已信任：($root)"
+}
+
+def "project untrust" [directory?: string] {
+    let requested_root = ($directory | default $env.PWD)
+    let root = try { $requested_root | path expand --strict } catch {
+        print $"❌ 無法解析專案路徑：($requested_root)"
+        return
+    }
+
+    ((__project-trusted-roots | where { |trusted| $trusted != $root }) | to nuon)
+    | save --force (__project-trust-file)
+    print $"✓ 已取消信任：($root)"
+}
+
+def "project status" [] {
+    let root = (__project-root $env.PWD)
+    if $root == null {
+        print "目前不在可信專案內。"
+        return
+    }
+
+    print $"可信專案：($root)"
+    print $"入口：($root | path join '.nu' 'project.nu')"
+}
+
+def "project run" [command: string, ...args] {
+    let root = (__project-root $env.PWD)
+    if $root == null {
+        print "❌ 目前不在可信專案內；請先在專案根目錄執行 `project trust`。"
+        return
+    }
+
+    let module = ($root | path join ".nu" "project.nu")
+    if not ($module | path exists) {
+        print $"❌ 找不到專案入口：($module)"
+        return
+    }
+
+    ^nu $module $command ...$args
+}
+
+# p dev、p test 等同於 project run dev、project run test。
+def p [command: string, ...args] {
+    project run $command ...$args
 }
 
 # tldr-fzf：用 fzf 模糊搜尋並預覽 tldr 指令
@@ -391,25 +495,42 @@ if ($nu.os-info.name != "windows") and ($fnm_bin | path exists) {
 }
 
 # ================================
-# 指令執行時間日誌（診斷用）
+# 指令與啟動診斷日誌（診斷用）
 # ================================
-# 記錄每個指令的開始和結束時間到 ~/nu_cmd.log
-# 可用於診斷哪些指令很慢、或回溯操作記錄
-# 如果不需要可整段移除
-let __nu_log_path = $"($nu.home-dir)/nu_cmd.log"
+# 預設不對共用檔案做每個命令的同步寫入；多 pane 下這可能放大 I/O 競爭。
+# 需要命令時間軸時，請在啟動前設定 NU_COMMAND_LOG=1。
+let __nu_command_log_enabled = (($env.NU_COMMAND_LOG? | default "0") == "1")
+let __nu_command_log_path = ($nu.home-dir | path join "nu_cmd.log")
+if $__nu_command_log_enabled {
+    # append（而非覆寫）既有 hooks，保留 atuin 等整合。
+    $env.config.hooks.pre_execution = (
+        $env.config.hooks.pre_execution? | default [] | append {||
+            let command = (commandline)
+            let timestamp = (date now | format date "%Y-%m-%dT%H:%M:%S%.3f%z")
+            $"[START] ($timestamp) ($command)\n" | save --append $__nu_command_log_path
+        }
+    )
+    $env.config.hooks.pre_prompt = (
+        $env.config.hooks.pre_prompt? | default [] | append {||
+            let timestamp = (date now | format date "%Y-%m-%dT%H:%M:%S%.3f%z")
+            $"[END]   ($timestamp)\n" | save --append $__nu_command_log_path
+        }
+    )
+}
 
-# pre_execution：每次執行指令前觸發，記錄 [START 時間] 指令內容
-$env.config.hooks.pre_execution = [{||
-    let cmd = (commandline)
-    let ts = (date now | format date "%Y-%m-%d %H:%M:%S%.3f")
-    $"[START $ts] ($cmd)\n" | save --append $__nu_log_path
-}]
-
-# pre_prompt：每次 prompt 顯示前觸發（即指令執行完畢後），記錄 [END 時間]
-$env.config.hooks.pre_prompt = [{||
-    let ts = (date now | format date "%Y-%m-%d %H:%M:%S%.3f")
-    $"[END   $ts]\n" | save --append $__nu_log_path
-}]
+# 啟動診斷在第一個 prompt 出現時寫入 READY；缺少此行即表示卡在較早階段。
+let __nu_startup_debug_enabled = (($env.NU_STARTUP_DEBUG? | default "0") == "1")
+let __nu_startup_log_path = ($nu.home-dir | path join "nu-startup-debug.log")
+if $__nu_startup_debug_enabled {
+    let timestamp = (date now | format date "%Y-%m-%dT%H:%M:%S%.3f%z")
+    $"[CONFIG_ENTER] ($timestamp)\n" | save --append $__nu_startup_log_path
+    $env.config.hooks.pre_prompt = (
+        $env.config.hooks.pre_prompt? | default [] | append {||
+            let ready_timestamp = (date now | format date "%Y-%m-%dT%H:%M:%S%.3f%z")
+            $"[PROMPT_READY] ($ready_timestamp)\n" | save --append $__nu_startup_log_path
+        }
+    )
+}
 
 # ================================
 # 機器專屬設定（不進 chezmoi repo）

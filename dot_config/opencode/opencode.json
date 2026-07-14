@@ -7,35 +7,25 @@
         "CodeStyle.md"
     ],
     "plugin": [
-        "opencode-gemini-auth@latest",
         "@ex-machina/opencode-anthropic-auth",
         "@franlol/opencode-md-table-formatter@latest",
         "@mohak34/opencode-notifier@latest",
         // "@different-ai/opencode-browser",
         "@tarquinen/opencode-dcp@3.1.14",
+        "opencode-mem",
+        "opencode-handoff@0.5.0",
+        "opencode-command-inject@1.3.0",
+        "@tarquinen/opencode-smart-title@0.1.7",
         "opencode-large-image-optimizer@latest",
         "opencode-chrome-devtools",
         "opencode-openai-codex-auth",
         "@smart-coders-hq/opencode-model-fallback"
     ],
     "default_agent": "OpenAgent",
-    "provider": {
-        "google": {
-            "whitelist": [
-                "gemini-3.1-pro-preview"
-            ],
-            "models": {
-                "gemini-3.1-pro-preview": {
-                    "options": {
-                        "thinkingConfig": {
-                            "thinkingLevel": "high",
-                            "includeThoughts": true
-                        }
-                    }
-                }
-            }
-        },
-    },
+    "disabled_providers": [
+        "google",
+        "nvidia"
+    ],
     "mcp": {
         "notebooklm": {
             "type": "local",
@@ -209,7 +199,22 @@
                 "external_directory": "ask",
                 "doom_loop": "allow",
                 "bash": {
+                    // On Windows, PowerShell commands are executed through the bash tool.
+                    // Keep cmdlet patterns here; the trailing wildcard accepts path, quote, and option variants.
                     "*": "ask",
+                    "Get-ChildItem*": "allow",
+                    "Get-Content*": "allow",
+                    "Get-Location*": "allow",
+                    "Get-Command*": "allow",
+                    "Get-Process*": "allow",
+                    "Get-Service*": "allow",
+                    "Get-Item*": "allow",
+                    "Get-ItemProperty*": "allow",
+                    "Get-FileHash*": "allow",
+                    "Get-Acl*": "allow",
+                    "Test-Path*": "allow",
+                    "Resolve-Path*": "allow",
+                    "Select-String*": "allow",
                     "Get-ChildItem": "allow",
                     "Get-ChildItem *": "allow",
                     "Get-Content": "allow",
@@ -450,32 +455,6 @@
                     "kill -9 *": "deny",
                     "killall *": "deny",
                     "pkill *": "deny"
-                },
-                "powershell": {
-                    "Get-*": "allow",
-                    "Test-*": "allow",
-                    "Select-*": "allow",
-                    "Where-*": "allow",
-                    "Format-*": "allow",
-                    "Measure-*": "allow",
-                    "Compare-*": "allow",
-                    "ConvertTo-*": "allow",
-                    "ConvertFrom-*": "allow",
-                    "Out-*": "allow",
-                    "dir": "allow",
-                    "dir *": "allow",
-                    "type *": "allow",
-                    "where *": "allow",
-                    "set": "allow",
-                    "move *": "ask",
-                    "copy *": "ask",
-                    "xcopy *": "ask",
-                    "robocopy *": "ask",
-                    "md *": "ask",
-                    "del *": "ask",
-                    "rd *": "ask",
-                    "format*": "deny",
-                    "*": "ask"
                 }
             }
         },

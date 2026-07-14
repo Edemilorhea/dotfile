@@ -99,21 +99,15 @@
    // Auto-Capture Settings (REQUIRES EXTERNAL API)
    // ============================================
   
-  // IMPORTANT: Auto-capture ONLY works with external API
-  // It runs in background without blocking your main session
-  // Note: Ollama may not support tool calling. Use OpenAI, Anthropic, or Groq for best results.
-  
-  "autoCaptureEnabled": true,
+   // Keep this disabled to avoid consuming the active GPT subscription on idle sessions.
+   // Add and search important memories manually with the memory tool.
+   
+   "autoCaptureEnabled": false,
   
   // Provider type: "openai-chat" | "openai-responses" | "anthropic"
   // Note: "openai-chat" is a generic OpenAI API-compatible mode.
   // Any service that follows the OpenAI Chat Completions API can use it via custom "memoryApiUrl".
-  "memoryProvider": "openai-chat",
-  
-  // REQUIRED for auto-capture (all 3 must be set):
-  "memoryModel": "gpt-4o-mini",
-  "memoryApiUrl": "https://api.openai.com/v1",
-  "memoryApiKey": "sk-...",
+   // No provider or API key is needed while auto-capture is disabled.
 
   // API Key Formats:
   // Direct value:        "sk-..."
@@ -238,6 +232,16 @@
   // Advanced Settings
   // ============================================
   
-  // Inject user profile into AI context (preferences, patterns, workflows)
-  "injectProfile": true
+   // Avoid re-injecting memory after DCP compacts a session.
+   "compaction": {
+     "enabled": false
+   },
+
+   // Keep long-term memory explicit: use memory search when it is relevant.
+   "chatMessage": {
+     "enabled": false
+   },
+
+   // No automatically learned profile exists when auto-capture is disabled.
+   "injectProfile": false
 }

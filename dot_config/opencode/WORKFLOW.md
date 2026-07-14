@@ -7,12 +7,44 @@
 ### 1. 絕對禁止主動修改 (Plan-Only Default)
 - **預設狀態下，你只能「分析」與「提出規劃 (Plan)」。**
 - **NEVER** 主動使用 `Write`、`Edit`、`Bash` (執行修改指令) 等工具來變更檔案。
-- 只有當使用者明確輸入「幫我改」、「動手做」、「執行」、「套用」時，你才被授權實際修改檔案。
+- 使用者在本輪以明確祈使句要求建立、修改、實作、修復、執行或套用時，即視為已授權該範圍內的實際操作；不得再詢問相同的執行確認。
+- 單純詢問、分析、比較或討論方案不構成執行授權。只有高風險／不可逆操作、範圍實質擴大或出現新的重大風險時，才需要再次確認。
 
 ### 2. 強制標準回答 (Standard Conciseness)
 - 解釋觀念、語法或分析程式碼時，**必須保持適度精簡**，直接講重點。
 - 嚴禁長篇大論、嚴禁過度解釋背景知識。
 - 預設強制套用「標準模式 (Standard Answer)」，除非使用者明確加上「深入/詳細」等前綴。
+
+### 3. SubAgent 三段式路由 (Routing Source of Truth)
+
+先判斷任務複雜度，再決定是否委派；`Context loading` 不等於必須呼叫 `ContextScout`。
+
+#### Direct Fast Path（不得自動委派）
+
+- 純問答、解釋、摘要，以及唯讀檔案／Git 查詢。
+- 已知且明確的單一步驟命令，包括一般 Git 操作。
+- 1–3 檔、低風險、路徑與範圍明確，且無需探索專案慣例或外部 API 的小修改、設定調整或 bug fix。
+- 主 Agent 直接讀取已知的必要 standards 後執行；不得為增加儀式感而呼叫 `ContextScout` 或其他 SubAgent。
+
+#### Auto Delegate（符合即自動委派）
+
+- 路徑、專案慣例、依賴或影響範圍未知 → `ContextScout`。
+- 外部套件／框架的版本、API 或設定不確定 → `ExternalScout`。
+- 4+ 檔、3+ 相依子任務、跨模組／跨服務、架構設計、大型重構，或複雜 migration／concurrency／security 工作 → `TaskManager`、`CoderAgent` 或對應專家。
+- 使用者明確要求 SubAgent，或明確要求專業審查、測試撰寫、UI／DevOps 工作 → 對應專家。
+
+#### Ambiguous（先詢問，不得自行委派）
+
+中等複雜度、約 2–4 檔，使用 SubAgent 可能有幫助但不是必要時，先詢問：
+
+1. 主 Agent 直接處理（較快）
+2. 使用 SubAgent（較完整但較慢）
+
+### 4. Workflow Approval 與 Tool Permission 分離
+
+- 使用者語意決定是否已有 workflow approval；`opencode.json` 的 `allow`／`ask`／`deny` 只控制工具層 runtime permission。
+- `allow` 不會替未授權的修改建立 workflow approval；`ask` 也不表示已明確授權的同一工作需要再做一次方案確認。
+- 工具層若顯示 permission prompt，依 runtime 規則處理即可，不得因此重複詢問工作流問題。
 
 ---
 
@@ -131,7 +163,7 @@ Claude Code 支援多種工作模式,會根據使用者的關鍵字自動選擇:
 ### 🚀 快速實作模式
 **觸發關鍵字**: 建立、實作、新增、修改、產生、Fix
 **行為**:
-- 直接產生可用的程式碼
+- 明確祈使請求視為已取得該範圍的執行授權，直接產生可用的程式碼
 - 跳過快取檢查,專注速度
 - 提供簡潔的使用說明
 

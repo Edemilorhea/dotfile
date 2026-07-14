@@ -1,70 +1,28 @@
 ---
-description: Generate Jira Worklog
-agent: plan
+description: Generate Jira-ready worklog entries through the canonical GSS worklog flow.
+agent: build
 subtask: true
 ---
 
-# Generate Jira Worklog
+# Jira Worklog Compatibility Entry
 
-請分析 git commit 紀錄並產生 Jira worklog:
+此命令是 `/selfmade:worklog jira` 的相容入口。所有事實調查、日期配置、安全限制與 Jira 輸出格式，皆以以下檔案為唯一規則來源：
 
-## 角色設定
-
-- 你是一位資深的 Technical Lead / Scrum Master，擅長將零散的 Git Commit 紀錄轉化為具備業務價值、專業且工時平衡的 Jira Worklog。
-- 請使用 +8 的 Taipei 時區，請在調查前檢查日曆。
+`C:/Users/tc_tseng/.config/opencode/command/selfmade/worklog.md`
 
 ## 參數
 
-- 調查範圍 (Source Range): {0} (格式: YYYY-MM-DD 或 YYYY-MM-DD~YYYY-MM-DD)
-- 產出範圍 (Target Range): {1} (格式: YYYY-MM-DD 或 YYYY-MM-DD~YYYY-MM-DD)
-- 分支 (Branch): {2} (選填，若未提供則使用 --all 查詢所有分支)
-- 作者 (Author): {3} (預設: TC|TC_Tseng)
+- Source range：`$1`，必填，格式依 canonical worklog command。
+- Target range：`$2`，選填；未提供時由 canonical flow 預設為 source range。
+- Branch：`$3`，選填；未提供時查詢所有分支。
+- Author：`$4`，選填；未提供時使用 canonical 預設值。
 
-## 任務
+## 執行
 
-1. 資料擷取: 執行 git log 取得「調查範圍」內的提交紀錄。
-2. 清理過濾: 自動排除 Merge branch 相關 commit，僅保留指定「作者」的實質開發內容。
-3. 內容解構: 分析 commit message，提取具體的技術動向（如：Feature, Fix, Refactor, Optimize）。
-4. 按日期分組整理
+1. 先讀取 canonical worklog command。
+2. 將本次呼叫視為：`jira $1 $2 $3 $4`。
+3. 若 `$1` 缺少或格式無效，顯示正確用法並詢問 source range，不得猜測。
+4. 完整執行 canonical `事實調查流程` 與 `Jira 輸出流程`，包含請假日期確認。
+5. Jira-ready 內容直接回傳至對話。除非使用者另外明確要求，不建立 PDF、Obsidian note 或其他檔案。
 
-## 工作分配邏輯 (Refined Rules)
-
-請嚴格遵守以下分配演算法，確保 Worklog 符合報帳合規性：
-
-- 平滑化處理 (Workload Smoothing)： 若調查範圍內的 commit 分佈不均（例如：某天 10 個 commit，某天 0 個），請將所有內容視為「任務池」，重新均勻分配至產出範圍內的每一天。
-- 工作日意識 (Calendar Awareness)： 自動偵測「產出範圍」中的週六與週日。嚴禁在週末分配任何工作內容，必須將所有任務壓縮或遷移至該範圍內的週一至週五。
-- 跨度對應 (Range Mapping)： 將「調查範圍」提取的所有工作項，按比例平均攤分至「產出範圍」的每一個有效工作日。
-- 邏輯連貫性： 分配時請確保每日內容具有邏輯上的延續性，避免同一功能的細項被拆分得過於零碎。
-- 執行前確認： 與使用者確認是否有請假日期。
-
-## 輸出格式 (每日)
-
-**Title:** [主要事項]
-
-**摘要:**  
-[三句話或一段話總結這日的開發]
-
-**內容:**
-
-1. **[重點一標題]**  
-   [詳細說明]
-
-2. **[重點二標題]**  
-   [詳細說明]
-
-3. **[重點三標題]**  
-   [詳細說明]
-
-## 輸出規範
-
-1. 保存到使用者下的Documents/Jira_Worklog 資料夾，沒有則自動建立。
-2. 並將格式另外保存一份PDF。
-
-## Git 指令參考
-
- 情況一：有提供分支參數
-`git log {branch} --author="{author}" --since="{start}" --until="{end} 23:59:59" --no-merges --pretty=format:"%h - %an, %ad : %s" --date=short`
-情況二：未提供分支參數（查詢所有分支）
-`git log --all --author="{author}" --since="{start}" --until="{end} 23:59:59" --no-merges --pretty=format:"%h - %an, %ad : %s" --date=short`
-
-請先執行指令取得 commit 資訊,再產生格式化的 worklog。
+不得在此命令複製或另行解釋工作平滑化、日曆、mapping 或輸出規則；canonical worklog command 永遠優先。

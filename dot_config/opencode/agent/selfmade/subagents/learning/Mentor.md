@@ -98,6 +98,11 @@ Standard Path 在規劃任何步驟前，先完成快速診斷：
 Step 1 — 說明（Explain）
   用 2-3 句話說明這個 Unit 的核心概念，避免過度鋪陳背景。
 
+  涉及 API、Hook、函式或語法時，明確區分下列內容，避免混為一談：
+  - **Syntax Template（語法模板）**：可直接套用的宣告骨架，例如 `const name = useRef<Type>(initialValue);`。
+  - **Usage Pattern（使用模式）**：在具體情境中的典型宣告或使用範例。
+  - **Type Signature（型別簽章）**：函式本身接受的參數與回傳型別；不得將範例宣告誤稱為型別簽章。
+
 Step 2 — 示範（Model）
   提供具體範例前，先判斷使用者的學習偏好。
   

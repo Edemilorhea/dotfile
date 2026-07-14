@@ -26,21 +26,22 @@
 所有規則檔案在 OpenCode 啟動時自動載入並合併到系統提示中。
 **行為規範的單一出處是 WORKFLOW.md**；本檔案僅摘要，兩者衝突時以 WORKFLOW.md 為準。
 
-## 🏗️ 配置管理架構（2026-07 起凍結 OAC 上游更新）
+## 🏗️ 配置管理架構（chezmoi 接管遷移中）
 
-本配置混合了自製檔案與 [OpenAgentsControl (OAC)](https://github.com/darrenhinde/OpenAgentsControl) 的安裝產物，分工如下：
+本配置正遷移為完全由 chezmoi 管理；[OpenAgentsControl (OAC)](https://github.com/darrenhinde/OpenAgentsControl) 僅作為固定 vendor snapshot 的來源，不再是更新來源。完整分類與遷移狀態見 `OWNERSHIP.md`。
 
-| 範圍                                                                 | 管理者                    |
-| -------------------------------------------------------------------- | ------------------------- |
-| `agent/selfmade/**`、`command/selfmade/**`（自製）                        | chezmoi                   |
-| `agent/core/**`、`agent/subagents/code/**`、`agent/subagents/core/**`（優化過的 OAC 核心） | chezmoi（含 `.tmpl` 路徑模板） |
-| `AGENTS.md`、`WORKFLOW.md`、`CodeStyle.md`、`opencode.json`                 | chezmoi                   |
-| `context/**`、OAC skills、`plugins/**`、`tool/**`、其餘 OAC agent/command    | install.sh                |
+| 範圍 | 目標管理者 |
+| --- | --- |
+| 規則、設定、自製 agent／command／tool | chezmoi |
+| 採用的 OAC context、agent、command、skill | chezmoi 的固定 vendor snapshot |
+| 第三方 plugin、MCP executable、npm package | 釘選的 bootstrap metadata |
+| Token、OAuth、帳號、快取、session、`.tmp` | 本機，不進 chezmoi |
 
-**新機器設定流程**:
-1. `chezmoi apply` — 自製檔案 + 優化過的核心 agent 到位
-2. `bash install.sh developer --install-dir ~/.config/opencode` — 選 **Skip existing**，補齊 context 參考庫等
-3. **絕對不要跑 update.sh**（無腦覆蓋、無 merge 機制）
+**遷移期間規則**:
+1. 先更新 chezmoi source，再同步 runtime；同一變更不得只留一端。
+2. 未完成 provenance manifest 的 OAC 產物不得視為可安全更新。
+3. 不得執行 OAC `install.sh` 或 `update.sh` 覆蓋本配置。
+4. 不得因接管而取消 secrets、cache 或 generated files 的 ignore。
 
 **編輯/新增 agent 或 command 提示詞時**，套用 CodeStyle.md §3 的品質準則（尤其「重複邏輯」「死引用」「沒有實際收益的複雜度」）——prompt 檔案是治理 agent 行為的 config-as-code，同樣的壞味道判準適用。
 
@@ -51,8 +52,8 @@
 
 ## 預設行為
 
-- **Plan-Only 預設**: 預設只「分析」與「提出規劃」；使用者明確說「幫我改」、「動手做」、「執行」、「套用」才實際修改檔案
-- **方案選項制**: 需要修改時，先列出方案（多個方案時逐一編號）讓使用者選擇同意/不同意；執行後由使用者決定繼續修改或取消
+- **Plan-Only 預設**: 預設只「分析」與「提出規劃」；使用者以明確祈使句要求建立、修改、實作、修復、執行或套用時，即視為已授權該範圍的操作，不得重複確認
+- **方案選項制**: 尚未取得執行授權且存在多個實質方案時，才列出編號選項；已明確要求執行時直接處理，只有高風險、不可逆或範圍實質擴大才再次確認
 - **決策回覆格式**：凡是需要使用者選擇方案、確認是否執行或決定下一步時，一律使用阿拉伯數字列出選項，並要求使用者以數字回答；二元確認可直接以 `y`／`n` 回答，分別代表 Yes／No。
 - **回答精簡**: 直接講重點，嚴禁長篇大論；預設「標準模式」，除非使用者加上「深入/詳細」等前綴
 - **Ask Mode**: 輸入「Ask Mode」啟動純問答模式
@@ -71,9 +72,10 @@
 
 ### 🎯 權限覆寫優先級
 
-對於 `opencode.json` 中明確標記的命令:
-1. 如果命令匹配 `"allow"` 規則 → 直接執行,無需審批
-2. 如果命令匹配 `"ask"` 規則 → 請求審批
-3. 如果命令匹配 `"deny"` 規則 → 拒絕執行
+`opencode.json` 的權限只控制工具層 runtime permission，不取代使用者語意上的 workflow approval：
 
-此規則覆蓋 approval_gate 規則中的 "Request approval before ANY execution"。
+1. 匹配 `"allow"` → 工具層不顯示 permission prompt；未授權的修改仍不得執行
+2. 匹配 `"ask"` → 由 OpenCode 顯示工具層 permission prompt；不得再重複詢問相同方案
+3. 匹配 `"deny"` → 工具層拒絕執行
+
+Workflow approval 的定義與 SubAgent 路由一律以 `WORKFLOW.md` 為準。
