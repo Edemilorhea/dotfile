@@ -1,0 +1,51 @@
+{
+    "sound": true,
+    "notification": true,
+    "timeout": 5,
+    "showProjectName": true,
+    "showSessionTitle": true,
+    "showIcon": true,
+    "suppressWhenFocused": true,
+    "notificationSystem": "osascript",
+    "linux": {
+        "grouping": false
+    },
+    "command": {
+        "enabled": false,
+        "path": "/path/to/command",
+        "args": ["--event", "{event}", "--message", "{message}"],
+        "minDuration": 0
+    },
+    "events": {
+        "permission": { "sound": true, "notification": true },
+        "complete": { "sound": true, "notification": true },
+        "subagent_complete": { "sound": false, "notification": false },
+        "error": { "sound": true, "notification": true },
+        "question": { "sound": true, "notification": true },
+        "user_cancelled": { "sound": false, "notification": false }
+    },
+    "messages": {
+        "permission": "{projectName} | {sessionTitle} needs permission",
+        "complete": "{projectName} | {sessionTitle} | {agentName} | #{turn}",
+        "subagent_complete": "{projectName} | {sessionTitle} | {agentName}",
+        "error": "{projectName} | {sessionTitle} failed",
+        "question": "{projectName} | {sessionTitle} has a question",
+        "user_cancelled": "{projectName} | {sessionTitle} was cancelled"
+    },
+    "sounds": {
+        "permission": null,
+        "complete": null,
+        "subagent_complete": null,
+        "error": null,
+        "question": null,
+        "user_cancelled": null
+    },
+    "volumes": {
+        "permission": 0.5,
+        "complete": 0.7,
+        "subagent_complete": 0.1,
+        "error": 0.6,
+        "question": 0.5,
+        "user_cancelled": 0
+    }
+}
