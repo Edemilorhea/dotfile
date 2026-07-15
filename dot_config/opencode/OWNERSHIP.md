@@ -1,38 +1,24 @@
 # OpenCode Ownership and Provenance
 
-## Status
+## Source of Truth
 
-This configuration is migrating to a self-managed chezmoi setup. `chezmoi` is the intended source of truth; OpenAgentsControl (OAC) is no longer an update source.
+Chezmoi is the source of truth for this configuration. Do not run OpenAgentsControl (OAC) `install.sh` or `update.sh` against the active configuration.
 
-## Ownership Categories
+## Ownership Boundaries
 
-| Category | Source of truth | Update policy |
+| Category | Owner | Update policy |
 | --- | --- | --- |
-| Self-managed configuration | chezmoi source | Review and edit in chezmoi source first. |
-| Vendored OAC assets | chezmoi source with a pinned provenance record | Update only by an explicit vendor refresh. |
-| External dependencies | Pinned bootstrap metadata | Install reproducibly; never vendor generated dependency trees. |
-| Runtime state and secrets | Local machine only | Never add to chezmoi. |
+| Active configuration, commands, agents, plugins | This chezmoi repository | Review and edit here first. |
+| OAC vendor baseline | `vendor/openagentscontrol/` | Refresh only through an explicit, reviewed import. |
+| Secrets, caches, state, `.tmp`, dependency trees | Local machine | Never commit. |
 
-## Migration Rules
+## Upstream Integration
 
-- Do not run OAC `install.sh` or `update.sh` against this configuration.
-- Existing OAC-derived runtime files have unknown exact provenance until they are inventoried and captured as a vendor snapshot.
-- Do not remove a `.chezmoiignore` rule until its replacement source path and validation are in place.
-- `LOCU_PAT`, OAuth tokens, account files, caches, logs, `.tmp`, and `node_modules` remain local-only.
-- A managed change must update its chezmoi source in the same atomic step.
+1. Do not track every upstream `main` commit.
+2. Select a release or reviewed commit when it fixes a relevant issue, includes security work, or is needed for a requested feature.
+3. Compare the new vendor candidate with the pinned vendor baseline and this repository's active configuration.
+4. Classify each change as Adopt, Adapt, or Reject.
+5. Apply approved behaviour only to active chezmoi-managed files.
+6. Validate, update provenance, and commit both the vendor record and active changes together.
 
-## Current Migration Batches
-
-1. Establish this ownership baseline.
-2. Capture self-managed Locu tools and tests.
-3. Capture selected OAC assets as a fixed vendor snapshot.
-4. Pin external dependency bootstrap metadata.
-5. Validate reconstruction without relying on OAC installation output.
-
-## Provenance Record
-
-The OAC source repository is `https://github.com/darrenhinde/OpenAgentsControl`. Its current runtime assets are not yet claimed as an exact upstream revision. A later vendor manifest must record the upstream commit, file hashes, and import date before those assets become managed.
-
-## Fixed Vendor Candidate
-
-The chezmoi source contains a review-only full OAC archive pinned to `ef3836efd659e451b6dbb8eee7d3213ba39f5aec` and SHA-256 `5228974504b810f90ae22e8d4d7b2f970bb007dec855dcd04b1cf8ea93818a6e`. It is deployed under `.config/opencode/vendor/openagentscontrol`, not into active OpenCode paths. Its files must be hash-compared and explicitly promoted before any active OAC-derived asset is replaced.
+The vendor directory is reference-only and must never be auto-loaded by OpenCode. Local customisations never belong in imported vendor files.
