@@ -19,6 +19,8 @@ if (($env.NU_STARTUP_DEBUG? | default "0") == "1") {
 # WezTerm 日誌等級，設為 warn 避免終端機出現多餘的 debug 輸出
 $env.WEZTERM_LOG = "warn"
 
+$env.config.buffer_editor = "nvim"
+
 # 停用 virtualenv / pyenv 修改 prompt 的行為
 # （讓 prompt 由 starship 或 oh-my-posh 統一管理）
 $env.VIRTUAL_ENV_DISABLE_PROMPT = 1
@@ -216,8 +218,10 @@ if $nu.os-info.name != "windows" {
 }
 
 # pnpm
-$env.PNPM_HOME = "/home/tc/.local/share/pnpm"
-$env.PATH = ($env.PATH | split row (char esep) | prepend ($env.PNPM_HOME | path join "bin") )
+if $nu.os-info.name != "windows" {
+    $env.PNPM_HOME = ($nu.home-dir | path join ".local" "share" "pnpm")
+    $env.PATH = ($env.PATH | prepend $env.PNPM_HOME)
+}
 # pnpm end
 
 # ================================

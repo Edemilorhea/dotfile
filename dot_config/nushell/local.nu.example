@@ -4,7 +4,7 @@
 # 用法：複製本檔為 local.nu，依本機需求修改。
 #   cp local.nu.example local.nu
 #
-# 載入時機：config.nu 尾端（別名 / 函數階段，透過 overlay use）。
+# 載入時機：config.nu 尾端（別名 / 函數階段，透過 source）。
 # 此檔不會被 chezmoi 追蹤，每台機器各自獨立。
 #
 # 注意：環境變數 / PATH 請放在 local-env.nu（較早載入），不要放這裡。
