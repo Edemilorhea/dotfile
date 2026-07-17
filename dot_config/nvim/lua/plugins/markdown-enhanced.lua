@@ -14,6 +14,29 @@ local function check_deno()
     return vim.fn.executable("deno") == 1
 end
 
+local function build_peek(plugin)
+    local source_path = plugin.dir .. "/app/src/webview.ts"
+    local source = table.concat(vim.fn.readfile(source_path), "\n")
+    local old_import = "https://deno.land/x/webview@0.7.6/mod.ts"
+    local new_import = "jsr:@webview/webview@0.9.0"
+    local start_pos, end_pos = source:find(old_import, 1, true)
+
+    if start_pos then
+        source = source:sub(1, start_pos - 1) .. new_import .. source:sub(end_pos + 1)
+        vim.fn.writefile(vim.split(source, "\n", { plain = true }), source_path)
+    elseif not source:find(new_import, 1, true) then
+        error("peek.nvim 的 webview import 已變更，無法套用 Deno 2 相容修補")
+    end
+
+    local result = vim.system({ "deno", "task", "--quiet", "build:fast" }, {
+        cwd = plugin.dir,
+        text = true,
+    }):wait()
+    if result.code ~= 0 then
+        error("peek.nvim build 失敗:\n" .. (result.stderr or result.stdout or "未知錯誤"))
+    end
+end
+
 local vault_exists, vault_path = check_obsidian_vault()
 local deno_exists = check_deno()
 
@@ -473,12 +496,28 @@ return {
         "iamcco/markdown-preview.nvim",
         ft = "markdown",
         cond = not vim.g.vscode,
-        build = "cd app && npm install --package-lock=false",
+        -- 上游 app 會 require msgpack-lite，卻未將它列為直接依賴。
+        build = "cd app && npm install --package-lock=false && npm install --no-save --package-lock=false msgpack-lite",
         config = function()
+            -- markdown-preview.nvim 的預設 opener 在 Windows 偶爾無法喚起瀏覽器。
+            -- 改由 Neovim 統一處理 URL，並保留錯誤提示。
+            _G.markdown_preview_open = function(url)
+                local process, err = vim.ui.open(url)
+                if not process then
+                    vim.notify("無法開啟 Markdown 預覽: " .. tostring(err), vim.log.levels.ERROR)
+                end
+            end
+            vim.cmd([[
+                function! MarkdownPreviewOpen(url) abort
+                    call v:lua.markdown_preview_open(a:url)
+                endfunction
+            ]])
+
             -- 基本設定
             vim.g.mkdp_auto_start = 0
             vim.g.mkdp_auto_close = 1
             vim.g.mkdp_browser = ""
+            vim.g.mkdp_browserfunc = "MarkdownPreviewOpen"
             vim.g.mkdp_echo_preview_url = 1
             vim.g.mkdp_theme = "dark"
             vim.g.mkdp_port = ""
@@ -575,7 +614,8 @@ return {
         cond = function()
             return deno_exists and not vim.g.vscode
         end,
-        build = deno_exists and "deno task --quiet build:fast" or nil,
+        -- peek.nvim 目前仍固定舊版 webview_deno；建置前升級以支援 Deno 2。
+        build = deno_exists and build_peek or nil,
         cmd = { "PeekOpen", "PeekClose" },
         ft = "markdown",
         config = function()
