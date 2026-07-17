@@ -186,7 +186,10 @@ Dictionary<int, PlanTemplate> dbTemplateMapByFormId = dbPlanTemplates
 | 1–3 檔、低風險、路徑與範圍明確的小修改 | 主 Agent 直接處理，不得委派 |
 | 路徑、慣例或影響範圍未知；跨模組；需確認專案模式 | `ContextScout` |
 | 外部套件／框架 API、版本或設定 | `ExternalScout`，必要時搭配 `ContextScout` |
-| 明確需要測試、審查、文件、UI 或 DevOps 專業工作 | 對應專業 SubAgent |
+| 明確需要測試、文件、UI 或 DevOps 專業工作 | 對應專業 SubAgent |
+| 小型且 scope 明確的 .NET review | primary agent 一次委派 `dotnet-code-reviewer` |
+| 小型且 scope 明確的其他 review | primary agent 一次委派 `CodeReviewer` |
+| 大型或混合 review | `TaskManager` 只規劃 review slices，由 primary agent 分派 |
 | 4+ 檔、3+ 相依子任務或多元件實作 | `TaskManager`／`CoderAgent` |
 | 約 2–4 檔、委派有幫助但非必要 | 先用數字選項詢問主 Agent 直做或委派；不得自行委派 |
 
@@ -194,7 +197,7 @@ Dictionary<int, PlanTemplate> dbTemplateMapByFormId = dbPlanTemplates
 
 | 觸發條件 | 使用的 SubAgent |
 |----------|----------------|
-| 用戶要求 "review"、"審查"、"檢查程式碼" | `CodeReviewer` |
+| 用戶要求 "review"、"審查"、"檢查程式碼" | primary agent 依 scope 路由至 .NET 或一般 terminal reviewer |
 | 用戶要求 "設計 UI"、"mockup"、"landing page" | `OpenFrontendSpecialist` |
 | 提到外部框架/庫(Tailwind、Drizzle、TanStack 等) | `ExternalScout` |
 | 需要了解專案標準或慣例 | `ContextScout` |
@@ -212,6 +215,7 @@ Dictionary<int, PlanTemplate> dbTemplateMapByFormId = dbPlanTemplates
 * **結果整合**:SubAgent 完成後,你需要整合結果並給出簡潔總結,而不是直接轉發 SubAgent 的原始輸出
 * **失敗處理**:如果 SubAgent 失敗或結果不理想,你需要自己接手完成任務,而不是放棄
 * **按需使用 ContextScout**:僅在需要發現專案標準、慣例、路徑或影響範圍時使用；已知單檔、低風險任務不得為增加儀式感而委派
+* **Review routing**: `OpenAgent`／`OpenCoder` 是同一 review 的唯一 routing owner；`TaskManager` 只規劃大型 review slices，`CodeReviewer` 與 `dotnet-code-reviewer` 收到完整 scope 後為 terminal specialist，不得再次委派或擴張 scope。
 
 ---
 
@@ -282,7 +286,8 @@ Dictionary<int, PlanTemplate> dbTemplateMapByFormId = dbPlanTemplates
 
 ### 10.3 機械判準(命中即執行,不靠感覺)
 
-* **換路**:同一方法連續失敗 **2 次** → 停止重試,換方法或回報——不是第 3 次重試
+* **有界重試**:同一工作目標第 1 次失敗 → 在既有授權範圍內安全修正並重試；第 2 次失敗 → 必須換方法後重試；第 3 次失敗 → 停止並回報全部嘗試與證據。成功後計數歸零
+* **立即停止**:破壞性／不可逆風險、權限／驗證／secrets、範圍擴大、需求或斷言語意不明、公共 API／持久化格式／資料庫變更，不適用自動重試
 * **蹺蹺板**:修 A 壞 B、修 B 壞 A → 退回起點重新定位根因(你在治標)
 * **回 Observe**:實際結構與假設不符(檔案不存在、API 簽名不同、欄位缺失)→ 重新蒐證,不硬編
 * **斷言是契約**:測試紅 → 禁止改斷言讓它綠,先確認斷言錯還是實作錯

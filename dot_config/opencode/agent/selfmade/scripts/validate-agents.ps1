@@ -18,8 +18,10 @@
                                    name that doesn't match any real registered agent
                                    (e.g. the old `BatchExecutor` ghost reference)
       4. UnbalancedTag          - a structural pseudo-XML tag (<workflow>, <stage>,
-                                   <critical_rules>, etc.) opens without a matching
-                                   close, usually from a botched copy-paste merge
+                                    <critical_rules>, etc.) opens without a matching
+                                    close, usually from a botched copy-paste merge
+      5. ReviewRoutingBoundary  - review command or terminal reviewer violates the
+                                   single-primary-routing contract
 
     This is a heuristic static scan, not a full parser. False positives are possible
     (rare in this codebase) — treat findings as "look here", not gospel.
@@ -71,7 +73,8 @@ function Strip-JsonComments {
 
 Write-Host "Scanning agent/command files under: $Root" -ForegroundColor Cyan
 
-$agentFiles = Get-ChildItem -Path (Join-Path $Root "agent") -Recurse -Filter *.md -File -ErrorAction SilentlyContinue
+$agentFiles = Get-ChildItem -Path (Join-Path $Root "agent") -Recurse -File -ErrorAction SilentlyContinue |
+    Where-Object { $_.Name -match '\.md(\.tmpl)?$' }
 $commandFiles = Get-ChildItem -Path (Join-Path $Root "command") -Recurse -Filter *.md -File -ErrorAction SilentlyContinue
 $allMdFiles = @($agentFiles) + @($commandFiles)
 
@@ -156,6 +159,51 @@ foreach ($f in $agentFiles) {
                 Type   = "UnbalancedTag"
                 Detail = "<$tag> open=$openCount close=$closeCount"
                 Files  = $f.FullName
+            })
+        }
+    }
+}
+
+# 5. Review routing boundary. Reviewers are terminal specialists: only a
+# primary agent routes work, while TaskManager may plan but never dispatches.
+$reviewCommandPath = Join-Path $Root "command\selfmade\review.md"
+if (Test-Path -LiteralPath $reviewCommandPath) {
+    $reviewCommand = Get-Content -Raw -LiteralPath $reviewCommandPath
+    if ($reviewCommand -notmatch '(?m)^agent:\s*OpenAgent\s*$' -or $reviewCommand -notmatch '(?m)^subtask:\s*false\s*$') {
+        $issues.Add([PSCustomObject]@{
+            Type   = "ReviewCommandRoute"
+            Detail = "command/selfmade/review.md must route through OpenAgent with subtask: false"
+            Files  = $reviewCommandPath
+        })
+    }
+}
+
+$terminalReviewers = @("CodeReviewer", "dotnet-code-reviewer")
+foreach ($reviewerName in $terminalReviewers) {
+    if (-not $nameMap.ContainsKey($reviewerName)) {
+        $issues.Add([PSCustomObject]@{
+            Type   = "TerminalReviewerMissing"
+            Detail = "terminal reviewer '$reviewerName' has no matching agent file"
+            Files  = (Join-Path $Root "agent")
+        })
+        continue
+    }
+
+    foreach ($reviewerPath in $nameMap[$reviewerName]) {
+        $reviewerContent = Get-Content -Raw -LiteralPath $reviewerPath
+        if ($reviewerContent -notmatch '(?m)^\s*task:\s*\r?\n\s*"?\*"?\s*:\s*"?deny"?\s*$') {
+            $issues.Add([PSCustomObject]@{
+                Type   = "SpecialistDelegationLeak"
+                Detail = "terminal reviewer '$reviewerName' must deny task delegation"
+                Files  = $reviewerPath
+            })
+        }
+
+        if ($reviewerContent -match '(?i)ALWAYS\s+call\s+ContextScout|task\s*\(') {
+            $issues.Add([PSCustomObject]@{
+                Type   = "RecursiveRoutingPrompt"
+                Detail = "terminal reviewer '$reviewerName' contains a nested discovery or task invocation instruction"
+                Files  = $reviewerPath
             })
         }
     }

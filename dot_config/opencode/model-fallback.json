@@ -34,7 +34,7 @@
     "TaskManager": {
       "fallbackModels": [
         "openai/gpt-5.6-sol",
-        "openai/gpt-5.6-terra"
+        "openai/gpt-5.6-luna"
       ]
     },
     "ContextScout": {
@@ -164,6 +164,21 @@
       ]
     }
   },
+  "patterns": [
+    "rate limit",
+    "ratelimit",
+    "usage limit",
+    "too many requests",
+    "quota exceeded",
+    "overloaded",
+    "capacity exceeded",
+    "credits exhausted",
+    "insufficient credit",
+    "billing limit",
+    "resource exhausted",
+    "429",
+    "OAuth authentication is currently not allowed for this organization."
+  ],
   "logging": true,
   "logLevel": "info"
 }

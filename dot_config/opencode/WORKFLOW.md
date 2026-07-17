@@ -40,11 +40,32 @@
 1. 主 Agent 直接處理（較快）
 2. 使用 SubAgent（較完整但較慢）
 
+#### Review Routing Ownership
+
+- 只有 primary-mode 的 `OpenAgent`／`OpenCoder` 可以為同一 review 決定後續 routing；已委派的 specialist 不得再次 discovery、planning 或 delegation。
+- 小型且 scope 明確的 .NET review → 一次委派 `dotnet-code-reviewer`；其他語言 → 一次委派 `CodeReviewer`。
+- 大型或混合 review 可由 `TaskManager` 產生 review slices；`TaskManager` 只規劃，仍由 primary agent 分派 slices。
+- primary agent 必須傳入 diff／檔案、適用 standards、證據與 review focus。資料不足時，specialist 回傳 `## Missing Information`，不得擴張至相鄰模組或整個 repository。
+
 ### 4. Workflow Approval 與 Tool Permission 分離
 
 - 使用者語意決定是否已有 workflow approval；`opencode.json` 的 `allow`／`ask`／`deny` 只控制工具層 runtime permission。
 - `allow` 不會替未授權的修改建立 workflow approval；`ask` 也不表示已明確授權的同一工作需要再做一次方案確認。
 - 工具層若顯示 permission prompt，依 runtime 規則處理即可，不得因此重複詢問工作流問題。
+
+### 4.1 互動決策與 `question` 工具
+
+- 只有在確實需要使用者做出尚未授權的選擇時才提問；已授權範圍不得重複確認。
+- `question` tool 可用時，必須呼叫它產生 TUI 互動選單，不得只在一般回覆中列出選項。
+- `question` tool 不可用時，才以阿拉伯數字列出選項並要求使用者以數字回答；二元確認的文字 fallback 可使用 `y`／`n`。
+- SubAgent 呼叫 `question` 時，互動選單會顯示於 parent／root session，而不是 child session 畫面。
+
+### 5. 有界限的指令錯誤自動修正 (Bounded Command Recovery)
+
+- 已取得 workflow approval 後，若同一工作目標的 command、test、build 或 validation 在既有授權範圍內失敗，先診斷證據，再做安全且局部的修正並自動重試，不必每次重新詢問。
+- 連續失敗計數：第 1 次修正後重試；第 2 次必須換方法後重試；第 3 次停止，完整回報三次嘗試、錯誤證據與建議下一步。成功後計數歸零。
+- 下列情況立即停止，不進入自動重試：破壞性或不可逆風險、permission/authentication/secrets、範圍實質擴大、需求或測試斷言語意不明、public API／持久化格式／資料庫變更。
+- 測試斷言是契約；不得只為讓測試通過而修改斷言。套件／依賴錯誤須先查閱當前外部文件再修正。
 
 ---
 

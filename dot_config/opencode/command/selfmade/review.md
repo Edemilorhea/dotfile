@@ -1,59 +1,25 @@
 ---
-description: Code Review
-agent: build
-subtask: true
+description: Review an explicit diff or file scope without recursive reviewer delegation
+agent: OpenAgent
+subtask: false
 ---
 
 # Code Review
 
-Perform comprehensive code review with language-specific expertise.
+Review scope: `$ARGUMENTS`.
 
-## 🎯 Auto-Detection
+1. Load the review and delegation standards. Establish the review scope before delegating:
+   - With arguments, review only the supplied files, globs, diff range, or explicit focus.
+   - Without arguments, review only the current repository's committed diff plus working-tree changes. Do not review the whole repository or adjacent modules by default.
+2. OpenAgent is the routing owner. It passes the scoped diff/files, standards, evidence, and focus to exactly one terminal specialist for a small review:
+   - `.NET`-only scope → `dotnet-code-reviewer`
+   - Any other single-language scope → `CodeReviewer`
+3. For a large or mixed review, OpenAgent may ask `TaskManager` to produce bounded review slices. TaskManager plans only; OpenAgent dispatches each slice to the appropriate terminal reviewer.
+4. A terminal reviewer must not invoke ContextScout, TaskManager, explore, another reviewer, or any other subagent. If the supplied evidence is insufficient, it returns `## Missing Information` to OpenAgent.
 
-Automatically detect language and apply appropriate best practices:
-- **.NET (.cs)** → Invoke `@dotnet-code-reviewer` for DDD/CQRS analysis
-- **Python (.py)** → PEP 8, type hints, docstrings
-- **TypeScript/React (.ts/.tsx)** → React patterns, hooks, type safety
-- **Java (.java)** → Java conventions, design patterns
-- **Other languages** → General best practices
+Report only concrete findings inside the supplied scope. Prioritize correctness and security, then maintainability and performance. Include file/line evidence and avoid speculative repository-wide recommendations.
 
-## 📋 Review Framework
-
-### 🔴 Critical Issues
-- **Bugs**: Logic errors, null references, edge cases
-- **Security**: Injection flaws, authentication issues, data exposure
-- **Performance**: N+1 queries, memory leaks, inefficient algorithms
-- **Architecture**: Pattern violations, tight coupling
-
-### 🟡 Design & Architecture
-- **Design Patterns**: Appropriate pattern usage
-- **SOLID Principles**: Single Responsibility, Open/Closed, etc.
-- **Consistency**: Alignment with project architecture
-- **Scalability**: Future growth considerations
-
-### 🔵 Code Quality
-- **Readability**: Clear naming, appropriate abstraction
-- **Maintainability**: Low coupling, high cohesion
-- **Testability**: Dependency injection, mockable dependencies
-- **Best Practices**: Language-specific conventions
-
-### 💡 Suggestions
-- **Refactoring opportunities**
-- **Optimization potential**
-- **Documentation improvements**
-
-### ✅ What's Good
-- Acknowledge well-implemented code
-- Highlight best practices followed
-
-### 📋 Action Items (Prioritized)
-1. **[High Priority]** - Critical fixes
-2. **[Medium Priority]** - Design improvements
-3. **[Low Priority]** - Nice-to-have enhancements
-
----
-
-**Usage Examples**:
-- `/review` - Review current context
-- `/review @src/components/Button.tsx` - Review specific file
-- `/review @src/**/*.cs` - Review multiple files
+Usage examples:
+- `/review` - Review the current committed and working-tree diff only
+- `/review @src/components/Button.tsx` - Review one explicit file
+- `/review HEAD~1..HEAD` - Review one explicit commit range

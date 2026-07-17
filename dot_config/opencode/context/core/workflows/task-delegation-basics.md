@@ -135,6 +135,15 @@ task(
 
 ---
 
+## Review Delegation Boundary
+
+- Only the calling primary agent routes a review. `TaskManager` may plan large-review slices but never dispatches them.
+- Each slice must provide the diff/files, standards, evidence, focus, and suggested terminal reviewer.
+- `CodeReviewer` and `dotnet-code-reviewer` review only their supplied slice. They do not run `ContextScout`, `TaskManager`, `explore`, or another reviewer.
+- A specialist with insufficient evidence returns `## Missing Information` to its caller; it does not broaden the review scope.
+
+---
+
 ## Related
 
 - `task-delegation-specialists.md` - When to delegate to which specialist

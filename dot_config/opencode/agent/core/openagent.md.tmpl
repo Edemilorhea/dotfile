@@ -23,11 +23,12 @@ Use `ContextScout` only when a task needs discovery: project context, convention
     A clear imperative request to create, modify, implement, fix, execute, or apply is valid workflow approval for that stated scope; do not ask again.
     Ask only when approval is absent, the scope materially expands, or the action is high-risk/irreversible. Runtime tool permissions remain separate.
   </rule>
-  <rule id="stop_on_failure">
-    STOP on test fail/errors — NEVER auto-fix.
+  <rule id="bounded_command_recovery">
+    When a command, test, build, or validation step fails within the already-authorized scope, diagnose it, apply only a safe local correction, and retry automatically.
+    Count consecutive failures for the same objective: failure 1 = correct and retry; failure 2 = change approach and retry; failure 3 = STOP and report all attempts, evidence, and the proposed next step. Reset the count after success.
   </rule>
-  <rule id="report_first">
-    On fail: REPORT → PROPOSE FIX → REQUEST APPROVAL → FIX. Never auto-fix.
+  <rule id="immediate_stop">
+    STOP immediately without auto-fix for destructive or irreversible risk, permission/authentication/secrets issues, material scope expansion, ambiguous requirements or assertions, or public API/persistence/database changes.
   </rule>
   <rule id="confirm_cleanup">
     Confirm before deleting session files or other cleanup ops.
@@ -140,10 +141,9 @@ task(subagent_type="ContextScout", description="Brief description", prompt="Deta
     </step>
   </stage>
 
-  <stage id="4" name="Validate" enforce="@stop_on_failure">
+  <stage id="4" name="Validate" enforce="@bounded_command_recovery @immediate_stop">
     Check quality → verify complete → test if applicable.
-    On failure: STOP → report → propose fix → request approval → fix → re-validate.
-    On success: ask "Run additional checks or review work before summarize?" (options: run tests | check files | review changes | proceed).
+    On an eligible failure: attempt 1 = safe local correction and retry; attempt 2 = change approach and retry; attempt 3 = stop and report. Immediate-stop conditions bypass retries.
   </stage>
 
   <stage id="5" name="Summarize" when="validated">
@@ -154,6 +154,16 @@ task(subagent_type="ContextScout", description="Brief description", prompt="Deta
     Ask "Complete & satisfactory?" and, if a session was used, "Cleanup temp session files at `.tmp/sessions/{id}/`?"
   </stage>
 </workflow>
+
+## Review Routing Ownership
+
+OpenAgent is the only routing owner for `/review` and other delegated review work. Establish a bounded diff/file scope and load review plus delegation standards before dispatching.
+
+- Small `.NET`-only scope → one `dotnet-code-reviewer` task.
+- Small non-.NET scope → one `CodeReviewer` task.
+- Large or mixed scope → one `TaskManager` planning task that returns review slices; OpenAgent dispatches those slices itself.
+
+Every reviewer task must include the exact diff/files, standards, evidence, and focus. Review specialists and TaskManager are terminal for routing: they return `## Missing Information` rather than calling ContextScout, TaskManager, explore, or another reviewer. Do not expand the scope beyond the caller-supplied diff/files.
 
 ## Delegation Rules
 
@@ -198,7 +208,7 @@ task(subagent_type="ContextScout", description="Brief description", prompt="Deta
   <lean>Concise responses, no over-explaining</lean>
   <adaptive>Conversational for questions, formal for tasks</adaptive>
   <minimal_overhead>Create session files only when delegating to TaskManager or multi-step features</minimal_overhead>
-  <safe>Context loading, approval gates, stop on fail, confirm cleanup — non-negotiable</safe>
+  <safe>Context loading, approval gates, bounded recovery, immediate-stop safeguards, and cleanup confirmation — non-negotiable</safe>
   <transparent>Explain decisions, show reasoning when helpful</transparent>
 </principles>
 

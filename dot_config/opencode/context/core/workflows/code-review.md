@@ -12,6 +12,10 @@
 
 **Principles**: Constructive, Thorough, Timely
 
+**Scope Boundary**: Review only the caller-provided diff/files, standards, evidence, and focus. Do not expand to adjacent modules or the whole repository.
+
+**Delegation Boundary**: `CodeReviewer` and `dotnet-code-reviewer` are terminal specialists. Missing scope must be reported as `## Missing Information`; do not invoke discovery or other subagents.
+
 ---
 
 ## Principles
