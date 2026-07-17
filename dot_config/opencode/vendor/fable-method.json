@@ -1,0 +1,35 @@
+{
+  "name": "fable-method",
+  "repository": "https://github.com/Sahir619/fable-method",
+  "tag": "v1.4.0",
+  "commit": "88b5cf36b10ee3679e08ee0f0181b9774d481508",
+  "importedAt": "2026-07-17",
+  "license": "MIT",
+  "installedSkills": [
+    "fable-method",
+    "fable-loop",
+    "fable-judge"
+  ],
+  "excluded": [
+    "fable-domain",
+    "eval"
+  ],
+  "files": {
+    "LICENSE": "1eb2ca647791ae230a68115279eb553f12cf2ae13f81385f69299f09fb0b278d",
+    "skills/fable-method/SKILL.md": "350dc7de363a2e60f08f70799785fad4ecea752087e9e3c28c4a5204e02a9119",
+    "skills/fable-loop/SKILL.md": "418fec1c71f0775e063ef16fceccb4e5d82c853c01bb1d4fd0a198a69bae2871",
+    "skills/fable-judge/SKILL.md": "e2dc7587421373c98322d50ae7ea042d4f20b44e21c8f8097f0f59916e918fba",
+    "skills/fable-method/references/examples.md": "e2972066cbfe5c61446c7c650b5ea05d916a6e464bb9ccb06f7e17b94b76f5a0",
+    "skills/fable-method/references/flowcharts.md": "46adcaabf4e56df8535d0cf36b0456cab352e7b94fa5bda9e71ac1d6b8592952",
+    "skills/fable-method/references/failure-modes.md": "bb2ea8a6ed15328d7f0271c9f4e6898d7316763703cbf545528f1a1807dab07b",
+    "skills/fable-method/references/domains/TEMPLATE.md": "92950c85aea3eda2afdc1dda3444b50f66fdd43af05556d014e33e31ad5c9c90",
+    "skills/fable-method/references/domains/research.md": "85e4f28052248aeddae2736f51dcda4b9760faddcd5ec57f5914139f499556ba",
+    "skills/fable-method/references/domains/marketing.md": "dc78129b4b462d7d93fba1a00ffe0c984f274060436ae42840093eab10dab3b0",
+    "skills/fable-method/references/domains/legal-compliance.md": "57e89e74f12b1887422f29130563f5389e98b5708891567bf9cd6ff05c6973eb",
+    "skills/fable-method/references/domains/finance.md": "8388a575d8c85291ad6ce90ab459249ac9ec30b6ae6a21465003617dfda0e808",
+    "skills/fable-method/references/domains/devops.md": "9ce6b61f8797e94ce94702fed58cfe85e3f0183bb6a9964ed244b9f777302f62",
+    "skills/fable-method/references/domains/design-ux.md": "ee65482ad05fa3af2221dc476c764c41ce49b38213b686f62ad50a509ddbf9b0",
+    "skills/fable-method/references/domains/data-analysis.md": "e750aac840c36852926d9fa780de5d88c81fb310176f8017d513f54c6d72c767",
+    "skills/fable-method/references/domains/business-ops.md": "bcf666891f4c6fc2178e5602987c778d7b829ec053d38855bb44b3f808b00328"
+  }
+}
