@@ -10,7 +10,7 @@ export interface LocuTask extends JsonObject {
   id: string
   name: string
   type: "jira" | "linear" | "locu"
-  done: boolean
+  done: "completed" | "canceled" | null
 }
 
 export interface LocuSession extends JsonObject {
@@ -94,7 +94,11 @@ function isLocuTask(value: unknown): value is LocuTask {
     && typeof value.id === "string"
     && typeof value.name === "string"
     && (value.type === "jira" || value.type === "linear" || value.type === "locu")
-    && typeof value.done === "boolean"
+    && isTaskCompletionState(value.done)
+}
+
+function isTaskCompletionState(value: unknown): value is LocuTask["done"] {
+  return value === "completed" || value === "canceled" || value === null
 }
 
 function isLocuSession(value: unknown): value is LocuSession {

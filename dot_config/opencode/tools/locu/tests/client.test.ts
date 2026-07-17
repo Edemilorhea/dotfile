@@ -60,12 +60,12 @@ test("listAllTasks follows pagination cursors and validates tasks", async () => 
 
     return Response.json(callCount === 1
       ? {
-          data: [{ id: "task-1", name: "First task", type: "locu", done: false }],
+          data: [{ id: "task-1", name: "First task", type: "locu", done: null }],
           nextCursor: "next-task-page",
           hasMore: true,
         }
       : {
-          data: [{ id: "task-2", name: "Second task", type: "linear", done: true }],
+          data: [{ id: "task-2", name: "Second task", type: "linear", done: "completed" }],
           nextCursor: null,
           hasMore: false,
         })
@@ -81,6 +81,17 @@ test("listAllTasks follows pagination cursors and validates tasks", async () => 
 test("listTasks rejects task payloads without required worklog fields", async () => {
   const fetchFn = async () => Response.json({
     data: [{ id: "task-without-name" }],
+    nextCursor: null,
+    hasMore: false,
+  })
+  const client = createLocuClient({ fetchFn: fetchFn as typeof fetch, token: "test-token" })
+
+  expect(client.listTasks()).rejects.toThrow("Locu returned an invalid task response.")
+})
+
+test("listTasks rejects legacy boolean completion values", async () => {
+  const fetchFn = async () => Response.json({
+    data: [{ id: "task-1", name: "First task", type: "locu", done: false }],
     nextCursor: null,
     hasMore: false,
   })

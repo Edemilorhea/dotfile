@@ -1,6 +1,6 @@
 import { tool } from "@opencode-ai/plugin/tool"
-import { createLocuClient } from "./client"
-import { resolveLocuToken } from "./config"
+import { createLocuClient } from "./locu/client"
+import { resolveLocuToken } from "./locu/config"
 
 const MAX_LIMIT = 100
 
