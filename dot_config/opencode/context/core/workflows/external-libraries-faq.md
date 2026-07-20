@@ -7,17 +7,9 @@
 
 ## When exactly should I use ExternalScout?
 
-**ALWAYS when working with external packages.**
+Use it when the task actively uses, changes, configures, or diagnoses an external package and a current API, version, or setup fact remains uncertain after checking local evidence.
 
-**Triggers:**
-- User mentions library
-- `import`/`require` statements
-- package.json deps
-- Build errors
-- First-time setup
-- Version upgrades
-
-**Rule**: If it's not in `/c/Users/tc_tseng/.config/opencode/context/`, use ExternalScout.
+**Typical triggers:** first-time setup, version upgrades, dependency errors, or integration changes whose required current behavior is not established locally. Mentions, imports, and package.json entries alone are not triggers.
 
 ---
 
@@ -29,7 +21,7 @@ Example: You think "I know Next.js, I'll use pages/"
 Reality: Next.js 15 uses app/  
 Result: Broken code ❌
 
-**Always fetch current docs, even if you "know" the library.**
+Verify task-relevant current facts from installed source, lockfiles, existing verified usage, or current docs. Use ExternalScout only when local evidence does not resolve the uncertainty.
 
 ---
 
@@ -39,13 +31,13 @@ Result: Broken code ❌
 
 **NOT external:** Your project's code | Project utilities | Internal modules
 
-**Check:** Is it in `package.json` dependencies? → External → Use ExternalScout
+**Check:** Is the task changing or diagnosing it, and is a current fact unresolved? → Consider ExternalScout
 
 ---
 
 ## Can I use both ContextScout and ExternalScout?
 
-**YES! Use both for most features.**
+Yes, when both an internal-standards path and a current-library fact are genuinely unknown. Do not call either agent when the caller already supplied sufficient evidence.
 
 ```javascript
 // 1. ContextScout: Project standards
@@ -129,7 +121,7 @@ task(
 | **Use for** | "How we do things here" | "How this library works" |
 | **Speed** | Fast (local) | Slower (network) |
 
-**Use both together for best results.**
+Use only the source needed to close the identified evidence gap.
 
 ---
 
@@ -137,9 +129,9 @@ task(
 
 Before implementing with external libraries:
 
-- [ ] Used ContextScout for project standards?
+- [ ] Used supplied project standards, or ContextScout only if their path was unknown?
 - [ ] Checked for install scripts first?
-- [ ] Used ExternalScout for EACH external library?
+- [ ] Resolved each concrete current-library uncertainty from local evidence or ExternalScout?
 - [ ] Asked for installation steps?
 - [ ] Asked for current API patterns?
 - [ ] Read returned docs before coding?

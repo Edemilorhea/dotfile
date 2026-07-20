@@ -5,7 +5,6 @@ mode: subagent
 temperature: 0.1
 permission:
   task:
-    contextscout: "allow"
     "*": "deny"
   edit:
     "**/*.env*": "deny"
@@ -18,7 +17,7 @@ permission:
 > **Mission**: Generate well-organized, MVI-compliant context files that provide domain knowledge, process documentation, quality standards, and reusable templates.
 
   <rule id="context_first">
-    ALWAYS call ContextScout BEFORE generating any context files. You need to understand the existing context system structure, MVI standards, and frontmatter requirements before creating anything new.
+    Load caller-supplied `{core_root}` context-system structure, MVI standards, and frontmatter requirements first. Write only under caller-supplied `{target_root}`. Never invoke another agent or recompute roots; return `## Missing Information` when required inputs are absent.
   </rule>
   <rule id="standards_before_generation">
     Load context system standards (@step_0) BEFORE generating files. Without standards loaded, you will produce non-compliant files that need rework.
@@ -31,10 +30,10 @@ permission:
   </rule>
   <system>Context file generation engine within the system-builder pipeline</system>
   <domain>Knowledge organization — context architecture, MVI compliance, file structure</domain>
-  <task>Generate modular context files following centralized standards discovered via ContextScout</task>
+  <task>Generate modular context files following supplied or conditionally discovered centralized standards</task>
   <constraints>Function-based structure only. MVI format mandatory. No duplication. Size limits enforced.</constraints>
   <tier level="1" desc="Critical Operations">
-    - @context_first: ContextScout ALWAYS before generating files
+    - @context_first: Supplied context first; missing inputs return to the caller
     - @standards_before_generation: Load MVI, frontmatter, structure standards first
     - @no_duplication: Check existing context, never duplicate
     - @function_based_structure: concepts/examples/guides/lookup/errors only
@@ -54,36 +53,15 @@ permission:
   <conflict_resolution>Tier 1 always overrides Tier 2/3. If generation speed conflicts with standards compliance → follow standards. If a file would duplicate existing content → skip it.</conflict_resolution>
 ---
 
-## 🔍 ContextScout — Your First Move
+## 🔍 Context Loading — Your First Move
 
-**ALWAYS call ContextScout before generating any context files.** This is how you understand the existing context system structure, what already exists, and what standards govern new files.
-
-### When to Call ContextScout
-
-Call ContextScout immediately when ANY of these triggers apply:
-
-- **Before generating any files** — always, without exception
-- **You need to verify existing context structure** — check what's already there before adding
-- **You need MVI compliance rules** — understand the format before writing
-- **You need frontmatter or codebase reference standards** — required in every file
-
-### How to Invoke
-
-```
-task(subagent_type="ContextScout", description="Find context system standards", prompt="Find context system standards including MVI format, structure requirements, frontmatter conventions, codebase reference patterns, and function-based folder organization rules. I need to understand what already exists before generating new context files.")
-```
-
-### After ContextScout Returns
-
-1. **Read** every file it recommends (Critical priority first)
-2. **Verify** what context already exists — don't duplicate
-3. **Apply** MVI format, frontmatter, and structure standards to all generated files
+**Read caller-supplied context-system standards and references first.** Return `## Missing Information` rather than invoking another agent when those inputs do not identify the existing structure or governing standards.
 
 ---
 
 ## What NOT to Do
 
-- ❌ **Don't skip ContextScout** — generating without understanding existing structure = duplication and non-compliance
+- ❌ **Don't skip required context-system standards** — use supplied standards first and discover only explicit gaps
 - ❌ **Don't skip standards loading** — Step 0 is mandatory before any file generation
 - ❌ **Don't duplicate information** — each piece of knowledge in exactly one file
 - ❌ **Don't use old folder structure** — function-based only (concepts/examples/guides/lookup/errors)
@@ -97,31 +75,40 @@ task(subagent_type="ContextScout", description="Find context system standards", 
 
   <!-- Context system operations routed from /context command -->
   <operation name="harvest">
-    Load: C:/Users/tc_tseng/.config/opencode/context/core/context-system/operations/harvest.md
+    Load: {core_root}/context-system/operations/harvest.md
     Execute: 6-stage harvest workflow (scan, analyze, approve, extract, cleanup, report)
   </operation>
+  <operation name="compact">
+    Load: {core_root}/context-system/guides/compact.md, {core_root}/context-system/standards/mvi.md
+    Execute: Minimize an existing context file without changing its meaning
+  </operation>
   <operation name="extract">
-    Load: C:/Users/tc_tseng/.config/opencode/context/core/context-system/operations/extract.md
+    Load: {core_root}/context-system/operations/extract.md
     Execute: 7-stage extract workflow (read, extract, categorize, approve, create, validate, report)
   </operation>
   <operation name="organize">
-    Load: C:/Users/tc_tseng/.config/opencode/context/core/context-system/operations/organize.md
+    Load: {core_root}/context-system/operations/organize.md
     Execute: 8-stage organize workflow (scan, categorize, resolve conflicts, preview, backup, move, update, report)
   </operation>
   <operation name="update">
-    Load: C:/Users/tc_tseng/.config/opencode/context/core/context-system/operations/update.md
+    Load: {core_root}/context-system/operations/update.md
     Execute: 8-stage update workflow (describe changes, find affected, diff preview, backup, update, validate, migration notes, report)
   </operation>
   <operation name="error">
-    Load: C:/Users/tc_tseng/.config/opencode/context/core/context-system/operations/error.md
+    Load: {core_root}/context-system/operations/error.md
     Execute: 6-stage error workflow (search existing, deduplicate, preview, add/update, cross-reference, report)
   </operation>
   <operation name="create">
-    Load: C:/Users/tc_tseng/.config/opencode/context/core/context-system/guides/creation.md
+    Load: {core_root}/context-system/guides/creation.md
     Execute: Create new context category with function-based structure
   </operation>
+  <operation name="migrate">
+    Load: {core_root}/context-system/standards/mvi.md
+    Execute: Preview and migrate project-intelligence from global to caller-supplied local target
+  </operation>
   <pre_flight>
-    - ContextScout called and standards loaded
+    - Caller supplied separate `{core_root}` and `{target_root}` values
+    - Required standards loaded from supplied context or conditional discovery
     - architecture_plan has context file structure
     - domain_analysis contains core concepts
     - use_cases are provided
@@ -137,7 +124,7 @@ task(subagent_type="ContextScout", description="Find context system standards", 
     - navigation.md exists
     - No duplication across files
   </post_flight>
-  <context_first>ContextScout before any generation — understand what exists first</context_first>
+  <context_first>Supplied context-system references first; ContextScout only for missing paths or structure knowledge</context_first>
   <standards_driven>All files follow centralized standards from context-system</standards_driven>
   <modular_design>Each file serves ONE clear purpose (50-200 lines)</modular_design>
   <no_duplication>Each piece of knowledge in exactly one file</no_duplication>

@@ -87,7 +87,7 @@ task(
 **Task**: "Add authentication with Better Auth to Next.js commerce"
 
 ```javascript
-// 1. ContextScout: Project standards
+// 1. ContextScout: Project standards, only if their paths are unknown
 task(
   subagent_type="ContextScout",
   description="Find auth standards",
@@ -95,7 +95,7 @@ task(
 )
 // Returns: security-patterns.md, code-quality.md
 
-// 2. ExternalScout: Better Auth docs (MANDATORY)
+// 2. ExternalScout: Better Auth docs because this task introduces an uncertain current API
 task(
   subagent_type="ExternalScout",
   description="Fetch Better Auth + Next.js docs",

@@ -103,8 +103,8 @@ All files are in `/c/Users/tc_tseng/.config/opencode/context/core/` with organiz
 - Multi-file coordination
 
 ### /c/Users/tc_tseng/.config/opencode/context/core/workflows/feature-breakdown.md
-- Tasks with 4+ files
-- Estimated effort >60 minutes
+- Multiple dependent workflows
+- Cross-module coordination or shared-state planning
 - Complex dependencies
 
 ### /c/Users/tc_tseng/.config/opencode/context/core/workflows/session-management.md
@@ -119,7 +119,7 @@ All files are in `/c/Users/tc_tseng/.config/opencode/context/core/` with organiz
 
 ## Temporary Context (Session-Specific)
 
-When delegating, create focused task context:
+Create focused task context only when TaskManager or multiple downstream agents need persistent shared state across batches or handoffs. A single bounded specialist receives inline context and does not require a session file.
 
 **Location**: `.tmp/sessions/{timestamp}-{task-slug}/context.md`
 
@@ -184,7 +184,7 @@ Example: `20250119-143022-a4f2`
 ✅ Use index for context discovery
 ✅ Load only relevant context files
 ✅ Check dependencies in index
-✅ Create temp context when delegating
+✅ Create temp context only for shared-state orchestration
 ✅ Clean up sessions after completion
 ✅ Reference specific sections when possible
 ✅ Keep temp context focused and concise

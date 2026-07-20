@@ -8,19 +8,22 @@ dependencies:
 
 # Context Manager
 
-## Storage Policy
+## Root Resolution
 
-Load operation instructions from `C:/Users/tc_tseng/.config/opencode/context/core/context-system/`.
+Resolve the roots once before every operation. Keep them separate:
 
-Use this target resolver before every operation that writes context:
+1. `{local_root}` = `{project_root}/.opencode/context/` when running in a repository.
+2. `{global_root}` = `C:/Users/tc_tseng/.config/opencode/context/`.
+3. `{core_root}` = `{local_root}/core/` only when `{local_root}/core/navigation.md` exists; otherwise use `{global_root}/core/` when `{global_root}/core/navigation.md` exists.
+4. `{target_root}` = `{global_root}` with `--global`; otherwise `{local_root}` when running in a repository.
 
-1. `--global` → `C:/Users/tc_tseng/.config/opencode/context/`.
-2. In a repository without `--global` → `{project_root}/.opencode/context/`.
-3. Outside a repository without `--global` → do not write; ask the user to either select a project directory or rerun with `--global`.
+The absence of `{local_root}/core/` is valid for a global OAC installation. Never resolve all context to one root: core standards may come from global while project intelligence comes from local.
+
+Outside a repository without `--global`, do not write and do not guess a project root. Ask the user to select a project directory or rerun with `--global`.
 
 Project context contains architecture, patterns, decisions, and project-specific errors. It should be committed with the project. Global context contains reusable personal standards and defaults. A project context overrides global context.
 
-Do not write project knowledge into the global core standards directory. The global `core/context-system/` directory contains only the command's operating instructions.
+Do not write project knowledge into `{core_root}`. Core is read-only operating guidance; generated project knowledge belongs under `{target_root}`.
 
 ## Safety Rules
 
@@ -38,6 +41,10 @@ Scan the current workspace for summaries and suggest the appropriate operation. 
 ### `/context harvest [path]`
 
 Extract durable project knowledge from summaries or `.tmp/` files. Write it to the resolved target root. Show files proposed for cleanup and require approval before cleanup.
+
+### `/context compact {file}`
+
+Minimize an existing context file to MVI format under `{target_root}` without changing its meaning.
 
 ### `/context extract from {source}`
 
@@ -61,7 +68,13 @@ Create a context category in the resolved target root after showing the intended
 
 ### `/context map [category]` and `/context validate`
 
-Read-only operations. Inspect the resolved project root when in a repository; otherwise inspect the global root only when explicitly requested with `--global`.
+Read-only operations. Inspect `{target_root}`. Load governing standards from `{core_root}`, but do not require `{target_root}/core/` to exist.
+
+For `validate`:
+
+- Validate files and navigation links that actually exist under `{target_root}`.
+- A project with only `project-intelligence/` is valid; start from its category navigation when no root `navigation.md` exists.
+- Report a missing `{core_root}` separately as an installation problem. Never report missing `{target_root}/core/context-system/` when global core fallback resolved successfully.
 
 ### `/context migrate`
 
@@ -81,10 +94,25 @@ Require a repository. Preview differences, request approval before overwriting l
 
 ## Delegation
 
-- `harvest`, `extract`, `organize`, `update`, `error`, `create`, and `migrate` → ContextOrganizer.
+- `harvest`, `compact`, `extract`, `organize`, `update`, `error`, `create`, and `migrate` → ContextOrganizer.
 - `map` and `validate` → ContextScout.
 
-Pass the resolved target root, the global operation-instruction path, and the safety rules to the subagent. Do not let a subagent infer a global write target from a global OpenCode installation.
+Pass the operation, `{project_root}`, `{local_root}`, `{global_root}`, `{core_root}`, `{target_root}`, and safety rules to the subagent. Resolved roots are authoritative: the subagent must not recompute them or infer a global write target from a global installation.
+
+## Lazy Loading
+
+Load operation guides relative to `{core_root}/context-system/`:
+
+| Operation | Required guides |
+|---|---|
+| `harvest` | `operations/harvest.md`, `standards/mvi.md`, `guides/workflows.md` |
+| `compact` | `guides/compact.md`, `standards/mvi.md` |
+| `extract` | `operations/extract.md`, `standards/mvi.md`, `guides/compact.md`, `guides/workflows.md` |
+| `organize` | `operations/organize.md`, `standards/structure.md`, `guides/workflows.md` |
+| `update` | `operations/update.md`, `guides/workflows.md`, `standards/mvi.md` |
+| `error` | `operations/error.md`, `standards/templates.md`, `guides/workflows.md` |
+| `create` | `guides/creation.md`, `standards/structure.md`, `standards/templates.md` |
+| `migrate` | `standards/mvi.md` |
 
 ## Examples
 
@@ -105,6 +133,7 @@ Pass the resolved target root, the global operation-instruction path, and the sa
 ## Success Criteria
 
 - Target root was resolved before writing.
+- Core and target roots were resolved independently.
 - Project output is never written globally without `--global`.
 - Global core instructions remain unchanged by project operations.
 - Cleanup and overwrite actions were explicitly approved.

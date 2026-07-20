@@ -3,4 +3,5 @@ alias tl = tldr
 alias nav = navi
 alias bunx = bun
 alias tlzh = tldrzhtw
+alias oc = opencode
 if $nu.os-info.name == "windows" { alias occmd = cmd /c opencode }

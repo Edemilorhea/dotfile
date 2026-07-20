@@ -26,6 +26,15 @@
         "google",
         "nvidia"
     ],
+    "provider": {
+        "openai": {
+            "options": {
+                "headerTimeout": 60000,
+                "timeout": 600000,
+                "chunkTimeout": 60000
+            }
+        }
+    },
     "mcp": {
         "notebooklm": {
             "type": "local",
@@ -47,6 +56,24 @@
             "command": [
                 "markitdown-mcp"
             ],
+            "enabled": true
+        },
+        "office-mcp": {
+            "type": "local",
+            "command": [
+                "C:\\Users\\tc_tseng\\.local\\share\\opencode\\office-mcp\\.venv\\Scripts\\python.exe",
+                "C:\\Users\\tc_tseng\\.local\\share\\opencode\\office-mcp\\server.py"
+            ],
+            "enabled": true,
+            "env": {
+                "PYTHONUTF8": "1",
+                "PYTHONIOENCODING": "utf-8",
+                "OFFICE_MCP_DEFAULT_FOLDER": "C:\\Users\\tc_tseng\\Documents"
+            }
+        },
+        "figma": {
+            "type": "remote",
+            "url": "http://127.0.0.1:3845/mcp",
             "enabled": true
         }
     },
@@ -519,7 +546,7 @@
             }
         },
         "OpenCoder": {
-            "model": "openai/gpt-5.6-terra",
+            "model": "openai/gpt-5.6-sol",
             "permission": {
                 "skill": {
                     "*": "allow",
@@ -528,7 +555,7 @@
             }
         },
         "TaskManager": {
-            "model": "anthropic/claude-opus-4-8"
+            "model": "openai/gpt-5.6-sol"
         },
         "ContextScout": {
             "model": "openai/gpt-5.6-sol"
@@ -537,115 +564,61 @@
             "model": "openai/gpt-5.6-sol"
         },
         "CodeReviewer": {
-            "model": "anthropic/claude-opus-4-8"
+            "model": "openai/gpt-5.6-sol"
         },
         "dotnet-code-reviewer": {
-            "model": "anthropic/claude-opus-4-8"
+            "model": "openai/gpt-5.6-sol"
         },
         "ContextOrganizer": {
-            "model": "anthropic/claude-opus-4-6"
+            "model": "openai/gpt-5.6-sol"
         },
         "Navigator": {
-            "model": "anthropic/claude-opus-4-6"
+            "model": "openai/gpt-5.6-sol"
         },
         "Mentor": {
-            "model": "anthropic/claude-opus-4-6"
+            "model": "openai/gpt-5.6-terra"
         },
         "Facilitator": {
-            "model": "anthropic/claude-opus-4-6"
+            "model": "openai/gpt-5.6-sol"
         },
         "Deconstructor": {
-            "model": "anthropic/claude-opus-4-6"
+            "model": "openai/gpt-5.6-sol"
         },
         "Skeptic": {
-            "model": "anthropic/claude-opus-4-8"
+            "model": "openai/gpt-5.6-sol"
         },
         "RedTeam": {
-            "model": "anthropic/claude-opus-4-8"
+            "model": "openai/gpt-5.6-sol"
         },
         "Simplifier": {
-            "model": "anthropic/claude-opus-4-8"
+            "model": "openai/gpt-5.6-sol"
         },
         "CoderAgent": {
-            "model": "anthropic/claude-sonnet-5"
+            "model": "openai/gpt-5.6-terra"
         },
         "TestEngineer": {
             "model": "openai/gpt-5.6-terra"
         },
         "OpenFrontendSpecialist": {
-            "model": "anthropic/claude-sonnet-5"
+            "model": "openai/gpt-5.6-sol"
         },
         "OpenDevopsSpecialist": {
-            "model": "anthropic/claude-sonnet-5"
+            "model": "openai/gpt-5.6-sol"
         },
         "BuildAgent": {
-            "model": "openai/gpt-5.6-luna"
+            "model": "openai/gpt-5.6-terra"
         },
         "DocWriter": {
-            "model": "anthropic/claude-sonnet-4-6"
+            "model": "openai/gpt-5.6-terra"
         },
         "OpenTechnicalWriter": {
-            "model": "anthropic/claude-sonnet-4-6"
+            "model": "openai/gpt-5.6-terra"
         },
         "OpenCopywriter": {
-            "model": "anthropic/claude-sonnet-4-6"
+            "model": "openai/gpt-5.6-terra"
         },
         "OpenDataAnalyst": {
             "model": "openai/gpt-5.6-luna"
         },
-        // === Subagent model assignments ===
-        // Planning / review tier: opus / fable-5
-        // "TaskManager": {
-        //     "model": "anthropic/claude-opus-4-8"
-        // },
-        // "ContextScout": {
-        //     "model": "anthropic/claude-fable-5"
-        // },
-        // "CodeReviewer": {
-        //     "model": "anthropic/claude-opus-4-8"
-        // },
-        // "dotnet-code-reviewer": {
-        //     "model": "anthropic/claude-opus-4-8"
-        // },
-        // "ContextOrganizer": {
-        //     "model": "anthropic/claude-fable-5"
-        // },
-        // "Navigator": {
-        //     "model": "anthropic/claude-fable-5"
-        // },
-        // "Facilitator": {
-        //     "model": "anthropic/claude-opus-4-8"
-        // },
-        // // Implementation / execution tier: sonnet-4.6 / kimi-2.6 / gpt-5.5
-        // "CoderAgent": {
-        //     "model": "anthropic/claude-sonnet-4-6"
-        // },
-        // "TestEngineer": {
-        //     "model": "opencode-go/kimi-k2.6"
-        // },
-        // "BuildAgent": {
-        //     "model": "anthropic/claude-sonnet-4-6"
-        // },
-        // "DocWriter": {
-        //     "model": "openai/gpt-5.5"
-        // },
-        // "OpenFrontendSpecialist": {
-        //     "model": "anthropic/claude-sonnet-4-6"
-        // },
-        // "OpenDevopsSpecialist": {
-        //     "model": "openai/gpt-5.5"
-        // },
-        // "ExternalScout": {
-        //     "model": "opencode-go/kimi-k2.6"
-        // },
-        // "Deconstructor": {
-        //     "model": "anthropic/claude-sonnet-4-6"
-        // },
-        // "Mentor": {
-        //     "model": "anthropic/claude-sonnet-4-6"
-        // },
-        // "Eval Runner": {
-        //     "model": "anthropic/claude-sonnet-4-6"
-        // }
     }
 }

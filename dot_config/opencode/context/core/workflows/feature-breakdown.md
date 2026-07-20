@@ -4,7 +4,7 @@
 
 ## Quick Reference
 
-**When to Use**: 4+ files, >60 min effort, complex dependencies, multi-step coordination
+**When to Use**: Multiple dependent workflows, cross-module integration, task-graph/shared-state needs, or explicit breakdown requests
 
 **Process**: Scope → Phases → Small Tasks (1-2h) → Dependencies → Estimates
 
@@ -19,11 +19,13 @@ Framework for breaking down complex tasks into manageable, sequential subtasks.
 
 ## When to Use
 Reference this when:
-- Task involves 4+ files
-- Estimated effort >60 minutes
+- Multiple workstreams have real ordering or integration dependencies
+- Work crosses modules/services or needs durable coordination state
 - Complex dependencies exist
 - Multi-step coordination needed
 - User requests task breakdown
+
+Do not trigger breakdown solely from file count or elapsed-time estimates. Multiple homogeneous locale/resource/config files can remain one bounded task.
 
 ## Breakdown Process
 
@@ -40,7 +42,7 @@ Reference this when:
 - What depends on what?
 
 ### 3. Break Into Small Tasks
-- Each task should be 1-2 hours max
+- Split at dependency, ownership, and independently verifiable boundaries; time estimates are guidance, not a reason to fragment a coherent change
 - Clear, actionable items
 - Independently completable
 - Easy to verify completion

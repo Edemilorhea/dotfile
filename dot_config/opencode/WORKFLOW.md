@@ -17,25 +17,27 @@
 
 ### 3. SubAgent 三段式路由 (Routing Source of Truth)
 
-先判斷任務複雜度，再決定是否委派；`Context loading` 不等於必須呼叫 `ContextScout`。
+先依語意複雜度、相依性、風險與未知程度判斷，再決定是否委派；檔案數與預估時間只能作為弱訊號。`Context loading` 不等於必須呼叫 `ContextScout`。
 
 #### Direct Fast Path（不得自動委派）
 
 - 純問答、解釋、摘要，以及唯讀檔案／Git 查詢。
 - 已知且明確的單一步驟命令，包括一般 Git 操作。
-- 1–3 檔、低風險、路徑與範圍明確，且無需探索專案慣例或外部 API 的小修改、設定調整或 bug fix。
+- 路徑、範圍、意圖與驗證方式明確，且低風險、同模組／同一變更 surface、無需探索專案慣例或外部 API 的修改；即使涉及多個同構 locale、resource、snapshot 或 config 檔，也可直接處理。
 - 主 Agent 直接讀取已知的必要 standards 後執行；不得為增加儀式感而呼叫 `ContextScout` 或其他 SubAgent。
+- 優先最少交接：主 Agent 直接處理 > 單一 bounded specialist > `TaskManager`／多 Agent 編排。
 
 #### Auto Delegate（符合即自動委派）
 
-- 路徑、專案慣例、依賴或影響範圍未知 → `ContextScout`。
-- 外部套件／框架的版本、API 或設定不確定 → `ExternalScout`。
-- 4+ 檔、3+ 相依子任務、跨模組／跨服務、架構設計、大型重構，或複雜 migration／concurrency／security 工作 → `TaskManager`、`CoderAgent` 或對應專家。
+- 專案 standards／慣例 context 的位置未知 → `ContextScout`；source path、imports 或影響範圍未知時，先由主 Agent narrow grep/read，只有需要廣泛 codebase exploration 才使用 `explore`，不得把 ContextScout 當 source explorer。
+- 需要使用、改變或診斷外部套件／框架，且版本、API 或設定不確定 → `ExternalScout`；僅存在既有 import 不構成觸發條件。
+- 多個相依工作流、跨模組／跨服務整合、需要 task graph／共享狀態、架構設計、大型重構，或複雜 migration／concurrency／security 工作 → `TaskManager`、`CoderAgent` 或對應專家。
 - 使用者明確要求 SubAgent，或明確要求專業審查、測試撰寫、UI／DevOps 工作 → 對應專家。
+- 不得僅因檔案數達到某個門檻而自動委派；多個同構檔案通常視為一個變更 surface。
 
 #### Ambiguous（先詢問，不得自行委派）
 
-中等複雜度、約 2–4 檔，使用 SubAgent 可能有幫助但不是必要時，先詢問：
+中等複雜度且存在實質 routing 取捨，使用 SubAgent 可能有幫助但不是必要時，才先詢問：
 
 1. 主 Agent 直接處理（較快）
 2. 使用 SubAgent（較完整但較慢）

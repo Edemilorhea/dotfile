@@ -3,7 +3,7 @@
 
 **Purpose**: Fetch current documentation for external packages when adding agents or skills
 
-**When to Use**: Any time you're working with external libraries (Drizzle, Better Auth, Next.js, etc.)
+**When to Use**: When work actively uses, changes, configures, or diagnoses an external library and its current API, version, or setup is uncertain
 
 **Time to Read**: 5 minutes
 
@@ -11,17 +11,17 @@
 
 ## Quick Start
 
-**Golden Rule**: NEVER rely on training data for external libraries → ALWAYS fetch current docs
+**Golden Rule**: Resolve concrete current-library uncertainty from verified local evidence or current documentation; package mentions and existing imports alone do not trigger research
 
 **Process**:
-1. Detect external package in your task
-2. Check for install scripts (if first-time setup)
-3. Use **ExternalScout** to fetch current documentation
-4. Implement with fresh, version-specific knowledge
+1. Identify the concrete API/version/setup uncertainty
+2. Check verified local scripts, lockfiles, installed source, and existing usage first
+3. Use **ExternalScout** only if the uncertainty remains
+4. Implement with the verified evidence
 
 ---
 
-## When to Use ExternalScout (MANDATORY)
+## When to Use ExternalScout
 
 ✅ **Use ExternalScout when**:
 - Adding new agents that depend on external packages
@@ -29,7 +29,9 @@
 - First-time package setup in your implementation
 - Package/dependency errors occur
 - Version upgrades are needed
-- ANY external library work
+- Work that actively uses, changes, configures, or diagnoses an external library when its current API, version, or setup is uncertain
+
+Existing imports or already-verified local usage do not trigger ExternalScout by themselves.
 
 ❌ **Don't rely on**:
 - Training data (outdated, often wrong)
@@ -62,10 +64,9 @@ ExternalScout = working code ✅
 ### Step 1: Detect External Package
 
 **Triggers**:
-- User mentions a library name
-- You see imports in code
-- package.json has new dependencies
-- Build errors reference external packages
+- First-time setup or version upgrade needs current instructions
+- A dependency error requires current behavior or compatibility data
+- The task changes library integration and local evidence does not establish the required API/version/setup
 
 **Action**: Identify which external packages are involved
 
@@ -100,9 +101,9 @@ grep -r "postinstall\|preinstall" package.json
 
 ---
 
-### Step 3: Fetch Current Documentation (MANDATORY)
+### Step 3: Fetch Current Documentation (Conditional)
 
-**Use ExternalScout** to get live, version-specific documentation:
+**Use ExternalScout** only when the concrete uncertainty remains after checking local evidence:
 
 ```bash
 # Invoke ExternalScout via task tool
@@ -198,12 +199,12 @@ Before implementing with external libraries:
 
 - [ ] Identified all external packages involved
 - [ ] Checked for install scripts (if first-time)
-- [ ] Used ExternalScout to fetch current docs
+- [ ] Used verified local evidence or ExternalScout to resolve each concrete current-library uncertainty
 - [ ] Reviewed version-specific features
 - [ ] Documented dependencies in metadata
 - [ ] Added to registry with correct versions
 - [ ] Tested implementation thoroughly
-- [ ] Referenced ExternalScout docs in code comments
+- [ ] Recorded the relevant source in the implementation report when it materially affects the change
 
 ---
 
@@ -218,6 +219,4 @@ Before implementing with external libraries:
 
 ## Key Principle
 
-> **External libraries change constantly. Your training data is outdated. Always fetch current documentation before implementing.**
-
-This is not optional - it's the difference between working code and broken code.
+> **External libraries change constantly. Verify facts that matter to the task, but do not create research work from package mentions or already-established local usage.**

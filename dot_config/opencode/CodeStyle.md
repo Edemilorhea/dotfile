@@ -162,11 +162,11 @@ Dictionary<int, PlanTemplate> dbTemplateMapByFormId = dbPlanTemplates
 
 ### 5.1 可用的 SubAgent
 
-| SubAgent | 用途 | 自動觸發條件 |
+| SubAgent | 用途 | 使用條件 |
 |----------|------|-------------|
-| **ContextScout** | 發現專案內部的 context 文件(標準、模式、慣例) | 需要了解專案標準時 |
-| **ExternalScout** | 獲取外部框架/庫的最新文檔(Context7 API) | 提到 Tailwind、Drizzle、TanStack 等外部庫時 |
-| **CoderAgent** | 按順序執行編碼子任務,含自我審查 | 多步驟實作任務 |
+| **ContextScout** | 發現專案內部的 context 文件(標準、模式、慣例) | 必要 standards／慣例路徑未知時 |
+| **ExternalScout** | 獲取外部框架/庫的最新文檔(Context7 API) | 工作實際使用／修改／診斷外部套件，且 API／版本／設定不確定時 |
+| **CoderAgent** | 按順序執行編碼子任務,含自我審查 | 有界且適合單一 specialist 的實作；primary 可直接完成時不使用 |
 | **CodeReviewer** | 程式碼審查(正確性、安全性、質量) | 用戶要求 "review"、"審查" |
 | **TestEngineer** | 撰寫測試(TDD、正向/負向測試、AAA 模式) | 需要撰寫或更新測試時 |
 | **BuildAgent** | 類型檢查與建置驗證(唯讀) | 需要驗證建置是否成功時 |
@@ -182,27 +182,18 @@ Dictionary<int, PlanTemplate> dbTemplateMapByFormId = dbPlanTemplates
 
 | 情境 | 處理方式 |
 |---|---|
-| 純問答、唯讀檔案／Git 查詢、已知單一步驟命令 | 主 Agent 直接處理，不得委派 |
-| 1–3 檔、低風險、路徑與範圍明確的小修改 | 主 Agent 直接處理，不得委派 |
-| 路徑、慣例或影響範圍未知；跨模組；需確認專案模式 | `ContextScout` |
-| 外部套件／框架 API、版本或設定 | `ExternalScout`，必要時搭配 `ContextScout` |
-| 明確需要測試、文件、UI 或 DevOps 專業工作 | 對應專業 SubAgent |
+| 純問答、一般唯讀檔案／Git 查詢、已知單一步驟命令 | 主 Agent 直接處理，不得委派；使用者明確要求正式 review 時適用下方 review 例外 |
+| 低風險、同一變更 surface、路徑／意圖／驗證明確的修改（含多個同構 locale/resource/config 檔） | 主 Agent 直接處理，不得僅因檔案數委派 |
+| standards／慣例 context 位置未知 | `ContextScout`；source path／影響範圍由主 Agent narrow grep/read，必要時才用 `explore` |
+| 需使用、改變或診斷且 API／版本／設定不確定的外部套件 | `ExternalScout`；既有 import 本身不觸發 |
+| 明確需要測試、審查、文件、UI 或 DevOps 專業工作 | 對應專業 SubAgent |
 | 小型且 scope 明確的 .NET review | primary agent 一次委派 `dotnet-code-reviewer` |
 | 小型且 scope 明確的其他 review | primary agent 一次委派 `CodeReviewer` |
 | 大型或混合 review | `TaskManager` 只規劃 review slices，由 primary agent 分派 |
-| 4+ 檔、3+ 相依子任務或多元件實作 | `TaskManager`／`CoderAgent` |
-| 約 2–4 檔、委派有幫助但非必要 | 先用數字選項詢問主 Agent 直做或委派；不得自行委派 |
+| 多個相依工作流、跨模組整合、需 task graph／共享狀態或高風險實作 | `TaskManager`／`CoderAgent` |
+| 中等複雜度且有實質 routing 取捨 | 先用互動選單詢問主 Agent 直做或委派；不得自行委派 |
 
-**自動委派**(無需用戶明確要求):
-
-| 觸發條件 | 使用的 SubAgent |
-|----------|----------------|
-| 用戶要求 "review"、"審查"、"檢查程式碼" | primary agent 依 scope 路由至 .NET 或一般 terminal reviewer |
-| 用戶要求 "設計 UI"、"mockup"、"landing page" | `OpenFrontendSpecialist` |
-| 提到外部框架/庫(Tailwind、Drizzle、TanStack 等) | `ExternalScout` |
-| 需要了解專案標準或慣例 | `ContextScout` |
-| 用戶要求撰寫測試 | `TestEngineer` |
-| 用戶要求撰寫文檔 | `DocWriter` |
+正式 review、測試撰寫、文件、UI、DevOps 等明確 specialist 工作依上表與 `WORKFLOW.md §3` 路由；不得另設較寬鬆的關鍵字觸發表。
 
 **模糊情境的固定選項**:
 
@@ -214,7 +205,7 @@ Dictionary<int, PlanTemplate> dbTemplateMapByFormId = dbPlanTemplates
 * **明確告知用戶**:在委派前,簡要說明 "我將使用 XXX SubAgent 來處理 YYY 任務"
 * **結果整合**:SubAgent 完成後,你需要整合結果並給出簡潔總結,而不是直接轉發 SubAgent 的原始輸出
 * **失敗處理**:如果 SubAgent 失敗或結果不理想,你需要自己接手完成任務,而不是放棄
-* **按需使用 ContextScout**:僅在需要發現專案標準、慣例、路徑或影響範圍時使用；已知單檔、低風險任務不得為增加儀式感而委派
+* **按需使用 ContextScout**:僅用於發現 standards／慣例 context；不得用於全 repo source impact analysis。已知且 bounded 的低風險任務不得為增加儀式感而委派
 * **Review routing**: `OpenAgent`／`OpenCoder` 是同一 review 的唯一 routing owner；`TaskManager` 只規劃大型 review slices，`CodeReviewer` 與 `dotnet-code-reviewer` 收到完整 scope 後為 terminal specialist，不得再次委派或擴張 scope。
 
 ---

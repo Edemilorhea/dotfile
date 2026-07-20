@@ -3,11 +3,11 @@
 
 ## Quick Reference
 
-**Process**: Discover → Propose → Approve → Init Session → Persist Context → Delegate → Cleanup
+**Process**: Classify → Load supplied context → Discover only gaps → Delegate with inline or shared context → Validate → Cleanup
 
 **Location**: `.tmp/sessions/{YYYY-MM-DD}-{task-slug}/context.md`
 
-**Key Principle**: ContextScout discovers paths. The orchestrator persists them into context.md AFTER approval. Downstream agents read from context.md — no re-discovery.
+**Key Principle**: The orchestrator supplies bounded context. Downstream agents consume it without re-discovery; missing information is requested explicitly. ContextScout is only for unknown standards/convention context, not source-code impact analysis.
 
 **Subagent Type Names**: Use the exact frontmatter `name` values when invoking the task tool: `ContextScout`, `ExternalScout`, `TaskManager`, `CoderAgent`, `CodeReviewer`, `TestEngineer`, `BuildAgent`, `DocWriter`. Avoid historical aliases such as `Task Manager`, `Coder Agent`, `Reviewer`, `Build Agent`, or `Documentation`.
 
@@ -19,22 +19,22 @@
 
 Only create a session when:
 - User has **approved** the proposed approach (never before)
-- Task requires delegation to TaskManager or working agents
-- Task is complex enough to need shared context (4+ files, >60min)
+- TaskManager or multiple downstream agents need persistent shared context across batches/handoffs
+- Inline context would be duplicated or lose decisions/state between agents
 
-For simple tasks (1-3 files, direct execution): skip session creation entirely.
+For direct execution or a single bounded specialist/CoderAgent task: pass inline context and skip session creation, regardless of file count.
 
 ---
 
 ## The Flow
 
 ```
-Stage 1: DISCOVER   → ContextScout finds paths (read-only, nothing written)
-Stage 2: PROPOSE    → Show user lightweight summary (nothing written)
-Stage 3: APPROVE    → User says yes. NOW we can write.
-Stage 4: INIT       → Create session dir + context.md (persist discovered paths here)
-Stage 5: DELEGATE   → Pass session path to TaskManager / working agents
-Stage 6: CLEANUP    → Ask user, then delete session dir
+Stage 1: CLASSIFY   → Decide direct vs single specialist vs orchestration
+Stage 2: CONTEXT    → Use supplied paths; discover only missing standards
+Stage 3: APPROVE    → Only when authorization is absent or risk/scope changed
+Stage 4: DELEGATE   → Pass inline context, or init context.md only for shared state
+Stage 5: VALIDATE   → Targeted checks, then one integrated full validation
+Stage 6: CLEANUP    → Ask user, then delete session artifacts if any
 ```
 
 ---
@@ -87,16 +87,16 @@ Live docs fetched via ExternalScout. Read-only cache.
 
 ## Delegation Process
 
-**Step 1-3: Discover, Propose, Approve** (before any writes)
-- Call ContextScout, capture paths
-- Call ExternalScout if external libraries involved
-- Show user lightweight summary, wait for approval
+**Step 1-3: Classify, Context, Approve**
+- Use supplied context first; call ContextScout only for missing standards paths
+- Call ExternalScout only for uncertain current APIs actively used, changed, or diagnosed
+- Ask for approval only when not already supplied or when risk/scope materially changes
 
-**Step 4: Init Session** (first writes, after approval)
-- Create `.tmp/sessions/{YYYY-MM-DD}-{task-slug}/`
-- Write `context.md` with discovered paths
+**Step 4: Choose Delegation Form**
+- Single bounded specialist: send requirements, standards paths, references, constraints, and verification inline; do not create a session or call TaskManager.
+- Shared-state orchestration: create `.tmp/sessions/{YYYY-MM-DD}-{task-slug}/context.md`, then call TaskManager.
 
-**Step 5: Delegate**
+**Step 5: Delegate Shared Orchestration**
 ```javascript
 task(
   subagent_type="TaskManager",
@@ -106,7 +106,7 @@ task(
 )
 ```
 
-**Step 6: Cleanup**
+**Step 6: Cleanup (only if a session was created)**
 - Ask user: "Task complete. Clean up session files?"
 - If approved: Delete session directory
 
@@ -132,6 +132,8 @@ task(
 | **CoderAgent** | subtask JSON | Loads standards, references source, implements |
 | **TestEngineer** | session path | Writes tests against same standards |
 | **CodeReviewer** | session path | Reviews against applied standards |
+
+Downstream agents must not repeat discovery already completed by the caller. If supplied context is insufficient and discovering more would expand the bounded scope, return `## Missing Information` and stop.
 
 ---
 
