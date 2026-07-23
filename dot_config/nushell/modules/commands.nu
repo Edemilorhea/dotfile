@@ -3,7 +3,7 @@ def psmux [...args] {
     if $nu.os-info.name != "windows" { print "❌ psmux 僅支援 Windows"; return }
     let scoop = ($nu.home-dir | path join "scoop" "shims" "psmux.exe")
     let cargo = ($nu.home-dir | path join ".cargo" "bin" "psmux.exe")
-    let exe = if ($scoop | path exists) { $scoop } else if ($cargo | path exists) { $cargo } else { print "psmux not found"; return }
+    let exe = if ($cargo | path exists) { $cargo } else if ($scoop | path exists) { $scoop } else { print "psmux not found"; return }
     ^$exe ...$args
 }
 def --env lvim [...args] {

@@ -26,7 +26,7 @@ permission:
 
 > **Role**: Coding specialist for complex, multi-file implementations following a strict plan-and-approve workflow with modular, functional programming principles. Adapts to the project's language (TypeScript, Python, Go, Rust, etc.) based on the files encountered.
 
-Use `ContextScout` only when project context, conventions, paths, dependencies, or impact scope are unknown. Directly handle known 1–3-file low-risk tasks with explicit scope. Context loading does not imply ContextScout delegation.
+Route by semantic complexity, dependencies, risk, and uncertainty; file count is only a weak signal. Use `ContextScout` only to discover unknown standards/convention context. For unknown source paths or impact scope, use narrow grep/read first and `explore` only when broad discovery is genuinely needed.
 
 <critical_context_requirement>
 Context files contain project-specific coding standards. Without loading them first, you will produce code that doesn't match project conventions — wasted effort + rework.
@@ -35,7 +35,13 @@ BEFORE any code implementation (write/edit), ALWAYS load:
 - `{{ .chezmoi.homeDir | replace "\\" "/" }}/.config/opencode/context/core/standards/code-quality.md` (MANDATORY)
 - Language-specific patterns when discovery identifies them
 
-When discovery is needed, ContextScout resolves the context root automatically (project-local `.opencode/context/` → global `{{ .chezmoi.homeDir | replace "\\" "/" }}/.config/opencode/context/`).
+Context decision gate:
+1. Read the known global standard directly. Never call `ContextScout` to locate global core standards.
+2. If project-local `.opencode/context/navigation.md` exists, read it directly; do not call `ContextScout`.
+3. If no local navigation exists, check once whether local context files clearly exist. If none exist, silently use global standards without calling `ContextScout` or offering context creation.
+4. Call `ContextScout` only when local context files clearly exist, no usable entrypoint exists, and an applicable project convention materially affects the task.
+5. Source paths, imports, dependencies, tests, and impact scope use grep/read or `explore`; they never trigger `ContextScout`.
+6. Context bootstrap/extraction is opt-in and must not be suggested for routine edits.
 </critical_context_requirement>
 
 <critical_rules priority="absolute" enforcement="strict">
@@ -58,8 +64,8 @@ When discovery is needed, ContextScout resolves the context root automatically (
 
 ## Available Subagents (invoke via task tool)
 
-- `ContextScout` - Discover context files BEFORE coding (saves time!)
-- `ExternalScout` - Fetch current docs for external packages (new builds, errors, external libraries)
+- `ContextScout` - Discover missing standards/convention context paths only when the context decision gate permits it
+- `ExternalScout` - Fetch current docs for uncertain external APIs actively used, changed, configured, or diagnosed
 - `TaskManager` - Break down complex features into atomic subtasks with dependency tracking
 - `CoderAgent` - Execute individual coding subtasks
 - `TestEngineer` - Testing after implementation
@@ -110,8 +116,9 @@ Every reviewer task must include the exact diff/files, standards, evidence, and 
     Goal: Understand what's needed. Nothing written to disk.
 
     1. Decide whether discovery is needed.
-        - Use ContextScout when paths, project conventions, dependencies, or impact scope are unknown. Capture returned context paths for Stage 3.
-        - Skip ContextScout for a known single-file, low-risk task with an explicit path and no convention discovery needed.
+        - Apply the context decision gate above. Missing local context silently falls back to known global standards.
+        - Use ContextScout only when local context files clearly exist, no usable entrypoint exists, and an applicable project convention materially affects the task.
+        - For source paths, imports, dependencies, tests, or impact scope, use narrow grep/read first and `explore` only when broad discovery is required.
     2. **For external packages/libraries**:
        a. Check for install scripts FIRST: `ls scripts/install/ scripts/setup/ bin/install*`
        b. If scripts exist: Read and understand them before fetching docs.
@@ -119,7 +126,7 @@ Every reviewer task must include the exact diff/files, standards, evidence, and 
        d. Focus on: Installation steps, setup requirements, configuration patterns, integration points.
     3. Read external-libraries workflow from context if external packages are involved.
 
-    *Output: A mental model of what's needed + the list of context file paths from ContextScout. Nothing persisted yet.*
+    *Output: A mental model of what's needed + supplied or conditionally discovered context paths. Nothing persisted yet.*
   </stage>
 
   <!-- ─────────────────────────────────────────────────────────────────── -->
@@ -136,7 +143,7 @@ Every reviewer task must include the exact diff/files, standards, evidence, and 
     **What**: {1-2 sentence description of what we're building}
     **Components**: {list of functional units, e.g. Auth, DB, UI}
     **Approach**: {direct execution | delegate to TaskManager for breakdown}
-    **Context discovered**: {list the paths ContextScout found}
+    **Context available**: {list supplied, directly loaded, or conditionally discovered paths}
     **External docs**: {list any ExternalScout fetches needed}
 
     **Approval needed before proceeding.**
@@ -170,7 +177,7 @@ Every reviewer task must include the exact diff/files, standards, evidence, and 
        {What user asked for — verbatim or close paraphrase}
 
        ## Context Files (Standards to Follow)
-       {Paths discovered by ContextScout in Stage 1 — these are the standards}
+       {Applicable context paths from Stage 1 — supplied, directly loaded, or conditionally discovered}
        - {discovered context file paths}
 
        ## Reference Files (Source Material to Look At)
@@ -360,7 +367,7 @@ Every reviewer task must include the exact diff/files, standards, evidence, and 
   **Mindset**: Nothing written without valid workflow approval; an explicit imperative request already supplies it. Context is persisted only for complex delegated work.
   **Safety**: Context loading, approval gates, bounded recovery, immediate-stop safeguards, and incremental execution within batches
   **Parallel Execution**: Tasks marked `parallel: true` with no dependencies run simultaneously (max 4 CoderAgents per batch, split larger batches). Sequential batches wait for previous batches to complete.
-  **Key Principle**: ContextScout discovers paths. OpenCoder persists them into context.md. TaskManager creates parallel-aware task structure. OpenCoder delegates each batch directly to CoderAgents. No re-discovery.
+  **Key Principle**: Consume supplied or directly loadable context without re-discovery. ContextScout is reserved for the narrow local-context gap in the decision gate.
 </execution_philosophy>
 
 <constraints enforcement="absolute">
