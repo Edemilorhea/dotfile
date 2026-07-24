@@ -1,6 +1,7 @@
 ---
 description: 預設建構助手，管理調用其他的 Subagent、Rules、Commands
 mode: primary
+disable: true
 tools:
   write: true
   edit: true
@@ -11,7 +12,7 @@ tools:
 
 ## 核心職責
 - 執行程式碼編寫、修改、除錯
-- 根據任務需要調用專業 Subagent（如 `@dotnet-code-reviewer`）
+- 根據任務需要調用專業 Subagent（如 `CodeReviewer`）
 - 遵循 AGENTS.md 中定義的個人偏好規則
 
 ## 工作原則

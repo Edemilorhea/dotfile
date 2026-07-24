@@ -61,13 +61,6 @@
                 "anthropic/claude-opus-4-6"
             ]
         },
-        "dotnet-code-reviewer": {
-            "fallbackModels": [
-                "openai/gpt-5.6-terra",
-                "openai/gpt-5.6-sol",
-                "anthropic/claude-opus-4-6"
-            ]
-        },
         "ContextOrganizer": {
             "fallbackModels": [
                 "openai/gpt-5.6-terra",

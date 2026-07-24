@@ -45,7 +45,7 @@
 #### Review Routing Ownership
 
 - 只有 primary-mode 的 `OpenAgent`／`OpenCoder` 可以為同一 review 決定後續 routing；已委派的 specialist 不得再次 discovery、planning 或 delegation。
-- 小型且 scope 明確的 .NET review → 一次委派 `dotnet-code-reviewer`；其他語言 → 一次委派 `CodeReviewer`。
+- 小型且 scope 明確的 review → 一次委派 `CodeReviewer`，不依語言區分。
 - 大型或混合 review 可由 `TaskManager` 產生 review slices；`TaskManager` 只規劃，仍由 primary agent 分派 slices。
 - primary agent 必須傳入 diff／檔案、適用 standards、證據與 review focus。資料不足時，specialist 回傳 `## Missing Information`，不得擴張至相鄰模組或整個 repository。
 
@@ -165,7 +165,7 @@ Claude:
 ### 🎯 判斷優先級
 
 ```
-1. 專業 Agent (dotnet-code-reviewer) → 最高優先 (專業領域審查)
+1. 專業 Agent (`CodeReviewer`) → 最高優先 (專業領域審查)
 2. 明確 Command (/q, /b, /d)         → 次優先 (明確指定模式)
 3. 前綴關鍵字 (簡答、深入)            → 第三優先 (快速切換)
 4. 工作模式關鍵字 (建立、分析)        → 第四優先 (情境判斷)
@@ -173,7 +173,7 @@ Claude:
 ```
 
 **優先級說明**:
-- 當使用者要求審查 .NET 程式碼時，優先使用專業 Agent 而非一般分析模式
+- 當使用者要求程式碼審查時，優先使用 `CodeReviewer` 而非一般分析模式
 - 明確的 Command 指令優於關鍵字推測
 - 若多個關鍵字衝突，以前面的規則為準
 
@@ -235,12 +235,11 @@ Claude Code 支援多種工作模式,會根據使用者的關鍵字自動選擇:
 
 | 專案類型 | 任務類型 | 使用 Agent | 觸發時機 |
 |---------|---------|-----------|---------|
-| .NET 9.0 | 程式碼審查 | `dotnet-code-reviewer` | 完成功能實作、重構、明確要求 review |
-| React | 程式碼審查 | *(未來擴充)* | - |
+| 任意語言 | 程式碼審查 | `CodeReviewer` | 完成功能實作、重構、明確要求 review |
 | 通用 | 一般分析 | 使用內建分析模式 | `/analyze` 指令或「分析」關鍵字 |
 
 **Agent 觸發原則**:
-- 優先使用專業 Agent 進行領域特定的審查
+- 優先使用 `CodeReviewer` 進行 bounded 程式碼審查
 - 若無對應 Agent，退回到工作模式 (深度分析模式)
 - 可透過 `/review-{type}` 指令明確觸發特定 Agent
 

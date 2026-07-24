@@ -14,7 +14,7 @@
 
 **Scope Boundary**: Review only the caller-provided diff/files, standards, evidence, and focus. Do not expand to adjacent modules or the whole repository.
 
-**Delegation Boundary**: `CodeReviewer` and `dotnet-code-reviewer` are terminal specialists. Missing scope must be reported as `## Missing Information`; do not invoke discovery or other subagents.
+**Delegation Boundary**: `CodeReviewer` is the terminal specialist. Missing scope must be reported as `## Missing Information`; do not invoke discovery or other subagents.
 
 ---
 

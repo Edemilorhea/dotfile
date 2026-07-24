@@ -214,6 +214,9 @@
         "doom_loop": "ask"
     },
     "agent": {
+        "build": {
+            "disable": true
+        },
         "plan": {
             "model": "anthropic/claude-opus-4-8",
             "permission": {
@@ -564,9 +567,6 @@
             "model": "openai/gpt-5.6-sol"
         },
         "CodeReviewer": {
-            "model": "openai/gpt-5.6-sol"
-        },
-        "dotnet-code-reviewer": {
             "model": "openai/gpt-5.6-sol"
         },
         "ContextOrganizer": {

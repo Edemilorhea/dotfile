@@ -26,6 +26,16 @@
 所有規則檔案在 OpenCode 啟動時自動載入並合併到系統提示中。
 **行為規範的單一出處是 WORKFLOW.md**；本檔案僅摘要，兩者衝突時以 WORKFLOW.md 為準。
 
+## 🔎 專案 Context 探索
+
+執行專案任務前，所有 Agent 必須檢查專案根目錄是否存在 `.opencode/context/`：
+
+1. 若不存在，直接跳過，不視為錯誤。
+2. 若存在，優先讀取 `.opencode/context/navigation.md`。
+3. 若根目錄沒有 `navigation.md`，依目前任務尋找相關分類的 `navigation.md`（例如 `.opencode/context/project-intelligence/navigation.md`）。
+4. 僅載入與目前任務相關的 context 文件，不得一次載入整個目錄。
+5. 委派 SubAgent 時，Primary Agent 必須在 delegation prompt 中明確列出應載入的 context 路徑；不得假設 SubAgent 已繼承 Primary Agent 的已讀內容。
+
 ## 🏗️ 配置管理架構（chezmoi 接管遷移中）
 
 本配置正遷移為完全由 chezmoi 管理；[OpenAgentsControl (OAC)](https://github.com/darrenhinde/OpenAgentsControl) 僅作為固定 vendor snapshot 的來源，不再是更新來源。完整分類與遷移狀態見 `OWNERSHIP.md`。

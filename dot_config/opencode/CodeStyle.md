@@ -187,8 +187,7 @@ Dictionary<int, PlanTemplate> dbTemplateMapByFormId = dbPlanTemplates
 | standards／慣例 context 位置未知 | `ContextScout`；source path／影響範圍由主 Agent narrow grep/read，必要時才用 `explore` |
 | 需使用、改變或診斷且 API／版本／設定不確定的外部套件 | `ExternalScout`；既有 import 本身不觸發 |
 | 明確需要測試、審查、文件、UI 或 DevOps 專業工作 | 對應專業 SubAgent |
-| 小型且 scope 明確的 .NET review | primary agent 一次委派 `dotnet-code-reviewer` |
-| 小型且 scope 明確的其他 review | primary agent 一次委派 `CodeReviewer` |
+| 小型且 scope 明確的 review | primary agent 一次委派 `CodeReviewer`，不依語言區分 |
 | 大型或混合 review | `TaskManager` 只規劃 review slices，由 primary agent 分派 |
 | 多個相依工作流、跨模組整合、需 task graph／共享狀態或高風險實作 | `TaskManager`／`CoderAgent` |
 | 中等複雜度且有實質 routing 取捨 | 先用互動選單詢問主 Agent 直做或委派；不得自行委派 |
@@ -206,7 +205,7 @@ Dictionary<int, PlanTemplate> dbTemplateMapByFormId = dbPlanTemplates
 * **結果整合**:SubAgent 完成後,你需要整合結果並給出簡潔總結,而不是直接轉發 SubAgent 的原始輸出
 * **失敗處理**:如果 SubAgent 失敗或結果不理想,你需要自己接手完成任務,而不是放棄
 * **按需使用 ContextScout**:僅用於發現 standards／慣例 context；不得用於全 repo source impact analysis。已知且 bounded 的低風險任務不得為增加儀式感而委派
-* **Review routing**: `OpenAgent`／`OpenCoder` 是同一 review 的唯一 routing owner；`TaskManager` 只規劃大型 review slices，`CodeReviewer` 與 `dotnet-code-reviewer` 收到完整 scope 後為 terminal specialist，不得再次委派或擴張 scope。
+* **Review routing**: `OpenAgent`／`OpenCoder` 是同一 review 的唯一 routing owner；`TaskManager` 只規劃大型 review slices，`CodeReviewer` 收到完整 scope 後為 terminal specialist，不得再次委派或擴張 scope。
 
 ---
 

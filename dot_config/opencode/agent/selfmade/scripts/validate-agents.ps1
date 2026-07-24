@@ -178,7 +178,7 @@ if (Test-Path -LiteralPath $reviewCommandPath) {
     }
 }
 
-$terminalReviewers = @("CodeReviewer", "dotnet-code-reviewer")
+$terminalReviewers = @("CodeReviewer")
 foreach ($reviewerName in $terminalReviewers) {
     if (-not $nameMap.ContainsKey($reviewerName)) {
         $issues.Add([PSCustomObject]@{
