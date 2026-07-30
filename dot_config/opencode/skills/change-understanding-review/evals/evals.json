@@ -1,0 +1,23 @@
+{
+  "skill_name": "change-understanding-review",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "需求是取消訂單時必須退回庫存，但已付款訂單不能取消。請根據我提供的 diff，說明這次做了哪些更動、每項更動服務哪個業務規則，並清楚區分新增與修改的程式碼，顯示實際 Before、After 和檔案行號。",
+      "expected_output": "A Traditional Chinese change-understanding report with an explicit baseline, complete change map, Confirmed business intent, [ADDED]/[MODIFIED] labels, adjacent real Before/After excerpts for modified units, actual ranges, behavior flow, and no correctness verdict.",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "幫我看目前 working tree 到底改了什麼。我主要想了解 API timeout 設定為什麼改、它會影響哪段流程，以及哪些是原有程式修改、哪些是新加的 fallback。不要做傳統 code review。",
+      "expected_output": "A scoped working-tree walkthrough that connects timeout and fallback changes to runtime behavior, separates modified and added units, cites every changed file and range, shows bounded actual code, and labels unsupported intent as Inferred or Unknown.",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "請解釋 commit abc123..def456 完成了哪些功能。我要看到每個檔案的修改範圍、實際新增或修改內容、需求到程式碼的完整流程；lockfile 和 generated snapshot 請另外整理，不要混在主要功能裡。",
+      "expected_output": "A complete commit-range change map, business-oriented behavior flow, detailed actual code excerpts with semantic classification, separate generated-artifact summary, evidence and validation status, and a concise mental model.",
+      "files": []
+    }
+  ]
+}

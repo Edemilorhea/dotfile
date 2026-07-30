@@ -1,0 +1,46 @@
+{{- if eq .chezmoi.os "windows" -}}
+# manifest-hash: {{ include "dot_config/opencode/config/external-skills.json" | sha256sum }}
+$ErrorActionPreference = 'Stop'
+
+$manifestPath = Join-Path $env:USERPROFILE '.config\opencode\config\external-skills.json'
+if (-not (Test-Path -LiteralPath $manifestPath)) {
+    throw "External skills manifest not found: $manifestPath"
+}
+
+$manifest = Get-Content -LiteralPath $manifestPath -Raw | ConvertFrom-Json
+$installer = "$($manifest.installer.package)@$($manifest.installer.version)"
+$tempRoot = Join-Path ([System.IO.Path]::GetTempPath()) "opencode-skills-$([guid]::NewGuid())"
+
+New-Item -ItemType Directory -Path $tempRoot | Out-Null
+
+try {
+    foreach ($source in $manifest.sources) {
+        $repositoryName = [System.IO.Path]::GetFileNameWithoutExtension($source.repository)
+        $repositoryPath = Join-Path $tempRoot $repositoryName
+
+        & git clone --filter=blob:none --no-checkout $source.repository $repositoryPath
+        if ($LASTEXITCODE -ne 0) {
+            throw "Failed to clone external skill repository: $($source.repository)"
+        }
+
+        & git -C $repositoryPath fetch --depth 1 origin $source.revision
+        if ($LASTEXITCODE -ne 0) {
+            throw "Failed to fetch revision $($source.revision) from $($source.repository)"
+        }
+
+        & git -C $repositoryPath checkout --detach FETCH_HEAD
+        if ($LASTEXITCODE -ne 0) {
+            throw "Failed to checkout revision $($source.revision) from $($source.repository)"
+        }
+
+        $arguments = @('-y', $installer, 'add', $repositoryPath, '--global', '--yes', '--skill') + @($source.skills)
+        & npx @arguments
+        if ($LASTEXITCODE -ne 0) {
+            throw "Failed to install skills from $($source.repository) at $($source.revision)"
+        }
+    }
+}
+finally {
+    Remove-Item -LiteralPath $tempRoot -Recurse -Force -ErrorAction SilentlyContinue
+}
+{{- end -}}

@@ -15,9 +15,28 @@
 - 嚴禁長篇大論、嚴禁過度解釋背景知識。
 - 預設強制套用「標準模式 (Standard Answer)」，除非使用者明確加上「深入/詳細」等前綴。
 
+### 2.1 全域變更理解路由 (Global Change Understanding Routing)
+
+- 本規則適用於**所有目前與未來的 Agent**，不受 Agent persona、工作模式或專業領域覆寫；只要 Agent 收到符合條件的使用者請求，就必須遵循。
+- 當使用者的主要意圖是理解一組已完成或目前存在的變更，例如「這次改了什麼」、「為什麼這樣改」、「對應什麼功能／業務邏輯／需求」、「哪些是新增、修改或移除」或要求實際 Before／After、檔案、symbol、行號範圍時，必須使用 `skill` 工具載入 `change-understanding-review`，並依該 skill 的證據流程與報告結構回答。
+- 此路由優先於一般問答、摘要、教學模式、`Focused Follow-up` 與傳統 Code Review 關鍵字。不得因使用者使用「review／查看／了解 code」等字詞，就直接改走 correctness review。
+- 主要意圖是 correctness、security、performance、maintainability、defect detection 或 approval 時，才走傳統 Code Review；主要意圖是廣泛專案架構教學、onboarding 或延伸練習時，改走 `vibe-coding-tutor`。
+- 同時要求變更理解與正確性審查時，分成兩個清楚區段：先完成 Change Understanding Review，再執行傳統 Code Review。
+- 單一語法/API/程式片段作用的追問，以及要求建立、修改、修復或繼續實作的任務，不觸發本路由。
+- 若 terminal subagent 因權限或工具限制無法載入該 skill，必須回報 caller 由具備 skill 權限的 primary agent 接手；不得自行用一般摘要或傳統 review 取代。
+
 ### 3. SubAgent 三段式路由 (Routing Source of Truth)
 
 先依語意複雜度、相依性、風險與未知程度判斷，再決定是否委派；檔案數與預估時間只能作為弱訊號。`Context loading` 不等於必須呼叫 `ContextScout`。
+
+#### 任務規模閘門（先分類，後執行）
+
+- **Fast**：單一明確 outcome、低風險、同一資料流／contract、既有架構內的小幅修改；即使同時修改 BE／FE 數個檔案，只要是同一欄位或同一行為的端到端傳遞，仍屬 Fast。
+- **Standard**：需要局部設計取捨、非平凡邏輯或有限探索，但不需要 task graph、共享 session 或多 Agent 協調。
+- **Orchestrated**：多個可獨立交付的工作流、跨服務整合、複雜 migration／concurrency／security、大型重構，或確實需要多 Agent 共享狀態。
+- Fast 任務預設採 **10–15 分鐘 timebox**：讀取必要 standards 與最少相關程式碼後直接修改，最後對每個受影響 build target 各驗證一次。
+- Fast 任務禁止建立 session context、TaskManager 任務、todo ceremony 或 SubAgent delegation；除非執行中出現會改變分類的新證據。
+- 不得把「跨 BE／FE」、「修改 4–6 個小檔案」或「需要新增一個 DTO 欄位」單獨視為複雜任務。
 
 #### Direct Fast Path（不得自動委派）
 
@@ -26,6 +45,8 @@
 - 路徑、範圍、意圖與驗證方式明確，且低風險、同模組／同一變更 surface、無需探索專案慣例或外部 API 的修改；即使涉及多個同構 locale、resource、snapshot 或 config 檔，也可直接處理。
 - 主 Agent 直接讀取已知的必要 standards 後執行；不得為增加儀式感而呼叫 `ContextScout` 或其他 SubAgent。
 - 優先最少交接：主 Agent 直接處理 > 單一 bounded specialist > `TaskManager`／多 Agent 編排。
+- Discovery 只回答「改哪裡、契約是什麼、怎麼驗證」；已足夠時立即停止搜尋，不做完整 codebase 盤點。
+- 已知某個完整 test project／suite 被無關既有錯誤阻塞時，不得重跑來再次證明同一 blocker；改跑可用的 targeted build／typecheck，並在結果中註明測試阻塞。
 
 #### Auto Delegate（符合即自動委派）
 
@@ -188,6 +209,8 @@ Claude Code 支援多種工作模式,會根據使用者的關鍵字自動選擇:
 **行為**:
 - 明確祈使請求視為已取得該範圍的執行授權，直接產生可用的程式碼
 - 跳過快取檢查,專注速度
+- 套用 Fast 任務 timebox：不建立 session、不委派、不製作 task graph；以一個 coherent patch 完成同一資料流變更
+- 每個受影響 build target 最多執行一次主要驗證；只有失敗診斷才增加額外命令
 - 提供簡潔的使用說明
 
 ### 📚 深度解答模式
@@ -273,11 +296,10 @@ $USERPROFILE\Documents\Obsidian_Note\Projects\{專案名}\
 
 ## 資料庫相關
 **CRITICAL MANDATE FOR PLAN AGENT:**
-當使用者的需求涉及「資料庫 (Database)」、「資料表結構 (Schema)」、「SQL 語法」、「後端 API 開發」或任何需要知道資料長怎樣的情境時，**你必須 (MUST) 主動使用 MSSQL MCP 提供的工具** 來獲取真實上下文，**絕對不要憑空猜測**資料表結構。
+只有當需求正確性取決於未知的真實資料表結構、欄位型別、index／constraint、關聯或資料形狀時，才必須使用 MSSQL MCP 取得證據。既有 EF model／query 已完整表達契約的單純後端 API data plumbing，不得僅因「涉及後端 API」就強制查 DB。
 **規劃與分析時的標準流程 (SOP)：**
-1. **探索階段:** 使用 `mssql_list_tables` 找出相關的資料表。
-2. **理解階段:** 使用 `mssql_describe_table` 獲取精確的欄位名稱與型別。
-3. **關聯階段:** 使用 `mssql_get_foreign_keys` 或 `mssql_get_indexes` 了解主外鍵關聯。
-4. **驗證階段 (可選):** 透過 `mssql_query_database` 撈取 1-3 筆真實資料 (如 `SELECT TOP 3 * FROM ...`) 來確認資料格式與內容。
+1. 先從已讀程式碼判斷仍缺哪一項 DB 證據，不得固定執行完整工具清單。
+2. 只呼叫能回答該不確定性的最小工具，例如 `describe_table`、`get_foreign_keys` 或 `get_indexes`。
+3. 只有資料內容本身會影響判斷時，才查詢少量資料；不得為儀式感讀取 production-like data。
 為什麼這有效？
 LLM 需要被明確告知「什麼情境下」要觸發「什麼工具」。將工具名稱 (mssql_describe_table 等) 寫出來，能大幅提高它配對到 MCP 工具的機率。

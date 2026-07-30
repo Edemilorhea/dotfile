@@ -17,6 +17,7 @@ permission:
     "document-processing": "allow"
     "office-documents": "allow"
     "customize-opencode": "allow"
+    "change-understanding-review": "allow"
 ---
 
 # FableAgent

@@ -48,7 +48,8 @@
 對應策略:
 
 * 對 **trivial** 任務:可以直接回答,不必顯式進入 Plan / Code 模式;僅給出簡明、正確的代碼或修改說明,避免基礎語法教學
-* 對 **moderate / complex** 任務:必須使用第 4 節定義的 **Plan / Code 工作流**;更注重問題分解、抽象邊界、權衡與驗證方式
+* 對 **moderate** 任務:若使用者已明確授權且最佳方案明顯,直接進入 Code 模式，以一個 coherent batch 完成；只有存在會影響結果的實質方案取捨時才先 Plan
+* 對 **complex** 任務:使用第 4 節定義的 **Plan / Code 工作流**;更注重問題分解、抽象邊界、權衡與驗證方式
 
 ---
 
@@ -113,7 +114,7 @@ Dictionary<int, PlanTemplate> dbTemplateMapByFormId = dbPlanTemplates
 ### 4.1 何時使用
 
 * 對 **trivial** 任務,可以直接給出答案,不必顯式區分 Plan / Code
-* 對 **moderate / complex** 任務,必須使用 Plan / Code 工作流
+* 對已授權且方案明顯的 **moderate** 任務,直接進入 Code 模式；對需要決策的 moderate 或 complex 任務才使用完整 Plan / Code 工作流
 
 ### 4.2 公共規則
 
@@ -123,7 +124,7 @@ Dictionary<int, PlanTemplate> dbTemplateMapByFormId = dbPlanTemplates
 * 不要擅自引入全新任務(例如只讓我修一個 bug,卻主動建議重寫子系統)
 * 對於當前任務範圍內的局部修復和補全(尤其是你自己引入的錯誤),不視為擴展任務,可以直接處理
 * 執行授權以 `WORKFLOW.md §核心行為強制規範` 的統一定義為準。使用者以明確祈使句要求建立、修改、實作、修復、執行或套用時，必須立即進入 **Code 模式**；禁止再次提出同一選擇題或詢問相同的執行確認
-* 當使用者的需求涉及「資料庫 (Database)」、「資料表結構 (Schema)」、「SQL 語法」、「後端 API 開發」或任何需要知道資料長怎樣的情境時，**你必須 (MUST) 主動使用 MSSQL MCP 提供的工具** 來獲取真實上下文，**絕對不要憑空猜測**資料表結構。
+* 只有當需求正確性取決於程式碼中無法確認的真實 schema、constraint、index、關聯或資料形狀時，才使用 MSSQL MCP 補足該項證據；既有 model/query 已明確的 API data plumbing 不強制查 DB。
     - **規劃與分析時的標準流程 (SOP)：**
         * **探索階段:** 使用 `mssql_list_tables` 找出相關的資料表。
         * **理解階段:** 使用 `mssql_describe_table` 獲取精確的欄位名稱與型別。
@@ -184,6 +185,7 @@ Dictionary<int, PlanTemplate> dbTemplateMapByFormId = dbPlanTemplates
 |---|---|
 | 純問答、一般唯讀檔案／Git 查詢、已知單一步驟命令 | 主 Agent 直接處理，不得委派；使用者明確要求正式 review 時適用下方 review 例外 |
 | 低風險、同一變更 surface、路徑／意圖／驗證明確的修改（含多個同構 locale/resource/config 檔） | 主 Agent 直接處理，不得僅因檔案數委派 |
+| 查看一組完成／目前變更做了什麼、需求或業務規則對應哪段 code、實際 Before／After 或新增／修改／移除範圍 | 所有 Agent 依 `WORKFLOW.md §2.1` 載入 `change-understanding-review`；這不是傳統 Code Review |
 | standards／慣例 context 位置未知 | `ContextScout`；source path／影響範圍由主 Agent narrow grep/read，必要時才用 `explore` |
 | 需使用、改變或診斷且 API／版本／設定不確定的外部套件 | `ExternalScout`；既有 import 本身不觸發 |
 | 明確需要測試、審查、文件、UI 或 DevOps 專業工作 | 對應專業 SubAgent |
@@ -192,7 +194,7 @@ Dictionary<int, PlanTemplate> dbTemplateMapByFormId = dbPlanTemplates
 | 多個相依工作流、跨模組整合、需 task graph／共享狀態或高風險實作 | `TaskManager`／`CoderAgent` |
 | 中等複雜度且有實質 routing 取捨 | 先用互動選單詢問主 Agent 直做或委派；不得自行委派 |
 
-正式 review、測試撰寫、文件、UI、DevOps 等明確 specialist 工作依上表與 `WORKFLOW.md §3` 路由；不得另設較寬鬆的關鍵字觸發表。
+變更理解路由以 `WORKFLOW.md §2.1` 為準；正式 review、測試撰寫、文件、UI、DevOps 等明確 specialist 工作依上表與 `WORKFLOW.md §3` 路由。不得另設較寬鬆的關鍵字觸發表。
 
 **模糊情境的固定選項**:
 
@@ -270,8 +272,10 @@ Dictionary<int, PlanTemplate> dbTemplateMapByFormId = dbPlanTemplates
 
 ### 10.2 完成定義 (Definition of Done)
 
-* 改了功能邏輯 → 至少一個自動化測試 + **fail-then-pass 證據**(測試先紅後綠)
-* 沒有證據 → 不得宣稱「完成」,只能說「已修改、未驗證」;console.log / 人工目視 / 口頭推論 ≠ 驗證
+* 非平凡業務規則、bug regression、狀態／權限／金額／併發邏輯 → 優先自動化測試；新增 regression test 時應取得 fail-then-pass 證據
+* 機械性 data plumbing、DTO／型別欄位傳遞、文案、樣式或設定調整 → 不強制新增測試；成功的 targeted build／typecheck／既有測試可作完成證據
+* 已知完整 suite 被無關既有錯誤阻塞時，不得重跑同一 suite；使用最接近且可執行的驗證，並清楚標示未執行的測試範圍
+* 沒有任何可執行證據 → 不得宣稱「完成」,只能說「已修改、未驗證」;console.log / 人工目視 / 口頭推論 ≠ 驗證
 * 你正要寫「應該可以」「大概是」「理論上」——這是沒證據的訊號,先去拿證據
 
 ### 10.3 機械判準(命中即執行,不靠感覺)

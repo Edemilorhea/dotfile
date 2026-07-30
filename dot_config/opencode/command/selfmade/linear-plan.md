@@ -8,11 +8,13 @@ subtask: true
 
 Arguments: `$ARGUMENTS`
 
-1. 使用 `skill` tool 載入 `linear-workflow`。
-2. 以 skill 的 `plan` 模式完整處理 `$ARGUMENTS`。
-3. `$ARGUMENTS` 以 `preview` 開頭時保持唯讀；否則本次 command 呼叫已授權在需求範圍內建立或沿用 Linear items，不得重複詢問執行確認。
-4. 缺少 requirement 時，使用 `question` tool 要求目標、完成條件與已知期限。
-5. 不得在此命令另行發明 issue/project 判斷、priority 或輸出規則；以 `linear-workflow` skill 為唯一規則來源。
+1. 使用 `skill` tool 載入 `linear-workflow`、`deliver-prd`、`deliver-acceptance-criteria` 與 `to-tickets`。
+2. 若需求涉及跨模組邊界、系統責任、架構取捨或多個獨立工作流，再載入 `develop-solution-brief`；若涉及具體 DTO、API、command、handler、event、repository、transaction 或測試設計，再載入 `to-spec`。
+3. 若需求包含需要明確記錄的架構決策或替代方案取捨，再載入 `develop-adr`。
+4. 依下列順序處理：先用 `deliver-prd` 定義 why/what/outcome，再用 `deliver-acceptance-criteria` 定義可驗證條件；需要時補 `develop-solution-brief`、`to-spec`、`develop-adr`，最後用 `to-tickets` 拆成可執行工作，再交由 `linear-workflow` 建立或沿用 Linear items。
+5. `$ARGUMENTS` 以 `preview` 開頭時保持唯讀；否則本次 command 呼叫已授權在需求範圍內建立或沿用 Linear items，不得重複詢問執行確認。
+6. 缺少 requirement 時，使用 `question` tool 要求目標、完成條件與已知期限。
+7. 不得在此命令另行發明 issue/project 判斷、priority 或輸出規則；以 `linear-workflow` skill 為唯一 Linear 結構規則來源。
 
 ## Examples
 

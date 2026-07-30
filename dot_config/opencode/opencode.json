@@ -12,6 +12,7 @@
         "@mohak34/opencode-notifier@latest",
         // "@different-ai/opencode-browser",
         "@tarquinen/opencode-dcp@3.1.14",
+        "./plugin/mandatory-format.ts",
         "./node_modules/@smart-coders-hq/opencode-model-fallback/dist/index.js",
         "opencode-mem",
         "opencode-handoff@0.5.0",
@@ -84,6 +85,9 @@
         "grep": "allow",
         "lsp": "allow",
         "question": "allow",
+        "skill": {
+            "change-understanding-review": "allow"
+        },
         "edit": "ask",
         "bash": {
             "*": "ask",
