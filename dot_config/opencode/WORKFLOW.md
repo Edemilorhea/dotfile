@@ -46,7 +46,20 @@
 - 主 Agent 直接讀取已知的必要 standards 後執行；不得為增加儀式感而呼叫 `ContextScout` 或其他 SubAgent。
 - 優先最少交接：主 Agent 直接處理 > 單一 bounded specialist > `TaskManager`／多 Agent 編排。
 - Discovery 只回答「改哪裡、契約是什麼、怎麼驗證」；已足夠時立即停止搜尋，不做完整 codebase 盤點。
+- **Fast Context Budget**：只讀全域必要 standard、目標程式碼，以及最多一個能確認既有契約的相鄰範例；知道「改哪裡、沿用什麼契約、如何驗證」後立即停止 discovery。
+- Fast 任務不得讀取 project navigation、technology stack 或 architecture overview；只有相鄰程式碼無法確認、且該專案慣例會實質影響正確性時，才可載入 project context。
+- 找不到根層 `.opencode/context/navigation.md` 時，context discovery 到此停止；不得遞迴尋找分類 `navigation.md`。未知 source path／impact scope 應使用 narrow grep/read，不能改由 `ContextScout` 處理。
 - 已知某個完整 test project／suite 被無關既有錯誤阻塞時，不得重跑來再次證明同一 blocker；改跑可用的 targeted build／typecheck，並在結果中註明測試阻塞。
+
+#### ContextScout 單次探索與重用閘門
+
+- 同一 conversation／session 對同一 project 與 task context，`ContextScout` 原則上最多呼叫一次。後續追問、修正或同一工作的延續必須重用先前已讀或已發現的 context paths；不得因進入新 turn、重新分類任務或忘記先前結果而再次呼叫。
+- 補充問題、局部修正、同一功能的延伸說明，以及單一檔案／symbol 的追問，預設禁止重跑 `ContextScout`；直接使用既有 context、目標程式碼與 narrow grep/read 回答。
+- 再次呼叫只允許於以下情況：使用者明確要求 refresh、project／workspace root 已改變、context files 已知已變更，或任務已實質擴大成新的大型工作流，且新證據顯示存在會影響正確性的未知 project conventions。
+- 再次呼叫前，Agent 必須能明確列出「缺少哪一項 convention、現有 context 為何無法回答、不取得會造成什麼正確性風險」；無法具體回答這三項時不得呼叫。
+- 重跑必須是 bounded refresh：只搜尋事先列出的 convention gaps，禁止重新盤點全部 context。若大型問題同時有多個 gaps，合併成單次查詢，不得逐項連續呼叫。
+- 再次呼叫前必須先檢查 conversation 中既有的 ContextScout 結果與已讀 context；能以既有 paths 或直接 narrow read 補足時，不得重跑 ContextScout。若 project context 不存在，直接套用 global standards。
+- Source path、imports、tests、dependencies 或 impact scope 的不確定性永遠不是重跑 ContextScout 的理由；這些一律使用 narrow grep/read，必要時才用 `explore`。
 
 #### Auto Delegate（符合即自動委派）
 

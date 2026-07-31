@@ -1,6 +1,6 @@
 ---
 name: linear-workflow
-description: Plan, create, prioritize, and review Linear work. Use whenever the user wants to turn a requirement into Linear issues or projects, decide between an issue and a project with milestones, inspect current Linear progress, recover the last active task, or determine the next actionable item.
+description: Plan, create, rewrite, prioritize, and review Linear work. Use whenever the user wants to turn a requirement into Linear issues or projects, rewrite an existing Linear artifact, decide between an issue and a project with milestones, inspect current Linear progress, recover the last active task, or determine the next actionable item.
 ---
 
 # Linear Workflow
@@ -18,6 +18,43 @@ description: Plan, create, prioritize, and review Linear work. Use whenever the 
 4. Linear 寫入使用 `linear_save_*` tools；讀取使用 `linear_get_*` 與 `linear_list_*` tools。
 5. 遇到 tool、權限或部分寫入失敗，停止後續寫入，列出已建立項目的 identifiers 與未完成項目；不得假裝 rollback 成功。
 6. 需要使用者做選擇時使用 `question` tool。只有缺少的資訊會改變結構或歸屬時才詢問。
+
+## Artifact 改寫路由
+
+當使用者要求建立、改寫或精簡既有 Linear Issue／Project 的內容時，`linear-workflow` 是 Linear 資料的讀寫 owner，但必須先判斷是否需要一個內容產出 skill。
+
+1. 先讀取目標 Linear artifact、關聯 issue／project 與既有 dependencies。
+2. 依主要目的選擇 **一個** primary content skill：
+   - 精簡技術方案、系統邊界、實作檔案分類、關鍵規則與流程圖 → `develop-solution-brief`
+   - 單一架構決策、替代方案與取捨 → `develop-adr`
+   - 產品目標、範圍、使用者需求與成功指標 → `deliver-prd`
+   - 使用者故事或可測試情境 → `deliver-user-stories` 或 `deliver-acceptance-criteria`
+   - 已有文字的清晰度、精簡與可讀性調整 → `copy-editing`
+3. primary content skill 只產出或改寫內容草稿，不得自行建立、更新或重新歸屬 Linear work。
+4. `linear-workflow` 將草稿套入既有 artifact、保留已驗證的 identifier／dependency／scope，使用 `linear_save_*` 寫入，並重新讀取驗證。
+5. 不要無條件串接多個 content skills。只有單一 skill 無法滿足目標，且鏈結會實質改變產物範圍時，才用 `question` 取得使用者同意。
+
+技術實作型 Issue 的預設精簡結構為：
+
+```markdown
+## 要做什麼
+
+## 實作檔案分類
+
+## 為什麼做
+
+## 重要業務規則
+
+## 重要流程
+
+## 範圍
+
+## 驗收條件
+
+## Dependencies
+```
+
+僅保留能指導實作或驗收的內容；不要把 research note、未知 API 細節或未選定方案寫成既定事實。
 
 ## Scope 解析
 

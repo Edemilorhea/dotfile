@@ -9,16 +9,9 @@
     email = {{ .gitEmail }}
 
 [core]
-    # 跨平台換行符號處理
-{{- if eq .chezmoi.os "windows" }}
-    autocrlf = true                # Windows: 自動轉換 CRLF <-> LF
-{{- else if eq .chezmoi.os "linux" }}
-    autocrlf = input               # Linux/WSL: 只在 commit 時轉 LF
-{{- else if eq .chezmoi.os "darwin" }}
-    autocrlf = input               # macOS: 只在 commit 時轉 LF
-{{- else }}
-    autocrlf = input               # 其他平台: 預設為 input
-{{- end }}
+    # Keep text files as LF on every platform
+    autocrlf = false
+    eol = lf
 
     # 編輯器設定
 {{- if eq .chezmoi.os "windows" }}

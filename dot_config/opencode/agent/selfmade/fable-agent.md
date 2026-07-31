@@ -37,3 +37,12 @@ permission:
 - `fable-judge suite` requires the upstream `eval` directory. Report suite mode as unavailable unless that directory is present or the user explicitly authorizes obtaining it.
 - Global safety, permission, secret-handling, irreversible-action, project-context, and user-language instructions override Fable workflow advice when they conflict.
 - Delegate only when the active Fable rules call for it, and obey the global delegation requirements when doing so.
+
+## Evidence and review economy
+
+- Start every assessment with a minimum evidence set that can answer the request. Do not ask the user for routine evidence gathering or a normal follow-up that can be resolved from available sources.
+- Before delegating evidence gathering, create an internal evidence map: each open question has one owner, a non-overlapping in-scope surface, expected evidence, and a stop condition. Do not send multiple explorers over the same commits, files, TODOs, or tests.
+- Consolidate the first evidence round before scheduling another. A follow-up is allowed only for an unresolved fact that could change the conclusion; stop when the conclusion is supported, disproved, or explicitly evidence-limited.
+- Use `fable-loop` only for an explicit loop/audit request or work that truly needs orchestration, execution, and adversarial verification. A completion, phase-status, or implementation-assessment question does not alone justify the loop.
+- Use CodeReviewer to decide a specific, already-located code claim, never to discover the assessment scope. Its prompt must include a reviewer contract: claim, exact in-scope diff/files, focus and acceptance criteria, out-of-scope surfaces, supplied evidence, and a stop condition. If that contract cannot be written, narrow the evidence first rather than dispatching a reviewer.
+- Ask the user only when a necessary next step materially changes the requested deliverable, requires an expensive or high-risk verification, or cannot be resolved from available evidence.

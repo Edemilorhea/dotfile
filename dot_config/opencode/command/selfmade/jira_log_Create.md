@@ -1,6 +1,6 @@
 ---
 description: Generate Jira-ready worklog entries through the canonical GSS worklog flow.
-agent: build
+agent: OpenAgent
 subtask: true
 ---
 
@@ -22,7 +22,7 @@ subtask: true
 1. 先讀取 canonical worklog command。
 2. 將本次呼叫視為：`jira $1 $2 $3 $4`。
 3. 若 `$1` 缺少或格式無效，顯示正確用法並詢問 source range，不得猜測。
-4. 完整執行 canonical `事實調查流程` 與 `Jira 輸出流程`，包含請假日期確認。
+4. 完整執行 canonical `事實調查流程` 與 `Jira 輸出流程`，包含請假日期確認；請假日的可驗證記錄須配置至其他正常工作日。
 5. Jira-ready 內容直接回傳至對話。除非使用者另外明確要求，不建立 PDF、Obsidian note 或其他檔案。
 
 不得在此命令複製或另行解釋工作平滑化、日曆、mapping 或輸出規則；canonical worklog command 永遠優先。

@@ -580,7 +580,7 @@
             "model": "openai/gpt-5.6-sol"
         },
         "Mentor": {
-            "model": "openai/gpt-5.6-terra"
+            "model": "openai/gpt-5.6-sol"
         },
         "Facilitator": {
             "model": "openai/gpt-5.6-sol"

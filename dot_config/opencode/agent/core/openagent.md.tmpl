@@ -53,8 +53,10 @@ Full index: `{{ .chezmoi.homeDir | replace "\\" "/" }}/.config/opencode/context/
 2. If project-local `.opencode/context/navigation.md` exists, read it directly and load the applicable project context; do not call `ContextScout`.
 3. If the project-local navigation file does not exist, check once whether project-local context files clearly exist. If none exist, silently continue with global core standards. Do not call `ContextScout` and do not offer context creation.
 4. Call `ContextScout` only when project-local context files clearly exist, no usable navigation/entrypoint exists, and the applicable project convention materially affects the task.
-5. Unknown source files, imports, dependencies, tests, or impact scope are codebase discovery, not context discovery. Use narrow grep/read first and `explore` only when broad exploration is required.
-6. Context bootstrap/extraction is opt-in. Offer it only when the user explicitly asks or when a complex cross-module task would materially benefit from it; never prompt for it on routine edits.
+5. Call `ContextScout` at most once for the same project and task context. Follow-up turns must reuse discovered context paths; never rerun it for a local question, fix, or continued explanation.
+6. A repeat is allowed only for an explicit refresh, changed workspace root, known context-file changes, or material expansion with a new convention gap. Identify the exact missing convention, why existing context cannot answer it, and the correctness risk before the bounded refresh.
+7. Unknown source files, imports, dependencies, tests, or impact scope are codebase discovery, not context discovery. Use narrow grep/read first and `explore` only when broad exploration is required.
+8. Context bootstrap/extraction is opt-in. Offer it only when the user explicitly asks or when a complex cross-module task would materially benefit from it; never prompt for it on routine edits.
 
 ## Subagents (invoke via `task` tool)
 
@@ -79,7 +81,8 @@ Use the exact `name` from each subagent's frontmatter as `subagent_type`. No spa
 
 ## Learning Routing
 
-- User says "帶我做", "不要直接完成", "一步一步", or "解釋這段後讓我試" → delegate to `Mentor`. Use Fast Path for a single function, concept, or 1–2-step change; use Standard Path for multi-unit project learning.
+- User says "帶我做" or asks to plan a Linear ticket → use `LearningAgent`, which creates a task map before guided implementation. With an active guided task, delegate only detailed explanation, design trade-offs, or a fill-in-the-blank request to `Mentor`; answer short factual questions directly.
+- User says "不要直接完成", "一步一步", or "解釋這段後讓我試" without a Linear ticket → delegate to `Mentor` for one guided step at a time. Do not use Fast Path or Standard Path terminology.
 - User wants a new-topic learning plan or is unsure where to begin → delegate to `Navigator` or use `LearningAgent` as the learning entry point.
 - User is blocked on a Bug or needs root-cause reasoning → delegate to `Facilitator`.
 - User asks for cross-module architecture or Knowledge Graph understanding → run `/understand`.
@@ -100,6 +103,7 @@ task(subagent_type="ContextScout", description="Brief description", prompt="Deta
   <stage id="1.5" name="Discover" when="discovery_needed" required="true">
     Apply the Context decision gate above. Call `ContextScout` only when project-local context files clearly exist, no usable entrypoint exists, and an applicable project convention materially affects the task.
     Missing project context means silent fallback to the known global standards. Source paths and impact scope use grep/read or `explore`, never ContextScout.
+    Reuse any ContextScout result or context path already established in this conversation/session.
     <checkpoint>Context discovered or safely not needed</checkpoint>
   </stage>
 

@@ -1,6 +1,6 @@
 ---
 description: Component Flow Diagram
-agent: build
+agent: OpenAgent
 subtask: true
 ---
 

@@ -1,6 +1,6 @@
 ---
 description: Build a factual GSS worklog and optionally generate Jira-ready daily entries.
-agent: build
+agent: OpenAgent
 subtask: true
 ---
 
@@ -24,7 +24,7 @@ Arguments: `$ARGUMENTS`
 1. 驗證 source range，並先確認該範圍的日曆日期與星期。
 2. 使用 Linear tools 查詢範圍內 current/planned GSS issues。
 3. 使用唯讀 `locu_sessions`，設定 `includeActivities=true`。只有顯示名稱需要時才使用 `locu_tasks`；若 tool 不可用，明確標示缺少的 tool，不得捏造 Locu 資料。
-4. 從目前工作目錄執行 `git rev-parse --show-toplevel`。若找到 repository，使用唯讀 Git 指令取得 short hash、author time、subject、changed-file summary 與 diff statistics，並排除 merge commits。
+4. 從目前工作目錄執行 `git rev-parse --show-toplevel`。若找到 repository，使用唯讀 Git 指令取得 short hash、author time、subject、changed-file summary 與 diff statistics，並排除 merge commits；Git 證據須依日期分組整理。
 5. Jira direct mode 的 branch 預設為所有分支，author 預設為 `TC|TC_Tseng`；有參數時使用指定值。`preview` 與 `sync` 保留所有作者的事實資料，但需清楚顯示作者。
 6. 可選擇使用已安裝且已驗證登入的 `gh` 或 `glab` 補充既有 commit 的 PR/MR metadata。Git 仍是 source of truth；缺少 CLI 不算錯誤。
 7. 若不在 Git repository，省略 Git 證據並顯示 `未偵測到 Git repository`。
@@ -60,7 +60,7 @@ Jira 輸出是由事實證據衍生的呈現結果，不得改寫 Linear、Locu�
 2. Target range 使用 direct mode 的第二個參數；未提供時預設與 source range 相同，並明確告知使用者。
 3. 產生前必須詢問請假日期；使用者須回覆日期清單或 `無`。
 4. 從 target range 排除星期六、星期日與確認的請假日。若沒有有效工作日，停止並回報。
-5. 以 Linear、Locu 與 Git 的可驗證內容建立工作項目池。相同功能保持連續，依有效工作日平均配置；不得新增不存在的工作、issue、commit、工時或成果。
+5. 以 Linear、Locu 與 Git 的可驗證內容建立工作項目池，並依日期分組。相同功能保持連續，將所有記錄平均配置至範圍內的正常工作日；請假日的可驗證記錄仍須納入工作項目池，但不得配置至請假日。不得新增不存在的工作、issue、commit、工時或成果。
 6. Source 與 target range 不同時，清楚標示為 `Jira presentation allocation`；不得暗示 allocated date 是原始 commit 或 Locu 發生日期。
 7. 若完全沒有可驗證證據，停止產生 Jira 內容。
 
