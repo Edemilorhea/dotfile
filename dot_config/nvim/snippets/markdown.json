@@ -1,0 +1,7 @@
+{
+  "ask-comment": {
+    "prefix": "ask",
+    "body": ["<!-- ask: ${1:問題或待確認事項} -->"],
+    "description": "新增 ask 註解"
+  }
+}

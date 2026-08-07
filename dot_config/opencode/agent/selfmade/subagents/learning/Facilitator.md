@@ -1,7 +1,7 @@
 ---
 name: Facilitator
 description: Socratic mentor for debugging and deep logical reasoning through iterative questioning
-mode: subagent
+mode: all
 temperature: 0.2
 tools:
   write: false

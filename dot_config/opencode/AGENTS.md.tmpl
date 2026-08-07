@@ -1,81 +1,26 @@
-# 個人偏好設定
+# AGENTS.md
 
-## 🔑 CRITICAL: Path Resolution（路徑解析）
+Shared instructions for coding agents.
 
-**本機家目錄**: `~` = `{{ .chezmoi.homeDir | replace "\\" "/" }}`
+## Working style
 
-**強制規則**: opencode 的檔案工具（read/glob/grep/edit/write）**不會展開 `~` 符號**。
-任何 agent/command/context 檔案中出現 `~/` 開頭的路徑，呼叫工具前**必須**先將 `~` 替換為上述家目錄。
+- Reply in Traditional Chinese unless the user asks for another language.
+- Treat an explicit request to create, modify, fix, run, or apply as approval for that scope.
+- Be concise. Ask only when missing information would change correctness or scope.
 
-範例: `~/.config/opencode/context/navigation.md`
-→ 工具呼叫時使用: `{{ .chezmoi.homeDir | replace "\\" "/" }}/.config/opencode/context/navigation.md`
+## Safety
 
-### Windows 路徑斜線規則
+- Do not modify secrets, `.env` files, credentials, or generated dependency directories.
+- Confirm before destructive or irreversible operations.
+- Run the closest relevant validation after a change and report failures instead of masking them.
 
-- **read / glob / grep**: 正斜線 `C:/Users/...` 或反斜線皆可
-- **Edit / Write**: 一律使用反斜線 `C:\Users\...`（正斜線在部分編輯工具上不穩定）
+## Configuration maintenance
 
-## 📚 規則檔案組織
+- The source of truth is chezmoi. Update `{{ .chezmoi.sourceDir | replace "\\" "/" }}` first, then apply it to runtime.
+- Do not run OpenAgentsControl install or update scripts.
+- Restart OpenCode after changing its configuration, agents, commands, skills, or this file.
 
-本配置包含以下規則檔案 (透過 `opencode.json` 的 `instructions` 自動載入):
+## Project instructions
 
-- **AGENTS.md**: 路徑解析、配置管理架構、語言與預設行為、權限覆寫
-- **WORKFLOW.md**: 工作流程控制、回答詳細程度（四級系統）、工作模式定義、Agent 自動選擇、快取策略
-- **CodeStyle.md**: 編程哲學、推理框架、Plan/Code 模式切換、語言風格規範、質量準則、SubAgent 委派規則
-
-所有規則檔案在 OpenCode 啟動時自動載入並合併到系統提示中。
-**行為規範的單一出處是 WORKFLOW.md**；本檔案僅摘要，兩者衝突時以 WORKFLOW.md 為準。
-
-## 🏗️ 配置管理架構（chezmoi 接管遷移中）
-
-本配置正遷移為完全由 chezmoi 管理；[OpenAgentsControl (OAC)](https://github.com/darrenhinde/OpenAgentsControl) 僅作為固定 vendor snapshot 的來源，不再是更新來源。完整分類與遷移狀態見 `OWNERSHIP.md`。
-
-| 範圍 | 目標管理者 |
-| --- | --- |
-| 規則、設定、自製 agent／command／tool | chezmoi |
-| 採用的 OAC context、agent、command、skill | chezmoi 的固定 vendor snapshot |
-| 第三方 plugin、MCP executable、npm package | 釘選的 bootstrap metadata |
-| Token、OAuth、帳號、快取、session、`.tmp` | 本機，不進 chezmoi |
-
-**遷移期間規則**:
-1. 先更新 chezmoi source，再同步 runtime；同一變更不得只留一端。
-2. 未完成 provenance manifest 的 OAC 產物不得視為可安全更新。
-3. 不得執行 OAC `install.sh` 或 `update.sh` 覆蓋本配置。
-4. 不得因接管而取消 secrets、cache 或 generated files 的 ignore。
-
-**編輯/新增 agent 或 command 提示詞時**，套用 CodeStyle.md §3 的品質準則（尤其「重複邏輯」「死引用」「沒有實際收益的複雜度」）——prompt 檔案是治理 agent 行為的 config-as-code，同樣的壞味道判準適用。
-
-## 語言設定
-
-- 強制使用繁體中文回答，除非使用者明確要求其他語言
-- 技術名詞中英並列
-
-## 預設行為
-
-- **Plan-Only 預設**: 預設只「分析」與「提出規劃」；使用者以明確祈使句要求建立、修改、實作、修復、執行或套用時，即視為已授權該範圍的操作，不得重複確認
-- **方案選項制**: 尚未取得執行授權且存在多個實質方案時，才列出編號選項；已明確要求執行時直接處理，只有高風險、不可逆或範圍實質擴大才再次確認
-- **決策回覆格式**：凡是需要使用者選擇方案、確認是否執行或決定下一步時，若 `question` tool 可用，必須呼叫它產生互動選單；工具不可用時，才以阿拉伯數字列出選項並要求使用者以數字回答。二元確認的文字 fallback 可使用 `y`／`n`，分別代表 Yes／No。
-- **回答精簡**: 直接講重點，嚴禁長篇大論；預設「標準模式」，除非使用者加上「深入/詳細」等前綴
-- **Ask Mode**: 輸入「Ask Mode」啟動純問答模式
-- 完整規範見 WORKFLOW.md「核心行為強制規範」
-
-## 權限覆寫規則
-
-### 🔓 審批閘門例外
-
-**以下命令無需審批,直接執行:**
-
-- **PowerShell 唯讀命令**: `Get-*` Cmdlet、`Test-Path`
-- **Unix/Linux 唯讀命令**: `ls`、`pwd`、`cat`、`grep`、`find` 等
-- **Git 唯讀命令**: `git status`、`git diff`、`git log`、`git show`
-- **開發工具版本查詢**: `dotnet --version`、`node --version`、`npm --version` 等
-
-### 🎯 權限覆寫優先級
-
-`opencode.json` 的權限只控制工具層 runtime permission，不取代使用者語意上的 workflow approval：
-
-1. 匹配 `"allow"` → 工具層不顯示 permission prompt；未授權的修改仍不得執行
-2. 匹配 `"ask"` → 由 OpenCode 顯示工具層 permission prompt；不得再重複詢問相同方案
-3. 匹配 `"deny"` → 工具層拒絕執行
-
-Workflow approval 的定義與 SubAgent 路由一律以 `WORKFLOW.md` 為準。
+- A project's `AGENTS.md` supplies its architecture, development, test, and contribution rules.
+- Prefer the nearest applicable project instruction over assumptions.
