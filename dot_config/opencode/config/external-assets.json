@@ -1,0 +1,112 @@
+{
+  "schemaVersion": 2,
+  "defaultProfiles": [
+    "core"
+  ],
+  "installers": {
+    "skillsCli": {
+      "package": "skills",
+      "version": "1.5.21"
+    },
+    "claudeCode": {
+      "command": "claude"
+    }
+  },
+  "skillsCli": [
+    {
+      "repository": "https://github.com/mattpocock/skills.git",
+      "revision": "2ab958093e83e0ec752e6c1c5932da465bf23e0c",
+      "skills": [
+        "to-spec",
+        "to-tickets"
+      ],
+      "profiles": [
+        "core"
+      ],
+      "scope": "global",
+      "pruneWhenInactive": false
+    },
+    {
+      "repository": "https://github.com/product-on-purpose/pm-skills.git",
+      "revision": "4e260b395a1e9b714ec9740ae7ea458bace49ec4",
+      "skills": [
+        "*"
+      ],
+      "profiles": [
+        "product"
+      ],
+      "scope": "global",
+      "pruneWhenInactive": true
+    }
+  ],
+  "vendoredSkills": [
+    {
+      "id": "human-skill-tree",
+      "repository": "https://github.com/24kchengYe/human-skill-tree.git",
+      "revision": null,
+      "provenanceStatus": "upstream-confirmed-revision-pending",
+      "managedBy": "chezmoi-inventory",
+      "desiredState": "absent",
+      "installationStatus": "removed-pending-reorganization",
+      "localRoot": null,
+      "previousLocalRoot": "~/.config/opencode/skills",
+      "updatePolicy": "manual-review",
+      "profiles": [
+        "education"
+      ],
+      "skills": [
+        "00-learning-how-to-learn",
+        "00-tutor-persona",
+        "01-k12-exam-systems",
+        "01-k12-humanities",
+        "01-k12-languages",
+        "01-k12-mathematics",
+        "01-k12-sciences",
+        "02-arts-design-tutor",
+        "02-business-economics-tutor",
+        "02-humanities-social-tutor",
+        "02-medical-health-tutor",
+        "02-music-arts",
+        "02-stem-tutor",
+        "02-university-guide",
+        "03-academic-writing",
+        "03-data-analysis-stats",
+        "03-literature-review",
+        "03-research-methodology",
+        "04-career-navigator",
+        "04-civil-service",
+        "04-consulting-career",
+        "04-finance-career",
+        "04-fullstack-webapp",
+        "04-interview-prep",
+        "04-tech-career",
+        "05-communication-skills",
+        "05-cross-cultural",
+        "05-emotional-intelligence",
+        "05-negotiation-persuasion",
+        "05-social-intelligence",
+        "06-creativity-innovation",
+        "06-critical-thinking",
+        "06-financial-literacy",
+        "06-health-wellness"
+      ]
+    }
+  ],
+  "claudeMarketplaces": [
+    {
+      "name": "claude-code-plugins",
+      "source": "anthropics/claude-code",
+      "profiles": [
+        "core"
+      ]
+    },
+    {
+      "name": "claude-plugins-official",
+      "source": "anthropics/claude-plugins-official",
+      "profiles": [
+        "core"
+      ]
+    }
+  ],
+  "claudePlugins": []
+}
