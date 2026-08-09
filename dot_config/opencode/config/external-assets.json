@@ -27,6 +27,55 @@
       "pruneWhenInactive": false
     },
     {
+      "repository": "https://github.com/upstash/context7.git",
+      "revision": "8276a7c35f3d169917c3c2595fdf148673a0f6ec",
+      "skills": [
+        "find-docs"
+      ],
+      "profiles": [
+        "core"
+      ],
+      "scope": "global",
+      "pruneWhenInactive": false,
+      "notes": "Official Context7 skill installed from a pinned Git revision. Authentication and credentials remain runtime-only."
+    },
+    {
+      "repository": "https://github.com/vercel-labs/skills.git",
+      "revision": "941a7bcfeca4bf07913b9fb6f8ed81f20ff5297c",
+      "skills": [
+        "find-skills"
+      ],
+      "profiles": [
+        "core"
+      ],
+      "scope": "global",
+      "pruneWhenInactive": false
+    },
+    {
+      "repository": "https://github.com/LizardLiang/interactive-diagram.git",
+      "revision": "e49e3a727540961153a6f1e083fc8d2651955d7c",
+      "skills": [
+        "interactive-diagram"
+      ],
+      "profiles": [
+        "design"
+      ],
+      "scope": "global",
+      "pruneWhenInactive": true
+    },
+    {
+      "repository": "https://github.com/mattpocock/skills.git",
+      "revision": "2ab958093e83e0ec752e6c1c5932da465bf23e0c",
+      "skills": [
+        "teach"
+      ],
+      "profiles": [
+        "learning"
+      ],
+      "scope": "global",
+      "pruneWhenInactive": true
+    },
+    {
       "repository": "https://github.com/product-on-purpose/pm-skills.git",
       "revision": "4e260b395a1e9b714ec9740ae7ea458bace49ec4",
       "skills": [
@@ -89,6 +138,32 @@
         "06-critical-thinking",
         "06-financial-literacy",
         "06-health-wellness"
+      ]
+    }
+  ],
+  "projectScopedAssets": [
+    {
+      "id": "understand-anything",
+      "repositoryRoot": "~/.understand-anything/repo/understand-anything-plugin",
+      "desiredGlobalState": "absent",
+      "globalSkillRoot": "~/.agents/skills",
+      "projectSkillRoot": ".agents/skills",
+      "skillSourceRoot": "skills",
+      "skills": [
+        "understand",
+        "understand-chat",
+        "understand-dashboard",
+        "understand-diff",
+        "understand-domain",
+        "understand-explain",
+        "understand-knowledge",
+        "understand-onboard"
+      ],
+      "commands": [
+        {
+          "source": "~/.config/opencode/config/project-assets/understand-anything/commands/understand.md",
+          "target": ".opencode/commands/understand.md"
+        }
       ]
     }
   ],

@@ -1,6 +1,6 @@
 ---
 description: Build a factual GSS worklog and optionally generate Jira-ready daily entries.
-agent: OpenAgent
+agent: build
 subtask: true
 ---
 

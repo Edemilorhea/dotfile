@@ -45,6 +45,10 @@ export function parseLocuPage(value: unknown): LocuPage {
     throw new Error("Locu returned an invalid pagination flag.")
   }
 
+  if (value.hasMore && (typeof value.nextCursor !== "string" || value.nextCursor.length === 0)) {
+    throw new Error("Locu returned a page without the required next cursor.")
+  }
+
   return {
     data: value.data,
     nextCursor: value.nextCursor,
@@ -73,7 +77,11 @@ export function parseLocuSessionPage(value: unknown): LocuPage<LocuSession> {
 }
 
 export function parseLocuTimer(value: unknown): LocuTimer {
-  if (!isJsonObject(value) || !isTimerState(value.state)) {
+  if (!isJsonObject(value)
+    || !isTimerState(value.state)
+    || !isOptionalNumber(value.duration)
+    || !isOptionalString(value.currentTaskId)
+    || !isOptionalString(value.startedAt)) {
     throw new Error("Locu returned an invalid timer response.")
   }
 
@@ -108,6 +116,14 @@ function isLocuSession(value: unknown): value is LocuSession {
     && typeof value.createdAt === "string"
     && typeof value.finishedAt === "string"
     && (value.activities === undefined || Array.isArray(value.activities))
+}
+
+function isOptionalNumber(value: unknown): value is number | undefined {
+  return value === undefined || typeof value === "number"
+}
+
+function isOptionalString(value: unknown): value is string | undefined {
+  return value === undefined || typeof value === "string"
 }
 
 function optionalNumber(value: unknown): number | undefined {

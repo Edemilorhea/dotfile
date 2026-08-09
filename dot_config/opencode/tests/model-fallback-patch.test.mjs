@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { mkdtemp, rm, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
@@ -16,7 +16,7 @@ async function createHarness() {
     info: {
       id: "message-1",
       role: "user",
-      agent: "TaskManager",
+      agent: "TestAgent",
       model: {
         providerID: "anthropic",
         modelID: "claude-opus-4-8",
@@ -25,8 +25,10 @@ async function createHarness() {
     parts: [{ type: "text", text: "smoke test" }],
   };
 
+  const configDirectory = join(directory, ".opencode");
+  await mkdir(configDirectory);
   await writeFile(
-    join(directory, "model-fallback.json"),
+    join(configDirectory, "model-fallback.json"),
     JSON.stringify({
       enabled: true,
       logging: false,
@@ -38,7 +40,7 @@ async function createHarness() {
         maxFallbackDepth: 3,
       },
       agents: {
-        TaskManager: {
+        TestAgent: {
           fallbackModels: ["openai/gpt-5.6-sol"],
         },
       },

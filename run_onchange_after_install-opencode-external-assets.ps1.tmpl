@@ -48,6 +48,59 @@ function Test-ProfileSelected {
     return @($assetProfiles | Where-Object { $ActiveProfiles -contains $_ }).Count -gt 0
 }
 
+function Resolve-HomePath {
+    param([Parameter(Mandatory = $true)][string]$Path)
+
+    if ($Path -eq '~') {
+        return $env:USERPROFILE
+    }
+    if ($Path.StartsWith('~/') -or $Path.StartsWith('~\')) {
+        return Join-Path $env:USERPROFILE $Path.Substring(2)
+    }
+
+    return [Environment]::ExpandEnvironmentVariables($Path)
+}
+
+function Remove-GlobalProjectScopedSkills {
+    param([Parameter(Mandatory = $true)]$Manifest)
+
+    foreach ($asset in @($Manifest.projectScopedAssets)) {
+        if ($asset.desiredGlobalState -ne 'absent') {
+            continue
+        }
+        if ([string]::IsNullOrWhiteSpace($asset.repositoryRoot) -or
+            [string]::IsNullOrWhiteSpace($asset.globalSkillRoot) -or
+            [string]::IsNullOrWhiteSpace($asset.skillSourceRoot)) {
+            throw "Project-scoped asset $($asset.id) requires repositoryRoot, globalSkillRoot, and skillSourceRoot."
+        }
+
+        $repositoryRoot = Resolve-HomePath $asset.repositoryRoot
+        $globalSkillRoot = Resolve-HomePath $asset.globalSkillRoot
+        foreach ($skillName in @($asset.skills)) {
+            $entryPath = Join-Path $globalSkillRoot $skillName
+            if (-not (Test-Path -LiteralPath $entryPath)) {
+                continue
+            }
+
+            $expectedTarget = [System.IO.Path]::GetFullPath(
+                (Join-Path (Join-Path $repositoryRoot $asset.skillSourceRoot) $skillName)
+            )
+            $entry = Get-Item -LiteralPath $entryPath -Force
+            if (-not ($entry.Attributes -band [System.IO.FileAttributes]::ReparsePoint)) {
+                throw "Refusing to remove non-link global skill entry: $entryPath"
+            }
+
+            $resolvedTarget = $entry.ResolveLinkTarget($true).FullName
+            if (-not [string]::Equals($resolvedTarget, $expectedTarget, [System.StringComparison]::OrdinalIgnoreCase)) {
+                throw "Refusing to remove global skill with unexpected target: $entryPath -> $resolvedTarget"
+            }
+
+            Write-Host "Removing project-scoped skill from global exposure: $skillName"
+            Remove-Item -LiteralPath $entryPath -Force
+        }
+    }
+}
+
 function Get-GlobalSkillsFromSource {
     param([Parameter(Mandatory = $true)]$Source)
 
@@ -190,6 +243,7 @@ if ($manifest.schemaVersion -ne 2) {
 
 $activeProfiles = @(Get-ActiveProfiles $manifest)
 Write-Host "Installing external asset profiles: $($activeProfiles -join ', ')"
+Remove-GlobalProjectScopedSkills $manifest
 Remove-InactiveGlobalSkills $manifest $activeProfiles
 Install-SkillsCliAssets $manifest $activeProfiles
 Install-ClaudeAssets $manifest $activeProfiles

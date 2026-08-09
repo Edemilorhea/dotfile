@@ -15,7 +15,7 @@
         "~/.config/opencode/plugin/shell-strategy/shell_strategy.md",
         "~/.config/opencode/instructions/morph-tools.md"
     ],
-    "default_agent": "OpenAgent",
+    "default_agent": "build",
     "provider": {
         "google": {
             "options": {

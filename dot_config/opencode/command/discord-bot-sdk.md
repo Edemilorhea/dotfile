@@ -1,6 +1,6 @@
 ---
 description: Load the OpenCode Discord Bot SDK plan and begin with a repository-specific Phase 0 audit.
-agent: OpenAgent
+agent: build
 ---
 
 Read `C:/Users/tc_tseng/.config/opencode/DISCORD_BOT_SDK_PLAN.md` in full before acting.

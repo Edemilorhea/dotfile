@@ -1,6 +1,6 @@
 ---
 description: Audit recent OpenCode configuration changes for safe chezmoi management.
-agent: OpenAgent
+agent: build
 subtask: true
 ---
 
@@ -38,12 +38,12 @@ Read `C:\Users\tc_tseng\.config\opencode\AGENTS.md` and `C:\Users\tc_tseng\.loca
 
 Classify target files under `C:\Users\tc_tseng\.config\opencode\` as follows:
 
-1. **chezmoi-owned**: `AGENTS.md`, `WORKFLOW.md`, `CodeStyle.md`, `opencode.json`, `agent\selfmade\**`, `command\selfmade\**`, `agent\core\**`, `agent\subagents\code\**`, and `agent\subagents\core\**`.
-2. **install.sh-owned**: `context\**`, OAC-provided skills, `plugins\**`, `tool\**`, and other OAC agents or commands excluded by `.chezmoiignore`.
+1. **chezmoi-owned**: any target returned by `chezmoi managed`, including configuration, locally maintained agents, commands, skills, plugins, tools, and governance files.
+2. **external-installer-owned**: payloads declared in `config\external-assets.json`, plus installer-created compatibility junctions and lock records.
 3. **runtime or sensitive**: anything matching the safety boundaries or excluded by `.chezmoiignore` for runtime, account, backup, test-only, or machine-local reasons.
-4. **ambiguous**: every other OpenCode configuration file, including files already in the chezmoi source but not explicitly owned by `AGENTS.md`.
+4. **ambiguous**: every other OpenCode configuration file whose owner cannot be established from chezmoi or `external-assets.json`.
 
-Never recommend an action for install.sh-owned, runtime/sensitive, or ambiguous files. Explain the owner or uncertainty instead.
+Never recommend an action for external-installer-owned, runtime/sensitive, or ambiguous files. Explain the owner or uncertainty instead.
 
 ## Audit Procedure
 

@@ -1,4 +1,5 @@
-import { tool } from "@opencode-ai/plugin/tool"
+import { tool } from "@opencode-ai/plugin"
+import { join } from "node:path"
 import { createLocuClient } from "./locu/client"
 import { resolveLocuToken } from "./locu/config"
 
@@ -12,8 +13,11 @@ export const tasks = tool({
     projectId: tool.schema.string().optional().describe("Optional Locu project ID"),
     section: tool.schema.enum(["today", "sooner", "later"]).optional().describe("Optional task section"),
   },
-  async execute(args) {
-    return executeRead(async () => (await client()).listAllTasks({ ...args, includePlainText: true }))
+  async execute(args, context) {
+    return executeRead(async () => (await client(context.directory, context.abort)).listAllTasks({
+      ...args,
+      includePlainText: true,
+    }))
   },
 })
 
@@ -25,8 +29,8 @@ export const sessions = tool({
     limit: tool.schema.number().int().min(1).max(MAX_LIMIT).optional().describe("Sessions requested per API page"),
     includeActivities: tool.schema.boolean().optional().describe("Include task and meeting activities"),
   },
-  async execute(args) {
-    return executeRead(async () => (await client()).listAllSessions({
+  async execute(args, context) {
+    return executeRead(async () => (await client(context.directory, context.abort)).listAllSessions({
       ...args,
       includeActivities: args.includeActivities ?? true,
     }))
@@ -36,13 +40,16 @@ export const sessions = tool({
 export const timer = tool({
   description: "Get current Locu timer status. Read-only; requires LOCU_PAT in the environment or a .env file.",
   args: {},
-  async execute() {
-    return executeRead(async () => (await client()).getTimer())
+  async execute(_args, context) {
+    return executeRead(async () => (await client(context.directory, context.abort)).getTimer())
   },
 })
 
-async function client() {
-  return createLocuClient({ token: await resolveLocuToken() })
+async function client(directory: string, signal: AbortSignal) {
+  return createLocuClient({
+    signal,
+    token: await resolveLocuToken({ searchPaths: [join(directory, ".env")] }),
+  })
 }
 
 async function executeRead(operation: () => Promise<unknown>): Promise<string> {

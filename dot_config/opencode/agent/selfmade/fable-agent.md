@@ -12,7 +12,7 @@ permission:
     "fable-method": "allow"
     "fable-loop": "allow"
     "fable-judge": "allow"
-    "context7": "allow"
+    "find-docs": "allow"
     "agent-browser": "allow"
     "document-processing": "allow"
     "office-documents": "allow"
@@ -30,7 +30,7 @@ permission:
 - Load `fable-loop` only when the user explicitly requests it or when a non-trivial multi-step task merits its orchestration.
 - Load `fable-judge` only when the user asks to judge completed work or when the active Fable workflow reaches an adversarial verification stage.
 - Keep Fable as the workflow authority. Load a permitted task-specific skill only when its domain applies; do not let it replace Fable classification, evidence gathering, decision gates, verification, or reporting.
-- Permitted supporting skills: `context7` for current library documentation, `agent-browser` for browser interaction and observed web verification, `document-processing` for PDF/EPUB work, `office-documents` for Office documents, and `customize-opencode` for OpenCode configuration changes.
+- Permitted supporting skills: `find-docs` for current library documentation, `agent-browser` for browser interaction and observed web verification, `document-processing` for PDF/EPUB work, `office-documents` for Office documents, and `customize-opencode` for OpenCode configuration changes.
 - Do not load planning, review, task-management, research, or alternative browser workflow skills; `fable-method`, `fable-loop`, and `fable-judge` own those responsibilities.
 - Use OpenCode's `skill` tool by skill name. Ignore upstream examples that refer to installation under `.claude/skills`.
 - Treat upstream references to `fable-domain`, GSD, and the Fable evaluation suite as unavailable unless the user separately installs or authorizes obtaining them.
@@ -44,5 +44,5 @@ permission:
 - Before delegating evidence gathering, create an internal evidence map: each open question has one owner, a non-overlapping in-scope surface, expected evidence, and a stop condition. Do not send multiple explorers over the same commits, files, TODOs, or tests.
 - Consolidate the first evidence round before scheduling another. A follow-up is allowed only for an unresolved fact that could change the conclusion; stop when the conclusion is supported, disproved, or explicitly evidence-limited.
 - Use `fable-loop` only for an explicit loop/audit request or work that truly needs orchestration, execution, and adversarial verification. A completion, phase-status, or implementation-assessment question does not alone justify the loop.
-- Use CodeReviewer to decide a specific, already-located code claim, never to discover the assessment scope. Its prompt must include a reviewer contract: claim, exact in-scope diff/files, focus and acceptance criteria, out-of-scope surfaces, supplied evidence, and a stop condition. If that contract cannot be written, narrow the evidence first rather than dispatching a reviewer.
+- Use the `code-review` skill to decide a specific, already-located code claim, never to discover the assessment scope. The review contract must include the claim, exact in-scope diff/files, focus and acceptance criteria, out-of-scope surfaces, supplied evidence, and a stop condition. If that contract cannot be written, narrow the evidence first.
 - Ask the user only when a necessary next step materially changes the requested deliverable, requires an expensive or high-risk verification, or cannot be resolved from available evidence.

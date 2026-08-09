@@ -20,8 +20,7 @@
       4. UnbalancedTag          - a structural pseudo-XML tag (<workflow>, <stage>,
                                     <critical_rules>, etc.) opens without a matching
                                     close, usually from a botched copy-paste merge
-      5. ReviewRoutingBoundary  - review command or terminal reviewer violates the
-                                   single-primary-routing contract
+      5. ReviewRoutingBoundary  - review command bypasses the built-in primary agent
 
     This is a heuristic static scan, not a full parser. False positives are possible
     (rare in this codebase) — treat findings as "look here", not gospel.
@@ -164,48 +163,24 @@ foreach ($f in $agentFiles) {
     }
 }
 
-# 5. Review routing boundary. Reviewers are terminal specialists: only a
-# primary agent routes work, while TaskManager may plan but never dispatches.
+# 5. Review routing boundary. The command uses the built-in primary agent and
+# performs review through the explicitly loaded review skill.
 $reviewCommandPath = Join-Path $Root "command\selfmade\review.md"
 if (Test-Path -LiteralPath $reviewCommandPath) {
     $reviewCommand = Get-Content -Raw -LiteralPath $reviewCommandPath
-    if ($reviewCommand -notmatch '(?m)^agent:\s*OpenAgent\s*$' -or $reviewCommand -notmatch '(?m)^subtask:\s*false\s*$') {
+    if ($reviewCommand -notmatch '(?m)^agent:\s*build\s*$' -or $reviewCommand -notmatch '(?m)^subtask:\s*false\s*$') {
         $issues.Add([PSCustomObject]@{
             Type   = "ReviewCommandRoute"
-            Detail = "command/selfmade/review.md must route through OpenAgent with subtask: false"
+            Detail = "command/selfmade/review.md must route through build with subtask: false"
             Files  = $reviewCommandPath
         })
     }
-}
-
-$terminalReviewers = @("CodeReviewer")
-foreach ($reviewerName in $terminalReviewers) {
-    if (-not $nameMap.ContainsKey($reviewerName)) {
+    if ($reviewCommand -notmatch '(?m)Load the `code-review` skill') {
         $issues.Add([PSCustomObject]@{
-            Type   = "TerminalReviewerMissing"
-            Detail = "terminal reviewer '$reviewerName' has no matching agent file"
-            Files  = (Join-Path $Root "agent")
+            Type   = "ReviewSkillMissing"
+            Detail = "command/selfmade/review.md must explicitly load the code-review skill"
+            Files  = $reviewCommandPath
         })
-        continue
-    }
-
-    foreach ($reviewerPath in $nameMap[$reviewerName]) {
-        $reviewerContent = Get-Content -Raw -LiteralPath $reviewerPath
-        if ($reviewerContent -notmatch '(?m)^\s*task:\s*\r?\n\s*"?\*"?\s*:\s*"?deny"?\s*$') {
-            $issues.Add([PSCustomObject]@{
-                Type   = "SpecialistDelegationLeak"
-                Detail = "terminal reviewer '$reviewerName' must deny task delegation"
-                Files  = $reviewerPath
-            })
-        }
-
-        if ($reviewerContent -match '(?i)ALWAYS\s+call\s+ContextScout|task\s*\(') {
-            $issues.Add([PSCustomObject]@{
-                Type   = "RecursiveRoutingPrompt"
-                Detail = "terminal reviewer '$reviewerName' contains a nested discovery or task invocation instruction"
-                Files  = $reviewerPath
-            })
-        }
     }
 }
 

@@ -11,6 +11,26 @@ test("createLocuUrl serializes defined query values", () => {
   expect(url.toString()).toBe("https://api.locu.app/api/v1/sessions?includeActivities=true&limit=50")
 })
 
+test("createLocuClient rejects invalid boundary options", () => {
+  expect(() => createLocuClient({ token: " " })).toThrow("Locu token must not be empty.")
+  expect(() => createLocuClient({ token: "test-token", timeoutMs: 0 })).toThrow(
+    "Locu timeout must be a positive number.",
+  )
+})
+
+test("createLocuClient trims token boundary whitespace", async () => {
+  let authorization = ""
+  const fetchFn = async (_input: RequestInfo | URL, init?: RequestInit) => {
+    authorization = new Headers(init?.headers).get("Authorization") ?? ""
+    return Response.json({ state: "IDLE" })
+  }
+  const client = createLocuClient({ fetchFn: fetchFn as typeof fetch, token: " test-token " })
+
+  await client.getTimer()
+
+  expect(authorization).toBe("Bearer test-token")
+})
+
 test("listSessions sends bearer authentication and validates the page", async () => {
   let callCount = 0
   const fetchFn = async (input: RequestInfo | URL, init?: RequestInit) => {
@@ -100,6 +120,17 @@ test("listTasks rejects legacy boolean completion values", async () => {
   expect(client.listTasks()).rejects.toThrow("Locu returned an invalid task response.")
 })
 
+test("listTasks rejects a paginated response without its next cursor", async () => {
+  const fetchFn = async () => Response.json({
+    data: [],
+    nextCursor: null,
+    hasMore: true,
+  })
+  const client = createLocuClient({ fetchFn: fetchFn as typeof fetch, token: "test-token" })
+
+  expect(client.listTasks()).rejects.toThrow("Locu returned a page without the required next cursor.")
+})
+
 test("listSessions rejects session payloads without required worklog fields", async () => {
   const fetchFn = async () => Response.json({
     data: [{ id: "session-without-times" }],
@@ -126,4 +157,46 @@ test("getTimer returns a safe API error without exposing the bearer token", asyn
     expect((error as Error).message).toBe("Token rejected")
     expect((error as Error).message).not.toContain("secret-token")
   }
+})
+
+test("getTimer rejects malformed optional fields", async () => {
+  const fetchFn = async () => Response.json({ state: "ACTIVE", duration: "not-a-number" })
+  const client = createLocuClient({ fetchFn: fetchFn as typeof fetch, token: "test-token" })
+
+  expect(client.getTimer()).rejects.toThrow("Locu returned an invalid timer response.")
+})
+
+test("getTimer honors caller cancellation", async () => {
+  const controller = new AbortController()
+  const fetchFn = async (_input: RequestInfo | URL, init?: RequestInit) => new Promise<Response>((_resolve, reject) => {
+    init?.signal?.addEventListener("abort", () => reject(new DOMException("Aborted", "AbortError")), { once: true })
+  })
+  const client = createLocuClient({
+    fetchFn: fetchFn as typeof fetch,
+    signal: controller.signal,
+    token: "test-token",
+  })
+
+  const request = client.getTimer()
+  controller.abort()
+
+  expect(request).rejects.toThrow("Locu request canceled.")
+})
+
+test("getTimer honors a signal canceled before the request starts", async () => {
+  const controller = new AbortController()
+  controller.abort()
+  const fetchFn = async (_input: RequestInfo | URL, init?: RequestInit) => {
+    if (init?.signal?.aborted) {
+      throw new DOMException("Aborted", "AbortError")
+    }
+    return Response.json({ state: "IDLE" })
+  }
+  const client = createLocuClient({
+    fetchFn: fetchFn as typeof fetch,
+    signal: controller.signal,
+    token: "test-token",
+  })
+
+  expect(client.getTimer()).rejects.toThrow("Locu request canceled.")
 })

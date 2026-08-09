@@ -1,6 +1,6 @@
 ---
 description: Prepare a safe GitLab Merge Request without rewriting branch history
-agent: OpenAgent
+agent: build
 subtask: false
 ---
 

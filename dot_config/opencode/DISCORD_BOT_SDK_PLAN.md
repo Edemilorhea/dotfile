@@ -9,7 +9,7 @@ Build a reliable single-machine Discord bridge for OpenCode. Discord may submit 
 - Use the official OpenCode server and TypeScript SDK. Do not spawn `opencode run` per Discord message or parse CLI stdout.
 - Bind the OpenCode server to `127.0.0.1` only.
 - Discord must never approve permissions. It may only show `waiting for local approval`.
-- Keep existing global OpenCode configuration and plugins intact: OAC workflow, DCP, manual `opencode-mem`, Handoff, Command Inject, Smart Title, and Notifier.
+- Keep the existing global OpenCode configuration and active plugins intact: DCP, `opencode-mem`, Handoff, Command Inject, Smart Title, and Notifier.
 - A Discord thread maps to exactly one OpenCode session. A Discord channel maps only to an allowlisted project.
 - Every inbound Discord event is durable and idempotent before it is processed.
 - One session has one active prompt writer. New messages queue explicitly; they never silently interrupt or duplicate work.

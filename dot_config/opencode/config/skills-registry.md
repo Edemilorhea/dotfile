@@ -6,13 +6,13 @@ This registry is the source of the skill-pack decision. It separates where a ski
 
 ## Inventory Status
 
-| Root | Skills | Current role | Ownership status |
-| --- | ---: | --- | --- |
-| `~/.config/opencode/skills` | 47 | OpenCode global auto-scan | chezmoi-managed; upstream provenance is incomplete for most entries |
-| `~/.agents/skills` | 94 | External auto-scan | mixed: 9 entries have a managed manifest; the rest require installer ownership confirmation |
-| `~/.claude/skills` | 83 | External auto-scan | unmanaged duplicate candidate; provenance must be confirmed before cleanup |
+| Root | Current role | Ownership status |
+| --- | --- | --- |
+| `~/.config/opencode/skills` | OpenCode global auto-scan | chezmoi-managed local skills |
+| `~/.agents/skills` | Cross-agent external auto-scan | mixed installer payloads; reproducible entries are declared in `external-assets.json` |
+| `~/.claude/skills` | Claude compatibility auto-scan | installer-created junctions that mirror selected `.agents` skills |
 
-`~/.agents/skills/.manifest.json` identifies bundled or pinned third-party ownership for `plan`, `research`, `skill-creator`, `agent-browser`, `init`, `cross-review`, `zen-review`, `zen-comprehensive-review`, and `frontend-design`. `config/external-skills.json` pins `to-spec` and `to-tickets` from `mattpocock/skills` and the Product on Purpose PM catalog from `product-on-purpose/pm-skills`.
+`~/.agents/skills/.manifest.json` identifies bundled third-party ownership for several external skills. `config/external-assets.json` is the desired-state inventory for pinned and profile-controlled installations.
 
 ## Exposure Values
 
@@ -29,6 +29,7 @@ This registry is the source of the skill-pack decision. It separates where a ski
 | Skills | Pack | Target exposure | Owner |
 | --- | --- | --- | --- |
 | `fable-method`, `fable-loop`, `fable-judge` | `fable` | `global` as one indivisible pack | chezmoi-managed local package |
+| `feature-flow-explainer`, `linear-workflow` | `core-workflow` | `global` | chezmoi-managed local skills |
 
 The Fable pack is the sole orchestration authority. `fable-loop` and `fable-judge` need not trigger for ordinary work, but must always be available with `fable-method`.
 
@@ -36,17 +37,21 @@ The Fable pack is the sole orchestration authority. `fable-loop` and `fable-judg
 
 | Skills | Pack | Target exposure | Owner / provenance |
 | --- | --- | --- | --- |
-| `context7`, `change-understanding-review` | `dev-foundation` | `global` | chezmoi-managed; record upstream provenance before any refresh |
-| `plan`, `research`, `init` | `repo-development` | `project` | `.agents` manifest: bundled / zencoderai |
+| `find-docs` | `dev-foundation` | `global` | official `upstash/context7` skill; installed through `skills@1.5.21` from pinned revision `8276a7c`; authentication remains runtime-only |
+| `change-understanding-review` | `dev-foundation` | `global` | chezmoi-managed local skill |
+| `plan`, `research` | `repo-development` | `project` | Public distribution traced to `EliasOulkadi/shokunin`; original authorship remains unknown |
+| `init` | `repo-development` | `project` | `.agents` manifest: `zencoderai/skills` |
 | `understand`, `understand-chat`, `understand-dashboard`, `understand-diff`, `understand-domain`, `understand-explain`, `understand-knowledge`, `understand-onboard` | `repo-understanding` | `project` | external; currently `.agents` only; provenance unrecorded |
-| `task-management` | `oac-task-management` | `profile` (`oac`) | chezmoi-managed OAC-derived asset |
-| `vibe-coding-tutor`, `teach` | `learning-code` | `explicit` | `vibe-coding-tutor` is chezmoi-managed; `teach` is external with provenance to record |
+| `vibe-coding-tutor` | `learning-code` | `global` | chezmoi-managed; upstream `tortoiseknightma/vibe-coding-tutor` with pinned provenance recorded locally |
+| `teach` | `learning-code` | `explicit` | Optional `learning` profile; pinned `mattpocock/skills` source in `external-assets.json` |
 
 ## Review Pack
 
 | Skills | Pack | Target exposure | Owner / provenance |
 | --- | --- | --- | --- |
-| `code-review`, `comprehensive-review`, `cross-review`, `zen-review`, `zen-comprehensive-review` | `review` | `explicit` | `cross-review` is zencoderai; Zen entries are bundled; remaining origins require confirmation |
+| `code-review`, `comprehensive-review` | `review` | `explicit` | Public distribution traced to `EliasOulkadi/shokunin` by distinctive content comparison; original authorship remains unknown |
+| `cross-review` | `review` | `explicit` | `.agents` manifest: `zencoderai/skills` |
+| `zen-review`, `zen-comprehensive-review` | `review` | `explicit` | Public distribution traced to `EliasOulkadi/shokunin`; original authorship remains unknown |
 
 `fable-judge` is intentionally excluded: it belongs only to the Core Fable pack.
 
@@ -54,17 +59,19 @@ The Fable pack is the sole orchestration authority. `fable-loop` and `fable-judg
 
 | Skills | Pack | Target exposure | Owner / provenance |
 | --- | --- | --- | --- |
-| `browser-automation`, `agent-browser`, `playwright` | `browser` | `project` | `agent-browser` is vercel-labs; others need provenance records |
+| `agent-browser` | `browser` | `project` | `.agents` manifest: `vercel-labs/agent-browser` |
+| `playwright` | `browser` | `project` | Runtime-only payload; exact-phrase and GitHub code searches found no verifiable public upstream as of 2026-08-09 |
 | `document-processing`, `office-documents` | `documents` | `project` | chezmoi-managed; record upstream provenance before refresh |
-| `linear-workflow` | `productivity` | `project` | chezmoi-managed; record upstream provenance before refresh |
 | `copy-editing`, `copywriting` | `content` | `explicit` | chezmoi-managed; record upstream provenance before refresh |
 
 ## Design and Skill-Authoring Packs
 
 | Skills | Pack | Target exposure | Owner / provenance |
 | --- | --- | --- | --- |
-| `frontend-design`, `interactive-diagram`, `utility-mermaid-diagrams`, `utility-slideshow-creator` | `design` | `project` | `frontend-design` is zencoderai; other origins require confirmation |
-| `find-skills`, `skill-creator`, `utility-pm-skill-builder`, `utility-pm-skill-iterate`, `utility-pm-skill-validate`, `utility-pm-skill-auditor`, `utility-pm-workflow-builder`, `utility-pm-workflow-orchestrator`, `utility-update-pm-skills` | `skill-governance` | `explicit` | `skill-creator` is anthropics; PM utilities are Product on Purpose candidates |
+| `frontend-design` | `design` | `project` | `.agents` manifest: `zencoderai/skills` |
+| `interactive-diagram` | `design` | `explicit` | Optional `design` profile; pinned `LizardLiang/interactive-diagram` source in `external-assets.json` |
+| `find-skills` | `skill-governance` | `global` | Pinned `vercel-labs/skills` source in `external-assets.json` |
+| `skill-creator`, `utility-pm-skill-builder`, `utility-pm-skill-iterate`, `utility-pm-skill-validate`, `utility-pm-skill-auditor`, `utility-pm-workflow-builder`, `utility-pm-workflow-orchestrator`, `utility-update-pm-skills` | `skill-governance` | `explicit` | `skill-creator` is anthropics; PM utilities are Product on Purpose candidates |
 
 ## Product Management Pack
 

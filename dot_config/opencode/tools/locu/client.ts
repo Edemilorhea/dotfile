@@ -23,6 +23,7 @@ export interface LocuClient {
 
 export interface LocuClientOptions {
   fetchFn?: FetchFunction
+  signal?: AbortSignal
   token: string
   timeoutMs?: number
 }
@@ -38,7 +39,15 @@ export class LocuApiError extends Error {
 }
 
 export function createLocuClient(options: LocuClientOptions): LocuClient {
-  const request = createRequest(options)
+  const token = options.token.trim()
+  if (!token) {
+    throw new Error("Locu token must not be empty.")
+  }
+  if (options.timeoutMs !== undefined && (!Number.isFinite(options.timeoutMs) || options.timeoutMs <= 0)) {
+    throw new Error("Locu timeout must be a positive number.")
+  }
+
+  const request = createRequest({ ...options, token })
 
   return {
     listTasks: async (query = {}) => parseLocuTaskPage(await request("/tasks", query)),
@@ -105,6 +114,11 @@ function createRequest(options: LocuClientOptions) {
   return async (path: string, query?: Record<string, QueryValue>): Promise<unknown> => {
     const controller = new AbortController()
     const timeout = setTimeout(() => controller.abort(), timeoutMs)
+    const cancel = () => controller.abort(options.signal?.reason)
+    options.signal?.addEventListener("abort", cancel, { once: true })
+    if (options.signal?.aborted) {
+      cancel()
+    }
 
     try {
       const response = await fetchFn(createLocuUrl(path, query), {
@@ -123,11 +137,12 @@ function createRequest(options: LocuClientOptions) {
       }
 
       const message = error instanceof Error && error.name === "AbortError"
-        ? "Locu request timed out."
+        ? options.signal?.aborted ? "Locu request canceled." : "Locu request timed out."
         : "Locu request failed."
       throw new Error(message)
     } finally {
       clearTimeout(timeout)
+      options.signal?.removeEventListener("abort", cancel)
     }
   }
 }

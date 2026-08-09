@@ -1,6 +1,6 @@
 ---
 description: Generate Jira-ready worklog entries through the canonical GSS worklog flow.
-agent: OpenAgent
+agent: build
 subtask: true
 ---
 
