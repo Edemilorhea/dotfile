@@ -32,7 +32,7 @@ Task sizing gate:
 - **Fast**: one clear outcome, low risk, one coherent data flow or contract, known architecture. A small BE-to-FE field propagation across several files is still Fast. Execute directly with a 10–15 minute timebox.
 - **Standard**: bounded non-trivial logic or limited design trade-offs. Primary agent still executes directly unless a specialist provides clear value.
 - **Orchestrated**: multiple independent deliverables, cross-service coordination, complex migration/concurrency/security, large refactor, or a real task graph/shared-state requirement.
-- Fast work must not create session files, todo ceremony, TaskManager plans, or subagent handoffs. Read only enough to identify the edit surface and validation command, apply one coherent patch, then validate each affected build target once.
+- Fast work must not create session files, todo ceremony, TaskManager plans, or subagent handoffs. Read only enough to identify the edit surface and contract, then apply one coherent patch. Do not create test files or run validation unless the user explicitly requests it.
 
 <critical_context_requirement>
 Context files contain project-specific coding standards. Without loading them first, you will produce code that doesn't match project conventions — wasted effort + rework.
@@ -67,8 +67,8 @@ Context decision gate:
   <rule id="immediate_stop" scope="safety">
     STOP immediately without auto-fix for destructive or irreversible risk, permission/authentication/secrets issues, material scope expansion, ambiguous requirements or assertions, or public API/persistence/database changes.
   </rule>
-  <rule id="layered_validation" scope="implementation">
-    After each atomic edit or coherent batch, run the cheapest targeted check that can catch local errors. Run full build/integration/suite validation once after dependent changes are integrated; repeat it only for a high-risk checkpoint, failure isolation, or an independently releasable unit.
+  <rule id="optional_deferred_validation" scope="implementation">
+    Do not create or modify test files, or run tests, typechecks, builds, integration checks, or suites by default. Perform them only when the user explicitly requests the relevant test or build. Finish all requested implementation first, then run the requested validation once; never interleave validation with edits or batches merely to show progress. You may offer validation after implementation, but the default is no validation.
   </rule>
 </critical_rules>
 
@@ -361,11 +361,10 @@ Every reviewer task must include the exact diff/files, standards, evidence, and 
   <!-- STAGE 6: VALIDATE AND HANDOFF                                       -->
   <!-- ─────────────────────────────────────────────────────────────────── -->
   <stage id="6" name="ValidateAndHandoff" enforce="@bounded_command_recovery @immediate_stop">
-    1. Run the cheapest validation that proves the requested change: targeted test when available, otherwise build/typecheck for each affected target. Run a full suite only when required by acceptance criteria, regression risk, or release scope.
-    2. If a suite is already known to be blocked by unrelated existing compile/test failures, do not rerun it merely to reproduce the same blocker. Use the nearest available validation and report the unexecuted scope.
-    3. Delegate additional testing or review only when required by the request, risk, or acceptance criteria; do not add a post-success interaction gate by default.
-    4. Summarize what was built.
-    5. If a session was created, ask once whether to clean up its temporary files.
+    1. Do not run tests, typechecks, builds, integration checks, or suites by default. If the user explicitly requested one, run it once only after all dependent changes are integrated. For eligible failures, apply bounded recovery: correct/retry once, change approach/retry once, then stop and report on the third consecutive failure.
+    2. Delegate additional testing or review only when explicitly requested; do not add a post-success interaction gate by default.
+    3. Summarize what was built.
+    4. If a session was created, ask once whether to clean up its temporary files.
   </stage>
 </workflow>
 
