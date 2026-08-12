@@ -164,7 +164,7 @@ foreach ($f in $agentFiles) {
 }
 
 # 5. Review routing boundary. The command uses the built-in primary agent and
-# performs review through the explicitly loaded review skill.
+# contains a self-contained review contract without an external review skill.
 $reviewCommandPath = Join-Path $Root "command\selfmade\review.md"
 if (Test-Path -LiteralPath $reviewCommandPath) {
     $reviewCommand = Get-Content -Raw -LiteralPath $reviewCommandPath
@@ -175,10 +175,10 @@ if (Test-Path -LiteralPath $reviewCommandPath) {
             Files  = $reviewCommandPath
         })
     }
-    if ($reviewCommand -notmatch '(?m)Load the `code-review` skill') {
+    if ($reviewCommand -notmatch '(?m)Review the supplied diff/files directly' -or $reviewCommand -match '(?m)^\d+\.\s+Load the `[^`]+` skill') {
         $issues.Add([PSCustomObject]@{
-            Type   = "ReviewSkillMissing"
-            Detail = "command/selfmade/review.md must explicitly load the code-review skill"
+            Type   = "ReviewContractMissing"
+            Detail = "command/selfmade/review.md must contain a direct review contract without an external review skill"
             Files  = $reviewCommandPath
         })
     }

@@ -184,6 +184,13 @@ let g:WhichKeyDesc_ot = "ot 終端工具視窗"
 
 nnoremap <leader>fcf :action NewElementSamePlace<CR>
 
+" 第三方套件快捷
+nnoremap <leader>ty :action Translation.EditorTranslateAction<CR>
+vnoremap <leader>ty :action Translation.EditorTranslateAction<CR>
+
+vnoremap <leader>so :action OpenCodeCompanion.QuickSend<CR>
+
+
 " 搜尋清除
 nnoremap <leader>sc :nohlsearch<CR>
 map <C-[> <Esc>

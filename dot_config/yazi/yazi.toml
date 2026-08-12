@@ -22,7 +22,6 @@ open = [
 
 [open]
 prepend_rules = [
-  { mime = "text/*",          use = "editor" },
-  { mime = "image/*",         use = "open" },
-  { mime = "application/pdf", use = "open" },
+  { url = "*/", use = ["open", "reveal"] },
+  { url = "*", use = ["editor", "open", "reveal"] },
 ]

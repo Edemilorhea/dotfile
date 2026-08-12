@@ -23,6 +23,7 @@
 .config/opencode/opencode.json.bak-*
 .config/opencode/opencode.json.tui-migration.bak
 .config/opencode/opencode-test-no-pty.json
+.config/opencode/config/assets.lock.json
 
 # Neovim - 暫存與快取
 .config/nvim/.tmp/**

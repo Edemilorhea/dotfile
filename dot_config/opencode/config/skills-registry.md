@@ -12,7 +12,11 @@ This registry is the source of the skill-pack decision. It separates where a ski
 | `~/.agents/skills` | Cross-agent external auto-scan | mixed installer payloads; reproducible entries are declared in `external-assets.json` |
 | `~/.claude/skills` | Claude compatibility auto-scan | installer-created junctions that mirror selected `.agents` skills |
 
-`~/.agents/skills/.manifest.json` identifies bundled third-party ownership for several external skills. `config/external-assets.json` is the desired-state inventory for pinned and profile-controlled installations.
+`~/.agents/skills/.manifest.json` identifies bundled third-party ownership for several external skills. `config/external-assets.json` is the schema v3 catalog used by `opencode-assets`; project selections live in `.opencode/assets.json` and resolved ownership is recorded in `.opencode/assets.lock.json`.
+
+## Ownership Policy
+
+Only self-maintained assets that are OpenCode-specific and must be directly globally auto-scanned belong under `dot_config/opencode/...`. All other portable self-maintained skills, third-party skills, and optional project skills are managed through `config/assets` plus `external-assets.json`. The `core` profile is installed globally by default during initialization; projects select all other profiles through `.opencode/assets.json`.
 
 ## Exposure Values
 
@@ -39,8 +43,8 @@ The Fable pack is the sole orchestration authority. `fable-loop` and `fable-judg
 | --- | --- | --- | --- |
 | `find-docs` | `dev-foundation` | `global` | official `upstash/context7` skill; installed through `skills@1.5.21` from pinned revision `8276a7c`; authentication remains runtime-only |
 | `change-understanding-review` | `dev-foundation` | `global` | chezmoi-managed local skill |
-| `plan`, `research` | `repo-development` | `project` | Public distribution traced to `EliasOulkadi/shokunin`; original authorship remains unknown |
-| `init` | `repo-development` | `project` | `.agents` manifest: `zencoderai/skills` |
+| `init` | `core` | `global` | zencoderai-derived template deployed by `opencode-assets` to `~/.agents/skills/init` |
+| `implementation-understanding-tutor` | `learning-code` | `global` | chezmoi-managed template deployed by `opencode-assets` |
 | `understand`, `understand-chat`, `understand-dashboard`, `understand-diff`, `understand-domain`, `understand-explain`, `understand-knowledge`, `understand-onboard` | `repo-understanding` | `project` | external; currently `.agents` only; provenance unrecorded |
 | `vibe-coding-tutor` | `learning-code` | `global` | chezmoi-managed; upstream `tortoiseknightma/vibe-coding-tutor` with pinned provenance recorded locally |
 | `teach` | `learning-code` | `explicit` | Optional `learning` profile; pinned `mattpocock/skills` source in `external-assets.json` |
@@ -49,9 +53,7 @@ The Fable pack is the sole orchestration authority. `fable-loop` and `fable-judg
 
 | Skills | Pack | Target exposure | Owner / provenance |
 | --- | --- | --- | --- |
-| `code-review`, `comprehensive-review` | `review` | `explicit` | Public distribution traced to `EliasOulkadi/shokunin` by distinctive content comparison; original authorship remains unknown |
 | `cross-review` | `review` | `explicit` | `.agents` manifest: `zencoderai/skills` |
-| `zen-review`, `zen-comprehensive-review` | `review` | `explicit` | Public distribution traced to `EliasOulkadi/shokunin`; original authorship remains unknown |
 
 `fable-judge` is intentionally excluded: it belongs only to the Core Fable pack.
 
@@ -61,7 +63,8 @@ The Fable pack is the sole orchestration authority. `fable-loop` and `fable-judg
 | --- | --- | --- | --- |
 | `agent-browser` | `browser` | `project` | `.agents` manifest: `vercel-labs/agent-browser` |
 | `playwright` | `browser` | `project` | Runtime-only payload; exact-phrase and GitHub code searches found no verifiable public upstream as of 2026-08-09 |
-| `document-processing`, `office-documents` | `documents` | `project` | chezmoi-managed; record upstream provenance before refresh |
+| `document-processing` | `documents` | `project` | chezmoi-managed template deployed by `opencode-assets`; no longer globally scanned |
+| `office-documents` | `documents` | `global` | chezmoi-managed thin integration for the global Office MCP |
 | `copy-editing`, `copywriting` | `content` | `explicit` | chezmoi-managed; record upstream provenance before refresh |
 
 ## Design and Skill-Authoring Packs
@@ -104,11 +107,21 @@ All of the following are a coherent but non-universal learning catalogue. They a
 | Interpersonal | `05-communication-skills`, `05-cross-cultural`, `05-emotional-intelligence`, `05-negotiation-persuasion`, `05-social-intelligence` |
 | Personal development | `06-creativity-innovation`, `06-critical-thinking`, `06-financial-literacy`, `06-health-wellness` |
 
-## Duplicate and Cleanup Decision
+## Asset Manager
 
-The 83 `.claude/skills` entries substantially overlap with `.agents/skills`. Until a canonical external root is selected, all duplicate external entries are `quarantine`: they remain on disk but must not be treated as an approved default exposure.
+`~/.config/opencode/scripts/opencode-assets.ps1` is the deterministic installer and ownership boundary. It supports `list`, `profiles`, `plan`, `apply`, `status`, `remove`, and `doctor` for global or project scope.
 
-Before any cleanup, verify each duplicate by content hash and preserve the installer manifest or lock record. The target state is one canonical external root plus reproducible installer metadata; no deletion occurs during classification.
+Project repositories may commit `.opencode/assets.json`; the generated `.opencode/assets.lock.json` records only manager-owned paths and pinned revisions. The manager never stores credentials and never runs a repository-provided installer.
+
+### Optional Frameworks
+
+| Profile | Package | Managed behavior |
+| --- | --- | --- |
+| `oh-my-opencode-slim` | `oh-my-opencode-slim@2.2.10` | Adds only the pinned plugin spec to project `.opencode/opencode.json`; the upstream global installer is not run. |
+| `gsd` | `@opengsd/gsd-core@1.10.0` | Runs the pinned official OpenCode installer with the `standard` profile and an isolated HOME; deploys only its generated file manifest and safely merges its project permission/MCP entries. |
+| `ponytail` | `@dietrichgebert/ponytail@4.9.0` | Adds only the pinned plugin spec to project `.opencode/opencode.json`. |
+
+These profiles are project-only. `oh-my-opencode-slim` and `ponytail` may coexist; `gsd` remains mutually exclusive with both. Network credentials and framework-generated project planning data are never recorded in the asset catalog.
 
 ## Required Follow-up Evidence
 

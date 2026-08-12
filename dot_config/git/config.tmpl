@@ -9,9 +9,9 @@
     email = {{ .gitEmail }}
 
 [core]
-    # Keep text files as LF on every platform
+    # Let each repository's .gitattributes choose LF or CRLF.
     autocrlf = false
-    eol = lf
+    safecrlf = true
 
     # 編輯器設定
 {{- if eq .chezmoi.os "windows" }}

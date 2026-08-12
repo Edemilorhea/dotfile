@@ -25,7 +25,7 @@ description: Use whenever the user wants to understand how an implemented or par
 | `feature-flow-explainer`（本 Skill） | 追蹤一項功能由入口至完成的實際生命週期、資料流、交易、Worker、Event、Queue 與接線狀態。 | 不做廣泛架構教學或缺陷審查。 |
 | `change-understanding-review` | 解釋某個 diff、commit 或已完成變更：改了什麼、為何改、前後差異。 | 不以「完整執行生命週期」為主要輸出。 |
 | `vibe-coding-tutor` | 對已完成的多檔功能提供教學、架構導覽、延伸練習或 onboarding。 | 不要求逐一追蹤 transaction、Worker 與方法呼叫時機。 |
-| `code-review` | 評估 correctness、security、performance、maintainability 或是否可核准。 | 不以流程解釋取代審查。 |
+| 一般程式碼審查 | 評估 correctness、security、performance、maintainability 或是否可核准。 | 不以流程解釋取代審查。 |
 | `understand-explain` | 深入解釋特定檔案、函式或模組。 | 不必追蹤跨系統的端到端功能流程。 |
 
 若使用者同時要求流程解釋與 code review，先完成本 Skill 的事實流程報告，再以獨立段落或流程處理審查；不得把推測性的缺陷混入流程事實。

@@ -1,10 +1,10 @@
 ---
-description: Run one direct Navigator role turn in the current session for a scaffolded learning roadmap
+description: Build a scaffolded learning roadmap with the Navigator role for one direct turn
 agent: Navigator
 subtask: false
 ---
 
-# Navigator Turn
+# Learning Roadmap
 
 Learning request: `$ARGUMENTS`
 

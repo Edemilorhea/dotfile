@@ -1,8 +1,7 @@
 {
-  "schemaVersion": 2,
-  "defaultProfiles": [
-    "core"
-  ],
+  "schemaVersion": 3,
+  "managerVersion": "1.2.0",
+  "defaultProfiles": ["core"],
   "installers": {
     "skillsCli": {
       "package": "skills",
@@ -12,143 +11,211 @@
       "command": "claude"
     }
   },
-  "skillsCli": [
+  "profiles": {
+    "core": {
+      "description": "Global baseline rebuilt on every managed machine.",
+      "defaultScope": "global"
+    },
+    "oac": {
+      "description": "Project-local custom OAC agents and commands from the pinned personal fork.",
+      "defaultScope": "project"
+    },
+    "repository": {
+      "description": "Reserved project bootstrap and repository documentation tools.",
+      "defaultScope": "project"
+    },
+    "dotnet": {
+      "description": "Reserved project profile for .NET assets.",
+      "defaultScope": "project"
+    },
+    "frontend": {
+      "description": "Reserved project profile for frontend assets.",
+      "defaultScope": "project"
+    },
+    "browser": {
+      "description": "Project browser automation and testing assets.",
+      "defaultScope": "project"
+    },
+    "documents": {
+      "description": "Project-local PDF and EPUB processing tools.",
+      "defaultScope": "project"
+    },
+    "review": {
+      "description": "Optional project review assets.",
+      "defaultScope": "project"
+    },
+    "learning": {
+      "description": "Optional learning and teaching assets.",
+      "defaultScope": "project"
+    },
+    "product": {
+      "description": "Optional Product on Purpose skill catalog.",
+      "defaultScope": "project"
+    },
+    "design": {
+      "description": "Optional visual design assets.",
+      "defaultScope": "project"
+    },
+    "education": {
+      "description": "Reserved Human Skill Tree profile pending revision review.",
+      "defaultScope": "project"
+    },
+    "understand": {
+      "description": "Project-local Understand Anything skills and command.",
+      "defaultScope": "project"
+    },
+    "oh-my-opencode-slim": {
+      "description": "Optional project orchestration through the pinned oh-my-opencode-slim plugin.",
+      "defaultScope": "project"
+    },
+    "gsd": {
+      "description": "Optional project-local GSD Core framework installed from a pinned npm release.",
+      "defaultScope": "project"
+    },
+    "ponytail": {
+      "description": "Optional project prompting framework through the pinned Ponytail plugin.",
+      "defaultScope": "project"
+    }
+  },
+  "assets": [
     {
+      "id": "to-spec",
+      "type": "skill",
+      "channel": "skills-cli",
+      "profiles": ["core"],
+      "scopes": ["global", "project"],
+      "defaultScope": "global",
       "repository": "https://github.com/mattpocock/skills.git",
       "revision": "2ab958093e83e0ec752e6c1c5932da465bf23e0c",
-      "skills": [
-        "to-spec",
-        "to-tickets"
-      ],
-      "profiles": [
-        "core"
-      ],
-      "scope": "global",
-      "pruneWhenInactive": false
+      "skills": ["to-spec"]
     },
     {
+      "id": "to-tickets",
+      "type": "skill",
+      "channel": "skills-cli",
+      "profiles": ["core"],
+      "scopes": ["global", "project"],
+      "defaultScope": "global",
+      "repository": "https://github.com/mattpocock/skills.git",
+      "revision": "2ab958093e83e0ec752e6c1c5932da465bf23e0c",
+      "skills": ["to-tickets"]
+    },
+    {
+      "id": "find-docs",
+      "type": "skill",
+      "channel": "skills-cli",
+      "profiles": ["core"],
+      "scopes": ["global", "project"],
+      "defaultScope": "global",
       "repository": "https://github.com/upstash/context7.git",
       "revision": "8276a7c35f3d169917c3c2595fdf148673a0f6ec",
-      "skills": [
-        "find-docs"
-      ],
-      "profiles": [
-        "core"
-      ],
-      "scope": "global",
-      "pruneWhenInactive": false,
-      "notes": "Official Context7 skill installed from a pinned Git revision. Authentication and credentials remain runtime-only."
+      "skills": ["find-docs"],
+      "notes": "Authentication and credentials remain runtime-only."
     },
     {
+      "id": "find-skills",
+      "type": "skill",
+      "channel": "skills-cli",
+      "profiles": ["core"],
+      "scopes": ["global", "project"],
+      "defaultScope": "global",
       "repository": "https://github.com/vercel-labs/skills.git",
       "revision": "941a7bcfeca4bf07913b9fb6f8ed81f20ff5297c",
-      "skills": [
-        "find-skills"
-      ],
-      "profiles": [
-        "core"
-      ],
-      "scope": "global",
-      "pruneWhenInactive": false
+      "skills": ["find-skills"]
     },
     {
+      "id": "claude-code-plugins",
+      "type": "marketplace",
+      "channel": "claude-marketplace",
+      "profiles": ["core"],
+      "scopes": ["global"],
+      "defaultScope": "global",
+      "marketplace": "claude-code-plugins",
+      "source": "anthropics/claude-code"
+    },
+    {
+      "id": "claude-plugins-official",
+      "type": "marketplace",
+      "channel": "claude-marketplace",
+      "profiles": ["core"],
+      "scopes": ["global"],
+      "defaultScope": "global",
+      "marketplace": "claude-plugins-official",
+      "source": "anthropics/claude-plugins-official"
+    },
+    {
+      "id": "document-processing",
+      "type": "skill",
+      "channel": "copy-template",
+      "profiles": ["documents"],
+      "scopes": ["project"],
+      "defaultScope": "project",
+      "sourcePath": "~/.config/opencode/config/assets/skills/document-processing",
+      "targetPath": ".opencode/skills/document-processing"
+    },
+    {
+      "id": "init",
+      "type": "skill",
+      "channel": "copy-template",
+      "profiles": ["core"],
+      "scopes": ["global"],
+      "defaultScope": "global",
+      "sourcePath": "~/.config/opencode/config/assets/skills/init",
+      "targetPath": "~/.agents/skills/init"
+    },
+    {
+      "id": "implementation-understanding-tutor",
+      "type": "skill",
+      "channel": "copy-template",
+      "profiles": ["core"],
+      "scopes": ["global"],
+      "defaultScope": "global",
+      "sourcePath": "~/.config/opencode/config/assets/skills/implementation-understanding-tutor",
+      "targetPath": "~/.agents/skills/implementation-understanding-tutor"
+    },
+    {
+      "id": "interactive-diagram",
+      "type": "skill",
+      "channel": "skills-cli",
+      "profiles": ["design"],
+      "scopes": ["project"],
+      "defaultScope": "project",
       "repository": "https://github.com/LizardLiang/interactive-diagram.git",
       "revision": "e49e3a727540961153a6f1e083fc8d2651955d7c",
-      "skills": [
-        "interactive-diagram"
-      ],
-      "profiles": [
-        "design"
-      ],
-      "scope": "global",
-      "pruneWhenInactive": true
+      "skills": ["interactive-diagram"]
     },
     {
+      "id": "teach",
+      "type": "skill",
+      "channel": "skills-cli",
+      "profiles": ["learning"],
+      "scopes": ["project"],
+      "defaultScope": "project",
       "repository": "https://github.com/mattpocock/skills.git",
       "revision": "2ab958093e83e0ec752e6c1c5932da465bf23e0c",
-      "skills": [
-        "teach"
-      ],
-      "profiles": [
-        "learning"
-      ],
-      "scope": "global",
-      "pruneWhenInactive": true
+      "skills": ["teach"]
     },
     {
+      "id": "pm-skills",
+      "type": "skill-bundle",
+      "channel": "skills-cli",
+      "profiles": ["product"],
+      "scopes": ["project"],
+      "defaultScope": "project",
       "repository": "https://github.com/product-on-purpose/pm-skills.git",
       "revision": "4e260b395a1e9b714ec9740ae7ea458bace49ec4",
-      "skills": [
-        "*"
-      ],
-      "profiles": [
-        "product"
-      ],
-      "scope": "global",
-      "pruneWhenInactive": true
-    }
-  ],
-  "vendoredSkills": [
-    {
-      "id": "human-skill-tree",
-      "repository": "https://github.com/24kchengYe/human-skill-tree.git",
-      "revision": null,
-      "provenanceStatus": "upstream-confirmed-revision-pending",
-      "managedBy": "chezmoi-inventory",
-      "desiredState": "absent",
-      "installationStatus": "removed-pending-reorganization",
-      "localRoot": null,
-      "previousLocalRoot": "~/.config/opencode/skills",
-      "updatePolicy": "manual-review",
-      "profiles": [
-        "education"
-      ],
-      "skills": [
-        "00-learning-how-to-learn",
-        "00-tutor-persona",
-        "01-k12-exam-systems",
-        "01-k12-humanities",
-        "01-k12-languages",
-        "01-k12-mathematics",
-        "01-k12-sciences",
-        "02-arts-design-tutor",
-        "02-business-economics-tutor",
-        "02-humanities-social-tutor",
-        "02-medical-health-tutor",
-        "02-music-arts",
-        "02-stem-tutor",
-        "02-university-guide",
-        "03-academic-writing",
-        "03-data-analysis-stats",
-        "03-literature-review",
-        "03-research-methodology",
-        "04-career-navigator",
-        "04-civil-service",
-        "04-consulting-career",
-        "04-finance-career",
-        "04-fullstack-webapp",
-        "04-interview-prep",
-        "04-tech-career",
-        "05-communication-skills",
-        "05-cross-cultural",
-        "05-emotional-intelligence",
-        "05-negotiation-persuasion",
-        "05-social-intelligence",
-        "06-creativity-innovation",
-        "06-critical-thinking",
-        "06-financial-literacy",
-        "06-health-wellness"
-      ]
-    }
-  ],
-  "projectScopedAssets": [
+      "skills": ["*"]
+    },
     {
       "id": "understand-anything",
+      "type": "skill-command-bundle",
+      "channel": "junction",
+      "profiles": ["understand"],
+      "scopes": ["project"],
+      "defaultScope": "project",
       "repositoryRoot": "~/.understand-anything/repo/understand-anything-plugin",
-      "desiredGlobalState": "absent",
-      "globalSkillRoot": "~/.agents/skills",
-      "projectSkillRoot": ".agents/skills",
       "skillSourceRoot": "skills",
+      "skillTargetRoot": ".agents/skills",
       "skills": [
         "understand",
         "understand-chat",
@@ -159,29 +226,116 @@
         "understand-knowledge",
         "understand-onboard"
       ],
-      "commands": [
+      "files": [
         {
           "source": "~/.config/opencode/config/project-assets/understand-anything/commands/understand.md",
           "target": ".opencode/commands/understand.md"
         }
       ]
-    }
-  ],
-  "claudeMarketplaces": [
+    },
     {
-      "name": "claude-code-plugins",
-      "source": "anthropics/claude-code",
-      "profiles": [
-        "core"
+      "id": "tc-oac",
+      "type": "agent-command-bundle",
+      "channel": "git-allowlist",
+      "profiles": ["oac"],
+      "scopes": ["project"],
+      "defaultScope": "project",
+      "repository": "https://github.com/Edemilorhea/OpenAgentsControl.git",
+      "revision": "6b42087c83577991276262bd9e7dd28a572ad21f",
+      "files": [
+        { "source": ".opencode/agent/core/openagent.md", "target": ".opencode/agents/openagent.md" },
+        { "source": ".opencode/agent/core/opencoder.md", "target": ".opencode/agents/opencoder.md" },
+        { "source": ".opencode/agent/subagents/code/test-engineer.md", "target": ".opencode/agents/test-engineer.md" },
+        { "source": ".opencode/agent/subagents/code/reviewer.md", "target": ".opencode/agents/reviewer.md" },
+        { "source": ".opencode/agent/subagents/code/coder-agent.md", "target": ".opencode/agents/coder-agent.md" },
+        { "source": ".opencode/agent/subagents/code/build-agent.md", "target": ".opencode/agents/build-agent.md" },
+        { "source": ".opencode/agent/subagents/core/documentation.md", "target": ".opencode/agents/documentation.md" },
+        { "source": ".opencode/agent/subagents/core/contextscout.md", "target": ".opencode/agents/contextscout.md" },
+        { "source": ".opencode/agent/subagents/core/externalscout.md", "target": ".opencode/agents/externalscout.md" },
+        { "source": ".opencode/agent/subagents/core/task-manager.md", "target": ".opencode/agents/task-manager.md" },
+        { "source": ".opencode/agent/subagents/system-builder/context-organizer.md", "target": ".opencode/agents/context-organizer.md" },
+        { "source": ".opencode/agent/subagents/development/frontend-specialist.md", "target": ".opencode/agents/frontend-specialist.md" },
+        { "source": ".opencode/agent/subagents/development/devops-specialist.md", "target": ".opencode/agents/devops-specialist.md" },
+        { "source": ".opencode/command/context.md", "target": ".opencode/commands/context.md" },
+        { "source": ".opencode/command/add-context.md", "target": ".opencode/commands/add-context.md" }
       ]
     },
     {
-      "name": "claude-plugins-official",
-      "source": "anthropics/claude-plugins-official",
-      "profiles": [
-        "core"
-      ]
+      "id": "oh-my-opencode-slim",
+      "type": "opencode-framework",
+      "channel": "opencode-plugin",
+      "profiles": ["oh-my-opencode-slim"],
+      "scopes": ["project"],
+      "defaultScope": "project",
+      "repository": "https://github.com/alvinunreal/oh-my-opencode-slim.git",
+      "revision": "6a8861f6505621ed998d4e3e5afaccd2e0b5ef8c",
+      "package": "oh-my-opencode-slim",
+      "packageVersion": "2.2.10",
+      "pluginSpec": "oh-my-opencode-slim@2.2.10",
+      "configPath": ".opencode/opencode.json",
+      "conflictsWith": ["gsd"],
+      "notes": "The Asset Manager adds only the pinned plugin spec and never runs the upstream installer."
+    },
+    {
+      "id": "gsd",
+      "type": "opencode-framework",
+      "channel": "npm-framework",
+      "profiles": ["gsd"],
+      "scopes": ["project"],
+      "defaultScope": "project",
+      "repository": "https://github.com/open-gsd/gsd-core.git",
+      "revision": "68a04ccf8ef74803bdb651e12c3b85b218bbccdf",
+      "package": "@opengsd/gsd-core",
+      "packageVersion": "1.10.0",
+      "configRoot": ".opencode",
+      "installArguments": ["--opencode", "--local", "--profile=standard"],
+      "frameworkProfile": "standard",
+      "manifestFile": "gsd-file-manifest.json",
+      "metadataFiles": [
+        ".gsd-profile",
+        "gsd-file-manifest.json",
+        "gsd-install-state.json",
+        "hooks/package.json",
+        "plugins/package.json"
+      ],
+      "versionFile": "gsd-core/VERSION",
+      "expectedVersion": "1.10.0",
+      "configOverlay": {
+        "sourcePath": "opencode.json",
+        "targetPath": ".opencode/opencode.json",
+        "permissionSections": ["read", "external_directory"],
+        "mcpKey": "gsd"
+      },
+      "conflictsWith": ["oh-my-opencode-slim", "ponytail"],
+      "notes": "The pinned official installer runs with an isolated HOME in a temporary project. Only its generated file manifest and explicit metadata are deployed; project OpenCode permissions and MCP config are merged by the Asset Manager."
+    },
+    {
+      "id": "ponytail",
+      "type": "opencode-framework",
+      "channel": "opencode-plugin",
+      "profiles": ["ponytail"],
+      "scopes": ["project"],
+      "defaultScope": "project",
+      "repository": "https://github.com/DietrichGebert/ponytail.git",
+      "revision": "0a4dd63ad4541f4f655c4108a295916f3c1d8fda",
+      "package": "@dietrichgebert/ponytail",
+      "packageVersion": "4.9.0",
+      "pluginSpec": "@dietrichgebert/ponytail@4.9.0",
+      "configPath": ".opencode/opencode.json",
+      "conflictsWith": ["gsd"],
+      "notes": "The Asset Manager adds only the pinned OpenCode plugin spec."
+    },
+    {
+      "id": "human-skill-tree",
+      "type": "skill-bundle",
+      "channel": "provenance-only",
+      "profiles": ["education"],
+      "scopes": ["project"],
+      "defaultScope": "project",
+      "repository": "https://github.com/24kchengYe/human-skill-tree.git",
+      "revision": null,
+      "desiredState": "absent",
+      "notes": "Upstream confirmed; import revision and local differences still require manual review."
     }
-  ],
-  "claudePlugins": []
+  ]
 }

@@ -1,13 +1,13 @@
 ---
 name: cross-review
-description: "Cross review code using a subagent with a specified model. Use when the user asks to review code changes AND specifies a model to use (e.g., 'review with opus', 'use sonnet to review', 'review changes with gemini'). The key differentiator from the regular zen-review skill is that the user explicitly specifies which model should perform the review. The root agent reconstructs what changed from its own conversation history — no git commands are used."
+description: "Cross review code using a subagent with a specified model. Use when the user asks to review code changes AND specifies a model to use (e.g., 'review with opus', 'use sonnet to review', 'review changes with gemini'). The root agent reconstructs what changed from its own conversation history and gives the selected model a self-contained review contract; no review skill or git command is required."
 metadata:
   version: 1.2.1
 ---
 
 # Cross Review
 
-Reconstruct what you changed during this conversation, then delegate the actual review to a single subagent running the `zen-review` skill with a user-specified model.
+Reconstruct what you changed during this conversation, then delegate the actual review to one subagent running the user-specified model under the contract below.
 
 IMPORTANT: Steps 1–2 run in the current agent (the master). Only Step 3 spawns a subagent. Do NOT spawn a subagent to execute this skill's workflow — that creates unnecessary nesting.
 
@@ -45,7 +45,7 @@ You already know what you changed — reconstruct the diff from your own convers
 
    If `mktemp` is not available (for example, native Windows without Git Bash), create a temporary directory with PowerShell and capture its full path before continuing.
 
-   Write the reconstructed unified diff to `$TEMP_DIR/cross-review-diff.patch` using the Bash tool (for example, `cat << 'DIFF_EOF' > "$TEMP_DIR/cross-review-diff.patch"`). The `zen-review` skill reads the diff from a file path.
+   Write the reconstructed unified diff to `$TEMP_DIR/cross-review-diff.patch` using an available file-editing tool. The reviewer reads this file before inspecting supporting context.
 
 3. **Read the final state of changed files** to provide full surrounding context. Use the Read tool on each changed file.
 
@@ -59,12 +59,15 @@ Do NOT show gathered context or its process to the user. Use it only for the sub
 ### Step 3: Spawn the review subagent
 
 Use `spawn_subagent` with:
-- **skill**: `"zen-review"`
 - **model**: The model extracted from the user's request.
 - **prompt**: use following template
 
 ```
-IMPORTANT: Follow the skill instructions STRICTLY and IN ORDER. The diff is saved at {temp_dir}/cross-review-diff.patch. Substitute `{temp_dir}` with the real temp directory path from Step 2 before spawning the subagent. Your FIRST action MUST be to read that file — do NOT run git diff, do NOT read any other files before you have the diff. Review the changes.
+You are a read-only code reviewer. The diff is saved at {temp_dir}/cross-review-diff.patch. Substitute `{temp_dir}` with the real temp directory path from Step 2 before spawning the subagent. Your FIRST action MUST be to read that file. Do not run git commands and do not modify files.
+
+Review only defects introduced by the supplied changes. Prioritize correctness and security, then behavioral regressions, missing tests, performance, and maintainability. Every finding must be concrete, actionable, and supported by a file and line. Ignore pre-existing issues and speculative repository-wide improvements. Return only a JSON array in this form:
+
+[{"path":"...","line":0,"body":"...","severity":"P0|P1|P2|P3"}]
 
 ## Review Instructions
 
@@ -77,7 +80,7 @@ IMPORTANT: Follow the skill instructions STRICTLY and IN ORDER. The diff is save
 
 ### Step 4: Format and relay the result — READ-ONLY, NO ACTIONS
 
-The `zen-review` subagent returns findings as a JSON array:
+The review subagent returns findings as a JSON array:
 ```json
 [{"path": "...", "line": ..., "body": "...", "severity": "P0|P1|P2|P3"}]
 ```

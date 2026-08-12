@@ -23,6 +23,7 @@ require("lazy").setup({
         { import = "plugins.blink" }, -- blink.cmp 覆寫配置
         { import = "plugins.development" }, -- 開發工具
         { import = "plugins.formatting" }, -- 格式化設定 (conform.nvim)
+        { import = "plugins.linting" }, -- lint 設定 (nvim-lint)
         { import = "plugins.persistence" }, -- session 儲存設定
         { import = "plugins.tools" }, -- 工具插件 (Telescope、浮動終端等)
         { import = "plugins.neovim-only" }, -- 純 Neovim 插件

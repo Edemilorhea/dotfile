@@ -1,25 +1,5 @@
 {
   "skills": {
-    "plan": {
-      "name": "plan",
-      "version": "1.0.0",
-      "source": "bundled",
-      "contentHash": "f239af7e0d2318386dc84739c19313ec40d30e9b34c57e3a257c163ff19445fb",
-      "files": [
-        "SKILL.md"
-      ],
-      "installedAt": "2026-05-23T07:54:59.565Z"
-    },
-    "research": {
-      "name": "research",
-      "version": "1.0.0",
-      "source": "bundled",
-      "contentHash": "4362dbe6281b495873403fde83a7fd02c03127ef3c095ad783d41991686365d6",
-      "files": [
-        "SKILL.md"
-      ],
-      "installedAt": "2026-05-23T07:54:59.565Z"
-    },
     "skill-creator": {
       "name": "skill-creator",
       "version": "98a510d1cfef9f82c3b1eec200229ca68725e613",
@@ -57,42 +37,11 @@
       ],
       "installedAt": "2026-05-23T07:54:59.565Z"
     },
-    "init": {
-      "name": "init",
-      "version": "f311e092af9f1dadb39d6e3b285e613489cd9827",
-      "source": "zencoderai/skills@main:init",
-      "contentHash": "5aeee8c4b8e09f47464facc73f911cf5d018a21e8bb6444d46facebece96cbf9",
-      "files": [
-        "SKILL.md"
-      ],
-      "installedAt": "2026-05-23T07:54:59.565Z"
-    },
     "cross-review": {
       "name": "cross-review",
       "version": "1.2.1",
       "source": "zencoderai/skills@main:cross-review",
       "contentHash": "a7c433742b2931d274cdc2a14b7f54d8be36c5db4607d7b47b9a50449dbb89f0",
-      "files": [
-        "SKILL.md"
-      ],
-      "installedAt": "2026-05-23T07:54:59.565Z"
-    },
-    "zen-comprehensive-review": {
-      "name": "zen-comprehensive-review",
-      "version": "1.2.2",
-      "source": "bundled",
-      "contentHash": "0570f3890228887591e9279d8359cbca580059409785463bdb3943e3a9895693",
-      "files": [
-        "SKILL.md",
-        "scripts/post_review_strict.js"
-      ],
-      "installedAt": "2026-05-23T07:54:59.565Z"
-    },
-    "zen-review": {
-      "name": "zen-review",
-      "version": "1.1.0",
-      "source": "bundled",
-      "contentHash": "902276b489e896f7630caeba25ef86f44691286e2ccea23fae63030534d72805",
       "files": [
         "SKILL.md"
       ],
@@ -110,6 +59,5 @@
       ],
       "installedAt": "2026-05-23T07:54:59.565Z"
     }
-  },
-  "bundledManifestHash": "b6bbb7de1ffc6ead9f8a6a20cbcb17ef2eeebba9748b683b858c23a07b6920a5"
+  }
 }
