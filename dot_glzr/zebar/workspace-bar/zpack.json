@@ -3,7 +3,10 @@
   "name": "workspace-bar",
   "version": "0.0.0",
   "description": "Starter status bar with workspace window tooltips.",
-  "tags": ["topbar"],
+  "tags": [
+    "topbar"
+  ],
+  "previewImages": [],
   "repositoryUrl": "",
   "widgets": [
     {
@@ -14,7 +17,10 @@
       "focused": false,
       "resizable": true,
       "transparent": true,
-      "includeFiles": ["*.html", "*.css"],
+      "includeFiles": [
+        "*.html",
+        "*.css"
+      ],
       "caching": {
         "defaultDuration": 604800,
         "rules": []
