@@ -40,10 +40,12 @@
     {
       "id": 4,
       "prompt": "只看 src/auth/session.ts::refreshSession 這個 method。不要展開整個 auth feature，但要說 caller、何時呼叫、input、guards、state、failure 和上下游影響。",
-      "expected_output": "A Focused Deep Dive with the six focused headings in order and a complete method evidence contract without expanding into a full feature report.",
+      "expected_output": "A Focused Code Teach Deep Dive with the six focused headings in order, only the minimum orientation needed to place refreshSession, and an execution-ordered implementation walkthrough without expanding into a full feature report or conventional review.",
       "assertions": [
         "Uses the Focused Deep Dive headings rather than the six Full Understanding layers.",
-        "Includes Caller, When, Input, Guards, Logic, Transformation, State change, Calls, Output, Failure, Responsibility, Not responsible for, Flow role, and Confidence.",
+        "Passes the Orientation Gate with only the minimal surrounding operation map, explicitly loads vibe-coding-tutor for actual Code Teach, and includes a one-line upstream/downstream Method-chain mental map.",
+        "Uses a result-first card as navigation, then teaches pre-state and inputs, the implementation algorithm in execution order, bounded important code lines, every branch and return meaning, post-state, and caller consumption or next handoff.",
+        "Distinguishes the semantic Overall result from the code-level Return value, including when the return is void or null.",
         "Places the method in the minimal surrounding operation flow.",
         "Does not expand unrelated authentication paths."
       ],
@@ -76,12 +78,45 @@
     {
       "id": 7,
       "prompt": "用 guided 模式完整教我 inventory reservation feature。",
-      "expected_output": "A guided Full Understanding delivery whose first response contains scope and Layer 1 only, while preserving the fixed future sequence of Layers 2-3, Layer 4, then Layers 5-6.",
+      "expected_output": "A guided Full Understanding delivery whose first response contains scope and Layer 1 only, while preserving the fixed future sequence of Layers 2-3, a true Code Teach round for Layer 4, then Layers 5-6.",
       "assertions": [
         "The first guided response contains scope and Layer 1, not a reordered subset.",
-        "States the remaining fixed sequence as Layers 2-3, Layer 4, then Layers 5-6.",
+        "States the remaining fixed sequence as Layers 2-3, Layer 4 Code Teach, then Layers 5-6.",
+        "Defines round 3 as method-chain map, needed primitive/framework bridges and bounded ELI5, result-first cards as navigation, implementation/code walkthrough, and one small understanding check, teaching one coherent method group at a time when needed.",
         "Keeps the same shared inventory example for subsequent rounds.",
         "Does not let focus or specialist output reorder the six-layer model."
+      ],
+      "files": []
+    },
+    {
+      "id": 8,
+      "prompt": "完整教懂我 tenant notification feature：API 建立 outbox 工作後，會經過 Allocate、enqueue helper、Queue.Enqueue、Worker.ProcessTenantAsync、Processor.ProcessPendingAsync、TryClaimNext、ProcessOneAsync，最後送到外部通知服務並記錄完成或重試。請用同一個 tenantId 和 notificationId，從 request、transaction、queue wake-up、worker 到 completion 說清楚每個方法實際負責什麼、如何交接，以及可驗證的證據。一次輸出；不要因名稱相似就假設它們做同一件事。",
+      "expected_output": "A six-layer Full Understanding report that traces one notification through the API, outbox transaction, queue wake-up, worker, processor, external call, and completion. Layer 4 passes the Orientation Gate, loads vibe-coding-tutor, compresses the seven-method chain into responsibility-grouped nodes, supplies one bounded intuition model, then uses cards only as navigation before teaching coherent method groups in actual execution order.",
+      "assertions": [
+        "Layer 4 begins with a Method-chain mental map before any individual method card.",
+        "The map groups only supported responsibilities such as Producer, Wake-up, Consumer, External, and Completion, and marks transaction, process, queue, and external boundaries where evidence supports them.",
+        "Before the cards, proactively uses one bounded ELI5 model for the seven-method high-confusion cluster, maps that model back to exact methods, states its limits, and does not apply ELI5 to the whole report.",
+        "Every method card starts, in order, with Overall result, Flow role, Responsibility, and Not responsible for before caller, input, or logic details.",
+        "Clearly distinguishes Allocate from TryClaimNext, the enqueue helper from Queue.Enqueue, Worker.ProcessTenantAsync from the Processor methods, and ProcessPendingAsync from ProcessOneAsync; wrappers or delegation are explicit.",
+        "For each method or coherent group, teaches position and handoff, overall result, pre-state and inputs, implementation algorithm, bounded code walkthrough, every branch and return meaning, post-state, and caller consumption or next handoff; cards do not substitute for code teaching.",
+        "Overall result states the observable semantic outcome and remains distinct from Return value, including void, null, Task, IDs, or status values.",
+        "Uses the same tenantId and notificationId across all six layers and supports code-specific claims with file and line evidence plus confidence."
+      ],
+      "files": []
+    },
+    {
+      "id": 9,
+      "prompt": "我已經懂整體 Queue/Worker 機制，不用再講完整架構。請帶我讀 Queue.Enqueue 這個 method 怎麼實作；我看不懂 Channel、lock、ConcurrentDictionary 在這裡各做什麼。請沿 code 一行一行教我，不是在做 code review。",
+      "expected_output": "A Focused continuation Code Teach that explicitly reuses the established Queue/Worker orientation, loads vibe-coding-tutor, adds only the necessary Channel, lock, and ConcurrentDictionary bridges, then resumes a bounded execution-ordered implementation walkthrough. It distinguishes each primitive's process-local role and does not emit conventional review findings.",
+      "assertions": [
+        "States that the prior Queue/Worker orientation satisfies the Orientation Gate and does not repeat the full business or architecture flow.",
+        "Explicitly loads vibe-coding-tutor and integrates its teaching support into the Focused Code Teach rather than appending a separate report.",
+        "For each of Channel, lock, and ConcurrentDictionary, explains general meaning, exact role in Queue.Enqueue, writers/readers or protected shared resource, enabled or prevented behavior/race/failure, scope and limitations, and exact file:line mapping before resuming method flow.",
+        "Clearly states that these in-memory concurrency primitives are process-local and do not by themselves provide database locking, distributed coordination, durable queueing, or cross-process mutual exclusion.",
+        "Places Queue.Enqueue between its upstream caller and worker consumer, gives its one-sentence overall result, pre-state and inputs, and follows the implementation algorithm in actual execution order.",
+        "Walks bounded important code lines and explains every branch, early return, status or exception meaning without explaining every syntax token.",
+        "Explains post-state and how the caller consumes the result or how the worker receives the next handoff, with code evidence and confidence.",
+        "Does not surface correctness, security, performance, maintainability, approval, or other conventional Code Review findings."
       ],
       "files": []
     }

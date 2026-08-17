@@ -71,12 +71,6 @@ Branches：無效 item 在步驟 2 拒絕；DB commit 失敗時步驟 5 不回�
 - **Boundary**：Database transaction boundary。
 - **Evidence**：`src/infrastructure/OutboxInterceptor.cs:24-58`、`src/infrastructure/UnitOfWork.cs:15-31`，Confirmed。
 
-**直覺模型：** 像把「訂單收據」和「待寄出的物流通知」一起放進同一個上鎖抽屜。抽屜若沒有成功關上，兩張紙都不算存在。
-
-**精確技術說明：** Order row 與 outbox row 在同一個 database transaction commit。Worker 之後只依已提交的 outbox row 執行外部呼叫，因此 process crash 不會讓已提交訂單永久失去通知來源。
-
-**比喻限制：** 抽屜比喻只說明 atomic commit。它不保證 worker 只送一次，也不保證 Logistics API 已處理 request。
-
 ### Step 5：回傳 API 結果
 
 - **Logic**：只有 commit 成功才回傳 `201`。
@@ -97,8 +91,49 @@ Branches：無效 item 在步驟 2 拒絕；DB commit 失敗時步驟 5 不回�
 
 ## Layer 4：Method 與 Code
 
-### `CreateOrderHandler.Handle`
+**Orientation Gate：** Layer 1 至 3 已建立 order/outbox 的 business、architecture、execution、data、state 與 boundary map；此處沿用，不重講。進入 actual Code Teach 時已載入 `vibe-coding-tutor`，其 pattern 與小型理解檢查直接整合如下。
 
+### Method-chain mental map
+
+**Producer**
+
+- `CreateOrderHandler.Handle → 建立訂單與待送通知，要求兩者一起持久化，並在成功後交回訂單 ID。`
+- `UnitOfWork.Commit → 將 order 與 outbox row 一起提交。` **[crosses database transaction boundary]**
+
+**Consumer**
+
+- `OutboxWorker.Process → 在另一個執行時段取得已提交的待送通知，並推進一次 delivery attempt。` **[crosses process/time boundary; polling handoff]**
+
+**External**
+
+- `LogisticsClient.CreateShipment → 將 ORD-42 的 shipment request 送到物流服務。` **[crosses external-system boundary]**
+
+**Completion**
+
+- `OutboxRepository.MarkProcessed / ScheduleRetry → 將本次嘗試記成已完成，或留下可再次嘗試的狀態。`
+
+**直覺模型：** 同一個上鎖抽屜先一起收好「訂單收據」和「待寄物流通知」。Handler 負責放入並鎖好；worker 之後只拿待寄通知去投遞，再把它標成已寄或待重試。
+
+**精確技術說明：** `Handle` 產生並提交 order/outbox；commit 是 transaction 交接點。`Process` 在另一個 time window 消費已提交的 outbox row，external client 只負責一次 API call，repository completion method 才記錄 processed/retry state。
+
+**比喻限制：** 抽屜只說明 atomic commit 與責任交接；它不保證 worker 只送一次，也不證明 Logistics API 已去重或已完成內部處理。
+
+### Code Teach group 1：`CreateOrderHandler.Handle`
+
+**Position / handoff：** `OrdersController.Create` → **`Handle`** → `UnitOfWork.Commit` → controller 使用回傳 ID。
+
+**Overall result：** 系統已持久保存 `ORD-42` 及其待送物流通知，呼叫端可取得訂單 ID。
+
+**Pre-state / inputs：** DB 尚無 `ORD-42`；輸入是 `CreateOrderRequest(C-7, items)` 與 cancellation token；handler 擁有本次協調流程。
+
+**Implementation algorithm：** (1) 驗證 request；(2) 建立 aggregate/event；(3) 交 repository tracking；(4) await commit；(5) commit 成功才 return ID。`src/application/CreateOrderHandler.cs:30-67`
+
+以下 card 只作導航：
+
+- **Overall result**：系統已持久保存 `ORD-42` 及其待送物流通知，呼叫端可取得訂單 ID。
+- **Flow role**：Layer 2 步驟 2 至 4 的 Producer / application coordinator。
+- **Responsibility**：協調建立訂單並提交 business state 與 outbox state。
+- **Not responsible for**：不投遞物流通知，也不處理 retry 或 completion state。
 - **Caller**：`OrdersController.Create`。
 - **When**：HTTP transport validation 完成後。
 - **Input**：`CreateOrderRequest` 與 cancellation token。
@@ -107,23 +142,51 @@ Branches：無效 item 在步驟 2 拒絕；DB commit 失敗時步驟 5 不回�
 - **Transformation**：DTO → domain values → aggregate/event。
 - **State change**：commit 前只改記憶體；commit 後寫入 DB。
 - **Calls**：validator、`Order.Create`、repository、unit of work。
-- **Output**：`order.Id`。
+- **Return value**：`order.Id`，此例為 `ORD-42`。
 - **Failure**：validation error 或 commit exception。
-- **Responsibility**：協調 use case。
-- **Not responsible for**：直接呼叫 Logistics API 或執行 retry。
-- **Flow role**：Layer 2 步驟 2 至 4 的 application coordinator。
 - **Confidence**：Confirmed，`src/application/CreateOrderHandler.cs:30-67`。
 
+**Bounded code walkthrough：**
+
 ```csharp
-validator.Validate(request);                         // Input + Guard
-var order = Order.Create(request.CustomerId, items); // Decision + Transformation
-repository.Add(order);                               // State tracking
-await unitOfWork.Commit(cancellationToken);           // State + Call
-return order.Id;                                      // Return
+validator.Validate(request);                         // 無效輸入在寫 state 前停止
+var order = Order.Create(request.CustomerId, items); // 建立 ORD-42 與 OrderPlaced
+repository.Add(order);                               // 加入 unit-of-work tracking，尚未 commit
+await unitOfWork.Commit(cancellationToken);           // 等 order/outbox 同一 transaction 完成
+return order.Id;                                      // 只在 commit 成功後交回 ORD-42
 ```
 
-### `OutboxWorker.Process`
+- `Validate` 失敗：拋出 validation error；沒有 order/outbox post-state。
+- `Commit` 失敗或 cancellation：不執行 `return`，caller 不得回 `201`。
+- 正常 `return ORD-42`：程式值是 ID；語意是 transaction 已成功，並不表示物流已收到。
+- **Post-state**：成功時 DB 有 order 與 outbox row；失敗時此 transaction 不留下半套結果。
+- **Caller consumption / next handoff**：controller 把 ID 投影成 `201` response；worker 稍後從已提交 outbox row 接棒。
 
+### Code Teach group 2：`OutboxWorker.Process`
+
+**Position / handoff：** hosted-service polling loop → **`Process`** → `LogisticsClient.CreateShipment` → `MarkProcessed` / `ScheduleRetry` → commit。
+
+**Overall result：** 一筆到期通知已完成一次物流投遞嘗試，資料庫留下成功或重試結果。
+
+**Pre-state / inputs：** `ORD-42` 的 outbox row 已 commit、`ProcessedAt=null` 且已到期；worker 收到 message payload，物流與 outbox repository 是其 collaborators。
+
+**Implementation algorithm：** (1) payload mapping；(2) await 外部 call；(3) success branch 標記 processed，timeout branch 安排 retry；(4) await commit 保存 branch 結果。`src/workers/OutboxWorker.cs:28-71`
+
+#### Primitive / Framework Bridge：`async` / `await`
+
+- **General meaning**：`async` method 可在等待 I/O 時暫停並回傳 `Task`；`await` 在工作完成後從下一行續跑，而不是佔住 thread 忙等。
+- **Role here**：第一次 `await` 等 Logistics API 結果，讓後續 success/retry branch 依真實結果執行；第二次等 DB commit 完成。
+- **Actors / protected resource**：worker 啟動兩次 I/O，Logistics client 與 database 完成它們；`async/await` 不保護 shared memory，也不是 lock。
+- **Enabled / prevented behavior**：允許 thread 在 I/O 期間服務其他工作，並讓 exception 在 await 點進入 `catch`；它本身不防止兩個 workers 同時處理同一 row。
+- **Scope / limitations**：只描述此 process 內的非同步控制流；不提供 transaction、cross-process mutual exclusion、delivery exactly-once 或 distributed coordination。
+- **Exact code mapping**：`await logistics.CreateShipment` 是 lines 45-46 的 external I/O；`await unitOfWork.Commit` 是 lines 66-67 的 persistence I/O。回到演算法第 2 步繼續。
+
+以下 card 只作導航：
+
+- **Overall result**：一筆到期通知已完成一次物流投遞嘗試，資料庫留下成功或重試結果。
+- **Flow role**：Layer 2 步驟 6 至 7 的 Consumer / Completion coordinator。
+- **Responsibility**：協調單次 delivery attempt，並依結果推進 outbox 狀態。
+- **Not responsible for**：不建立 order、不回應原始 HTTP request，也不決定物流服務內部是否去重。
 - **Caller**：Hosted service polling loop。
 - **When**：找到到期且未處理的 outbox row。
 - **Input**：`OrderPlaced` payload。
@@ -132,12 +195,31 @@ return order.Id;                                      // Return
 - **Transformation**：Outbox payload → Logistics DTO。
 - **State change**：更新 processed/retry columns。
 - **Calls**：Logistics client、outbox repository、unit of work。
-- **Output**：無 transport output；結果反映在 outbox row。
+- **Return value**：`Task`，完成時不攜帶 domain value。
 - **Failure**：timeout 保留可重試狀態；未分類 exception 行為為 Unknown。
-- **Responsibility**：可靠地推進 delivery attempt。
-- **Not responsible for**：建立 order 或回應原始 HTTP request。
-- **Flow role**：Layer 2 步驟 6 至 7 的 async consumer。
 - **Confidence**：Confirmed，`src/workers/OutboxWorker.cs:28-71`。
+
+**Bounded code walkthrough：**
+
+```csharp
+var request = mapper.ToShipment(message.Payload); // Input + Transformation
+try {
+    await logistics.CreateShipment(request);       // Call across external boundary
+    outbox.MarkProcessed(message, clock.UtcNow);   // State: completion
+} catch (TimeoutException) {
+    outbox.ScheduleRetry(message, clock.UtcNow);   // State: retry
+}
+await unitOfWork.Commit(cancellationToken);         // Persist result
+```
+
+- Mapping 只建立 Logistics DTO，尚未改 durable state。
+- External call 正常完成：走 success branch，`ProcessedAt` 取得時間值。
+- `TimeoutException`：catch 吃下本次 timeout，`ProcessedAt` 維持 null，設定 retry state；這不是成功 return。
+- 其他 exception：證據未顯示 branch，標為 Unknown，不猜測是否 commit。
+- Method 正常完成時回傳不含 domain value 的 `Task`；語意結果在 persisted outbox state，不在 return payload。
+- **Post-state**：成功 branch 可觀察 processed；timeout branch 可觀察 `RetryCount/NextAttemptAt`；兩者都要 commit 才 durable。
+- **Caller consumption / next handoff**：polling loop 以 Task completion 判定本次呼叫結束；retry row 由未來 polling iteration 再取用。
+- **理解檢查**：若 Logistics call timeout，commit 前 `ProcessedAt`、`RetryCount`、`NextAttemptAt` 各應是什麼狀態？
 
 ## Layer 5：Change、設計理由與驗證
 

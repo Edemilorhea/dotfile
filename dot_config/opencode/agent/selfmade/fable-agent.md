@@ -3,7 +3,7 @@ name: FableAgent
 description: "Opt-in primary agent that executes tasks through the isolated Fable workflow skills"
 mode: primary
 hidden: true
-model: openai/gpt-5.6-sol
+model: openai/gpt-5.6-sol-fast
 temperature: 0.1
 permission:
   question: allow
