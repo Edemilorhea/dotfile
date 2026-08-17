@@ -173,6 +173,12 @@ binding_modes:
       - commands: ['wm-disable-binding-mode --name resize']
         bindings: ['escape', 'enter']
 
+  # Release all other GlazeWM shortcuts while this mode is active.
+  - name: 'passthrough'
+    keybindings:
+      - commands: ['wm-disable-binding-mode --name passthrough']
+        bindings: ['alt+shift+p']
+
 keybindings:
   # Shift focus in a given direction.
   - commands: ['focus --direction left']
@@ -210,9 +216,8 @@ keybindings:
   - commands: ['wm-enable-binding-mode --name resize']
     bindings: ['alt+r']
 
-  # Disables window management and all other keybindings until alt+shift+p
-  # is pressed again.
-  - commands: ['wm-toggle-pause']
+  # Release all other keybindings until alt+shift+p is pressed again.
+  - commands: ['wm-enable-binding-mode --name passthrough']
     bindings: ['alt+shift+p']
 
   # Change tiling direction. This determines where new tiling windows will
@@ -222,7 +227,11 @@ keybindings:
 
   # Change focus from tiling windows -> floating -> fullscreen.
   - commands: ['wm-cycle-focus']
-    bindings: ['alt+space']
+    bindings: ['alt+c']
+
+  # Show all windows in the focused workspace.
+  - commands: ['shell-exec powershell.exe -NoProfile -WindowStyle Hidden -ExecutionPolicy Bypass -File C:\Users\tc_tseng\.glzr\glazewm\workspace-window-list.ps1']
+    bindings: ['alt+shift+g']
 
   # Change the focused window to be floating.
   - commands: ['toggle-floating --centered']
@@ -236,9 +245,13 @@ keybindings:
   - commands: ['toggle-fullscreen']
     bindings: ['alt+f']
 
+  # Maximize the focused window while keeping status and task bars visible.
+  - commands: ['toggle-fullscreen --maximized']
+    bindings: ['alt+z']
+
   # Minimize focused window.
   - commands: ['toggle-minimized']
-    bindings: ['alt+m']
+    bindings: ['alt+shift+m']
 
   # Close focused window.
   - commands: ['close']
@@ -256,17 +269,15 @@ keybindings:
   - commands: ['wm-redraw']
     bindings: ['alt+shift+w']
 
-  # Launch CMD terminal. Alternatively, use `shell-exec wt` or
-  # `shell-exec %ProgramFiles%/Git/git-bash.exe` to start Windows
-  # Terminal and Git Bash respectively.
-  - commands: ['shell-exec cmd']
+  # Launch Windows Terminal.
+  - commands: ['shell-exec wt']
     bindings: ['alt+enter']
 
   # Focus the next/previous active workspace defined in `workspaces` config.
   - commands: ['focus --next-active-workspace']
-    bindings: ['alt+s']
+    bindings: ['alt+oem_close_brackets']
   - commands: ['focus --prev-active-workspace']
-    bindings: ['alt+a']
+    bindings: ['alt+oem_open_brackets']
 
   # Focus the workspace that last had focus.
   - commands: ['focus --recent-workspace']
