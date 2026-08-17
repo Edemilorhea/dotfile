@@ -1,0 +1,89 @@
+{
+  "skill_name": "implementation-understanding-tutor",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "完整教懂我目前 working tree 的同步 checkout 功能。從業務目的、一次 request 的完整流程、每個 method 到驗證都要有，但不要假設有 queue 或 worker。一次輸出。",
+      "expected_output": "A Full Understanding report using all six exact layer headings in order, one shared checkout request, per-step Logic/Data/Program/State/Boundary/Evidence, execution-ordered methods, no invented async components, and separated verification evidence.",
+      "assertions": [
+        "Uses all six Full Understanding headings in the required order.",
+        "Layer 3 aligns Logic, Data, Program, State, Boundary, and Evidence per operation step.",
+        "Does not invent a worker, queue, outbox, or asynchronous boundary without repository evidence.",
+        "Does not use ELI5 for directly observable request mapping or ordinary persistence unless the gate is met."
+      ],
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "完整解釋 order outbox 從 API、transaction、worker 到外部物流 API 怎麼跑。我要知道同一個 orderId 的 logic、data、program、state flow，也要解釋 eventual consistency。",
+      "expected_output": "A six-layer Full Understanding report that aligns all four flows per operation step, marks transaction and async boundaries, follows one orderId, and uses a bounded intuition-precise-limits explanation only for genuinely difficult mechanisms.",
+      "assertions": [
+        "Uses the same orderId across all six layers.",
+        "Marks transaction, process, asynchronous, and external-system boundaries where supported.",
+        "Explains eventual consistency with intuition, precise technical meaning, and analogy limits.",
+        "Separates API success from eventual worker/external-system completion."
+      ],
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "完整教懂我 commit abc123。我要看到 Before/After、改動如何落在整個操作流程、設計理由，以及測試有沒有真的跑過。",
+      "expected_output": "A six-layer commit explanation whose change units map back to operation steps, with old/current evidence, Confirmed/Inferred/Unknown rationale, and strict separation of tests present, verification plan, and actual execution evidence.",
+      "assertions": [
+        "Maps every important change unit to a Layer 2 or Layer 3 operation step.",
+        "Uses ADDED, MODIFIED, and REMOVED labels where applicable.",
+        "Separates Tests Present, Verification Plan, and Actual Execution Evidence.",
+        "Never claims tests passed without traceable command output."
+      ],
+      "files": []
+    },
+    {
+      "id": 4,
+      "prompt": "只看 src/auth/session.ts::refreshSession 這個 method。不要展開整個 auth feature，但要說 caller、何時呼叫、input、guards、state、failure 和上下游影響。",
+      "expected_output": "A Focused Deep Dive with the six focused headings in order and a complete method evidence contract without expanding into a full feature report.",
+      "assertions": [
+        "Uses the Focused Deep Dive headings rather than the six Full Understanding layers.",
+        "Includes Caller, When, Input, Guards, Logic, Transformation, State change, Calls, Output, Failure, Responsibility, Not responsible for, Flow role, and Confidence.",
+        "Places the method in the minimal surrounding operation flow.",
+        "Does not expand unrelated authentication paths."
+      ],
+      "files": []
+    },
+    {
+      "id": 5,
+      "prompt": "完整說明這個 payment handler 怎麼被執行。如果 repository 裡找不到 caller，不要猜 framework 會自動呼叫。",
+      "expected_output": "A full six-layer explanation that reports the missing caller as Unknown, distinguishes registration or symbol existence from execution evidence, and avoids fabricated runtime order.",
+      "assertions": [
+        "Keeps all six Full Understanding headings even when caller evidence is missing.",
+        "Labels the caller and runtime order as Unknown when no evidence is found.",
+        "Does not treat interface, registration, or method existence as proof of execution.",
+        "Provides a bounded verification plan for finding or observing the caller."
+      ],
+      "files": []
+    },
+    {
+      "id": 6,
+      "prompt": "我還是看不懂你剛才說的 outbox，尤其不懂為什麼 API 已成功但物流還沒收到。不要整篇重講，換個方式只補我卡住的地方。",
+      "expected_output": "A wait-what recovery that repairs only the API-success versus eventual-delivery bridge with minimal context, a precise explanation, and one small check for understanding.",
+      "assertions": [
+        "Loads or follows wait-what and repairs one minimal understanding gap.",
+        "Does not reproduce the full six-layer report.",
+        "Separates database commit success from later external delivery.",
+        "Uses at most one high-information understanding check."
+      ],
+      "files": []
+    },
+    {
+      "id": 7,
+      "prompt": "用 guided 模式完整教我 inventory reservation feature。",
+      "expected_output": "A guided Full Understanding delivery whose first response contains scope and Layer 1 only, while preserving the fixed future sequence of Layers 2-3, Layer 4, then Layers 5-6.",
+      "assertions": [
+        "The first guided response contains scope and Layer 1, not a reordered subset.",
+        "States the remaining fixed sequence as Layers 2-3, Layer 4, then Layers 5-6.",
+        "Keeps the same shared inventory example for subsequent rounds.",
+        "Does not let focus or specialist output reorder the six-layer model."
+      ],
+      "files": []
+    }
+  ]
+}

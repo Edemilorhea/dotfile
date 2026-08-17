@@ -39,17 +39,7 @@ return {
     opts.formatters_by_ft = vim.tbl_deep_extend("force", opts.formatters_by_ft or {}, {
       lua = { "stylua" },
       python = { "black" },
-      javascript = { "dprint", "biome", "prettier", stop_after_first = true },
-      typescript = { "dprint", "biome", "prettier", stop_after_first = true },
-      javascriptreact = { "dprint", "biome", "prettier", stop_after_first = true },
-      typescriptreact = { "dprint", "biome", "prettier", stop_after_first = true },
-      json = { "dprint", "biome", "prettier", stop_after_first = true },
-      jsonc = { "dprint", "biome", "prettier", stop_after_first = true },
       yaml = { "prettier" },
-      html = { "prettier" },
-      css = { "prettier" },
-      scss = { "prettier" },
-      less = { "prettier" },
       vue = { "prettier" },
       svelte = { "prettier" },
       go = { "gofmt" },
@@ -61,6 +51,25 @@ return {
       sh = { "shfmt" },
       fish = { "fish_indent" },
     })
+
+    -- 這些檔型只走 dprint LSP，避免 Conform 在同一次存檔重複格式化。
+    for _, filetype in ipairs({
+      "cs",
+      "javascript",
+      "javascriptreact",
+      "typescript",
+      "typescriptreact",
+      "json",
+      "jsonc",
+      "markdown",
+      "css",
+      "scss",
+      "sass",
+      "less",
+      "html",
+    }) do
+      opts.formatters_by_ft[filetype] = {}
+    end
 
     opts.formatters = vim.tbl_deep_extend("force", opts.formatters or {}, {
         stylua = {
@@ -112,20 +121,6 @@ return {
         },
         fish_indent = {
           prepend_args = {},
-        },
-        dprint = {
-          command = vim.fn.expand("~/.dprint/bin/dprint"),
-          condition = function(_, ctx)
-            return has_config(ctx, { "dprint.json", "dprint.jsonc" })
-          end,
-          args = function(_, ctx)
-            return {
-              "fmt",
-              "--stdin",
-              ctx.filename,
-            }
-          end,
-          stdin = true,
         },
       })
 

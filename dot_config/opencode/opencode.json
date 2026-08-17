@@ -69,11 +69,6 @@
                 "PYTHONIOENCODING": "utf-8",
                 "OFFICE_MCP_DEFAULT_FOLDER": "C:\\Users\\tc_tseng\\Documents"
             }
-        },
-        "figma": {
-            "type": "remote",
-            "url": "http://127.0.0.1:3845/mcp",
-            "enabled": true
         }
     },
     "permission": {

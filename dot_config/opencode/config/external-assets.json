@@ -1,6 +1,6 @@
 {
-  "schemaVersion": 3,
-  "managerVersion": "1.2.0",
+  "schemaVersion": 4,
+  "managerVersion": "1.4.0",
   "defaultProfiles": ["core"],
   "installers": {
     "skillsCli": {
@@ -77,6 +77,20 @@
       "defaultScope": "project"
     }
   },
+  "overlays": [
+    {
+      "id": "orchestrator-fast-path",
+      "name": "小修改快速處理",
+      "description": "讓 Orchestrator 對明確、低風險的局部修改採用精簡工作流程。",
+      "targetAssetId": "oh-my-opencode-slim",
+      "targetKind": "agent-prompt",
+      "targetName": "orchestrator",
+      "profiles": ["oh-my-opencode-slim"],
+      "scopes": ["project"],
+      "sourcePath": "~/.config/opencode/config/assets/overlays/oh-my-opencode-slim/orchestrator/fast-path.md",
+      "priority": 100
+    }
+  ],
   "assets": [
     {
       "id": "to-spec",
@@ -172,6 +186,46 @@
       "defaultScope": "global",
       "sourcePath": "~/.config/opencode/config/assets/skills/implementation-understanding-tutor",
       "targetPath": "~/.agents/skills/implementation-understanding-tutor"
+    },
+    {
+      "id": "eli5-explainer",
+      "type": "skill",
+      "channel": "copy-template",
+      "profiles": ["core"],
+      "scopes": ["global"],
+      "defaultScope": "global",
+      "sourcePath": "~/.config/opencode/config/assets/skills/eli5-explainer",
+      "targetPath": "~/.agents/skills/eli5-explainer"
+    },
+    {
+      "id": "asd-ste100",
+      "type": "skill",
+      "channel": "copy-template",
+      "profiles": ["core"],
+      "scopes": ["global"],
+      "defaultScope": "global",
+      "sourcePath": "~/.config/opencode/config/assets/skills/asd-ste100",
+      "targetPath": "~/.agents/skills/asd-ste100"
+    },
+    {
+      "id": "iso-24495-plain-language",
+      "type": "skill",
+      "channel": "copy-template",
+      "profiles": ["core"],
+      "scopes": ["global"],
+      "defaultScope": "global",
+      "sourcePath": "~/.config/opencode/config/assets/skills/iso-24495-plain-language",
+      "targetPath": "~/.agents/skills/iso-24495-plain-language"
+    },
+    {
+      "id": "wait-what",
+      "type": "skill",
+      "channel": "copy-template",
+      "profiles": ["core"],
+      "scopes": ["global"],
+      "defaultScope": "global",
+      "sourcePath": "~/.config/opencode/config/assets/skills/wait-what",
+      "targetPath": "~/.agents/skills/wait-what"
     },
     {
       "id": "interactive-diagram",
@@ -272,6 +326,16 @@
       "package": "oh-my-opencode-slim",
       "packageVersion": "2.2.10",
       "pluginSpec": "oh-my-opencode-slim@2.2.10",
+      "skills": [
+        "clonedeps",
+        "codemap",
+        "deepwork",
+        "oh-my-opencode-slim",
+        "reflect",
+        "simplify",
+        "verification-planning",
+        "worktrees"
+      ],
       "configPath": ".opencode/opencode.json",
       "conflictsWith": ["gsd"],
       "notes": "The Asset Manager adds only the pinned plugin spec and never runs the upstream installer."

@@ -49,6 +49,15 @@ The Fable pack is the sole orchestration authority. `fable-loop` and `fable-judg
 | `vibe-coding-tutor` | `learning-code` | `global` | chezmoi-managed; upstream `tortoiseknightma/vibe-coding-tutor` with pinned provenance recorded locally |
 | `teach` | `learning-code` | `explicit` | Optional `learning` profile; pinned `mattpocock/skills` source in `external-assets.json` |
 
+## Communication Clarity Pack
+
+| Skills | Pack | Target exposure | Owner / provenance |
+| --- | --- | --- | --- |
+| `iso-24495-plain-language`, `asd-ste100`, `eli5-explainer` | `communication-clarity` | `global` | chezmoi-managed local skills based on the named public communication frameworks; they do not claim formal compliance |
+| `wait-what` | `communication-clarity` | `global` | chezmoi-managed adaptation of Matt Pocock's `wait-what` recovery prompt |
+
+These skills are complementary. ISO 24495 governs information design, ASD-STE100 supplies sentence-level discipline, ELI5 builds intuition, and `wait-what` repairs a failed explanation. Global routing must select the smallest useful subset rather than applying the full pack to every answer.
+
 ## Review Pack
 
 | Skills | Pack | Target exposure | Owner / provenance |

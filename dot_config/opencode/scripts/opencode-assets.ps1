@@ -1,7 +1,7 @@
 param(
     [Parameter(Position = 0)]
     [ValidateSet('list', 'profiles', 'plan', 'apply', 'status', 'remove', 'doctor')]
-    [string]$Action = 'status',
+    [string]$Action,
 
     [ValidateSet('global', 'project')]
     [string]$Scope = 'project',
@@ -9,6 +9,7 @@ param(
     [string[]]$Profiles = @(),
     [string[]]$Assets = @(),
     [string[]]$Exclude = @(),
+    [string[]]$Overlays = @(),
     [string]$ProjectRoot = (Get-Location).Path,
     [string]$CatalogPath = (Join-Path $HOME '.config\opencode\config\external-assets.json'),
     [switch]$Json
@@ -16,7 +17,305 @@ param(
 
 $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version Latest
-$script:ManagerVersion = '1.2.0'
+$script:ManagerVersion = '1.4.0'
+$script:TuiExplicitSelection = $false
+$script:OverlaySelectionExplicit = $PSBoundParameters.ContainsKey('Overlays')
+$script:TuiBackValue = '__tui_back__'
+$script:TuiProjectRoot = [IO.Path]::GetFullPath((Get-Location).Path)
+
+function Test-InteractiveTerminal {
+    try {
+        return [Environment]::UserInteractive -and
+            -not [Console]::IsInputRedirected -and
+            -not [Console]::IsOutputRedirected
+    }
+    catch {
+        return $false
+    }
+}
+
+function New-TuiOption {
+    param(
+        [Parameter(Mandatory = $true)][string]$Label,
+        [Parameter(Mandatory = $true)][string]$Value,
+        [string]$Description,
+        [bool]$Installed = $false
+    )
+
+    return [pscustomobject]@{ label = $Label; value = $Value; description = $Description; installed = $Installed }
+}
+
+function Format-TuiItemList {
+    param([object[]]$Items, [int]$Maximum = 4)
+
+    $values = @($Items | Where-Object { $_ } | ForEach-Object { [string]$_ })
+    if ($values.Count -le $Maximum) { return $values -join ', ' }
+    return "$(@($values | Select-Object -First $Maximum) -join ', ') 等 $($values.Count) 項"
+}
+
+function Get-TuiItemKind {
+    param([Parameter(Mandatory = $true)]$Item)
+
+    if ($Item.PSObject.Properties['pluginSpec']) { return 'Plugin' }
+    switch ([string]$Item.type) {
+        'skill' { return 'Skill' }
+        'skill-bundle' { return 'Skill bundle' }
+        'skill-command-bundle' { return 'Skill / Command bundle' }
+        'agent-command-bundle' { return 'Agent / Command bundle' }
+        'marketplace' { return 'Marketplace' }
+        'opencode-framework' { return 'OpenCode framework' }
+        default { return [string]$Item.type }
+    }
+}
+
+function Get-TuiItemDescription {
+    param([Parameter(Mandatory = $true)]$Asset)
+
+    $details = [Collections.Generic.List[string]]::new()
+    if ($Asset.PSObject.Properties['skills'] -and @($Asset.skills).Count -gt 0) {
+        $details.Add("Skills：$(Format-TuiItemList @($Asset.skills))")
+    }
+    if ($Asset.PSObject.Properties['files'] -and @($Asset.files).Count -gt 0) {
+        $details.Add("檔案：$(Format-TuiItemList @($Asset.files | ForEach-Object { $_.target }))")
+    }
+    if ($Asset.PSObject.Properties['targetPath']) { $details.Add("安裝到：$($Asset.targetPath)") }
+    if ($Asset.PSObject.Properties['pluginSpec']) { $details.Add("Plugin：$($Asset.pluginSpec)") }
+    elseif ($Asset.PSObject.Properties['package']) {
+        $package = if ($Asset.PSObject.Properties['packageVersion']) { "$($Asset.package)@$($Asset.packageVersion)" } else { $Asset.package }
+        $details.Add("套件：$package")
+    }
+    if ($Asset.PSObject.Properties['marketplace']) { $details.Add("Marketplace：$($Asset.marketplace)") }
+    if ($details.Count -eq 0) { $details.Add("類型：$($Asset.type)；管道：$($Asset.channel)") }
+    return $details -join '；'
+}
+
+function Read-TuiMenu {
+    param(
+        [Parameter(Mandatory = $true)][string]$Title,
+        [Parameter(Mandatory = $true)][object[]]$Options,
+        [string[]]$SelectedValues = @(),
+        [switch]$MultiSelect,
+        [switch]$AllowEmpty,
+        [switch]$AllowBack
+    )
+
+    if ($Options.Count -eq 0) { return $null }
+    $current = 0
+    $selected = [Collections.Generic.HashSet[string]]::new([StringComparer]::OrdinalIgnoreCase)
+    foreach ($value in $SelectedValues) { [void]$selected.Add($value) }
+
+    while ($true) {
+        Clear-Host
+        Write-Host 'OpenCode 擴充管理器' -ForegroundColor Cyan
+        Write-Host $Title -ForegroundColor White
+        $help = if ($MultiSelect) {
+            '↑/↓：移動  Space：選取  Enter：繼續  x：已安裝在目前位置'
+        }
+        else { '↑/↓：移動  Enter：確認' }
+        if ($AllowBack) { $help += '  Esc：上一頁' }
+        Write-Host $help -ForegroundColor DarkGray
+        Write-Host
+
+        $pageSize = [Math]::Max(5, [Console]::WindowHeight - 8)
+        $pageStart = [Math]::Floor($current / $pageSize) * $pageSize
+        $pageEnd = [Math]::Min($Options.Count - 1, $pageStart + $pageSize - 1)
+        for ($index = $pageStart; $index -le $pageEnd; $index++) {
+            $option = $Options[$index]
+            $cursor = if ($index -eq $current) { '>' } else { ' ' }
+            $marker = if ($MultiSelect) {
+                if ($selected.Contains([string]$option.value)) { '[x]' } else { '[ ]' }
+            }
+            else { '   ' }
+            $installedMarker = if ($option.installed) { 'x' } else { ' ' }
+            $color = if ($index -eq $current) { 'Yellow' } else { 'Gray' }
+            Write-Host "$cursor $marker $installedMarker $($option.label)" -ForegroundColor $color
+            if ($index -eq $current -and $option.description) {
+                Write-Host "      $($option.description)" -ForegroundColor DarkGray
+            }
+        }
+        if ($Options.Count -gt $pageSize) {
+            Write-Host
+            Write-Host "項目 $($pageStart + 1)-$($pageEnd + 1)，共 $($Options.Count) 項" -ForegroundColor DarkGray
+        }
+
+        $key = [Console]::ReadKey($true)
+        switch ($key.Key) {
+            'UpArrow' { $current = if ($current -eq 0) { $Options.Count - 1 } else { $current - 1 } }
+            'DownArrow' { $current = if ($current -eq $Options.Count - 1) { 0 } else { $current + 1 } }
+            'Spacebar' {
+                if ($MultiSelect) {
+                    $value = [string]$Options[$current].value
+                    if (-not $selected.Remove($value)) { [void]$selected.Add($value) }
+                }
+            }
+            'Enter' {
+                if (-not $MultiSelect) { return $Options[$current].value }
+                if ($selected.Count -gt 0 -or $AllowEmpty) {
+                    return @($Options | Where-Object { $selected.Contains([string]$_.value) } | ForEach-Object { [string]$_.value })
+                }
+            }
+            'Escape' { if ($AllowBack) { return $script:TuiBackValue } }
+        }
+    }
+}
+
+function Confirm-TuiAction {
+    param([Parameter(Mandatory = $true)][string]$Prompt)
+
+    $answer = Read-TuiMenu $Prompt @(
+        (New-TuiOption '否，返回上一頁' 'no' '返回選取畫面，不執行變更。')
+        (New-TuiOption '是，繼續' 'yes' '立即執行選取的操作。')
+    )
+    return $answer -eq 'yes'
+}
+
+function Start-AssetManagerTui {
+    param([Parameter(Mandatory = $true)]$Catalog)
+
+    :main while ($true) {
+        $chosenAction = Read-TuiMenu '請選擇要執行的操作' @(
+            (New-TuiOption '顯示狀態' 'status' '檢查 Skills、Plugins、套件與其他擴充是否已安裝或發生差異。')
+            (New-TuiOption '預覽安裝內容' 'plan' '顯示將套用的內容，但不修改檔案。')
+            (New-TuiOption '安裝或更新' 'apply' '套用 Profile，或個別選取 Skills、Plugins、套件與其他擴充。')
+            (New-TuiOption '移除受管理項目' 'remove' '移除鎖定檔中記錄的 Skills、Plugins、套件或其他擴充。')
+            (New-TuiOption '執行診斷' 'doctor' '驗證 catalog 並偵測安裝差異。')
+            (New-TuiOption '瀏覽所有項目' 'list' '依實際類型顯示 catalog 中的所有項目。')
+            (New-TuiOption '瀏覽 Profiles' 'profiles' '顯示可用的 Profile 群組。')
+            (New-TuiOption '離開' 'exit' '關閉且不進行任何操作。')
+        )
+        if ($chosenAction -eq 'exit') { return $false }
+        $script:Action = $chosenAction
+        if ($chosenAction -in @('list', 'profiles')) { return $true }
+
+        :scope while ($true) {
+            $globalItemCount = @($Catalog.assets | Where-Object { @($_.scopes) -contains 'global' }).Count
+            $projectItemCount = @($Catalog.assets | Where-Object { @($_.scopes) -contains 'project' }).Count
+            $chosenScope = Read-TuiMenu '請選擇管理範圍' @(
+                (New-TuiOption '全域使用者設定' 'global' "共 $globalItemCount 項；可從任何目錄管理使用者層級的安裝。")
+                (New-TuiOption '目前專案' 'project' "共 $projectItemCount 項；固定安裝到目前目錄：$($script:TuiProjectRoot)")
+            ) -AllowBack
+            if ($chosenScope -eq $script:TuiBackValue) { continue main }
+            $script:Scope = $chosenScope
+            if ($Scope -eq 'project') { $script:ProjectRoot = $script:TuiProjectRoot }
+
+            $resolvedRoot = [IO.Path]::GetFullPath($ProjectRoot)
+            $tuiLock = Get-AssetLock (Get-LockPath $Scope $resolvedRoot)
+            $installedIds = @($tuiLock.assets | ForEach-Object { [string]$_.id })
+            $installedOverlayIds = @($tuiLock.overlays | ForEach-Object { [string]$_.id })
+            if ($Action -eq 'remove') {
+                $managedOptions = @(@($tuiLock.assets | ForEach-Object {
+                    $catalogItem = @($Catalog.assets | Where-Object id -eq $_.id)[0]
+                    $kind = if ($catalogItem) { Get-TuiItemKind $catalogItem } else { '擴充項目' }
+                    New-TuiOption "[$kind] $($_.id)" "asset:$($_.id)" "安裝管道：$($_.channel)" $true
+                }) + @($tuiLock.overlays | ForEach-Object {
+                    $catalogOverlay = @($Catalog.overlays | Where-Object id -eq $_.id)[0]
+                    $description = if ($catalogOverlay) { $catalogOverlay.description } else { "目標：$($_.targetPath)" }
+                    New-TuiOption "[Overlay] $($_.id)" "overlay:$($_.id)" $description $true
+                }))
+                if ($managedOptions.Count -eq 0) {
+                    Clear-Host
+                    Write-Host '此範圍內找不到受管理的項目。' -ForegroundColor Yellow
+                    continue scope
+                }
+                $chosenItems = @(Read-TuiMenu '請選擇要移除的項目' $managedOptions -MultiSelect -AllowBack)
+                if ($chosenItems.Count -eq 1 -and $chosenItems[0] -eq $script:TuiBackValue) { continue scope }
+                $script:Profiles = @()
+                $script:Assets = @($chosenItems | Where-Object { $_.StartsWith('asset:') } | ForEach-Object { $_.Substring(6) })
+                $script:Overlays = @($chosenItems | Where-Object { $_.StartsWith('overlay:') } | ForEach-Object { $_.Substring(8) })
+                $script:TuiExplicitSelection = $true
+                $script:OverlaySelectionExplicit = $true
+                if (Confirm-TuiAction "確定要移除 $($chosenItems.Count) 個項目嗎？") { return $true }
+                continue scope
+            }
+
+            $manifest = if ($Scope -eq 'project') { Get-ProjectManifest $resolvedRoot } else { $null }
+            $suggestedProfiles = if ($manifest) { @($manifest.profiles) }
+                elseif (@($tuiLock.profiles).Count -gt 0) { @($tuiLock.profiles) }
+                elseif ($Scope -eq 'global') { @($Catalog.defaultProfiles) }
+                else { @() }
+            $availableItems = @($Catalog.assets | Where-Object { @($_.scopes) -contains $Scope })
+            $profileOptions = @($Catalog.profiles.PSObject.Properties | ForEach-Object {
+                $profileName = $_.Name
+                $profileAssets = @($availableItems | Where-Object { @($_.profiles) -contains $profileName })
+                $profileItems = @($profileAssets | ForEach-Object {
+                    $installedPrefix = if ($installedIds -contains $_.id) { 'x ' } else { '  ' }
+                    "$installedPrefix$(Get-TuiItemKind $_)：$($_.id)"
+                })
+                if ($profileItems.Count -gt 0) {
+                    $profileInstalled = @($profileAssets | Where-Object { $installedIds -notcontains $_.id }).Count -eq 0
+                    New-TuiOption $profileName $profileName "包含：$(Format-TuiItemList $profileItems 10)" $profileInstalled
+                }
+            })
+            $availableProfileNames = @($profileOptions | ForEach-Object { $_.value })
+            $suggestedProfiles = @($suggestedProfiles | Where-Object { $availableProfileNames -contains $_ })
+            $itemOptions = @($availableItems | ForEach-Object {
+                New-TuiOption "[$(Get-TuiItemKind $_)] $($_.id)" $_.id (Get-TuiItemDescription $_) ($installedIds -contains $_.id)
+            })
+
+            :selection while ($true) {
+                $script:Profiles = @()
+                $script:Assets = @()
+                $script:Exclude = @()
+                $script:Overlays = @()
+                $script:OverlaySelectionExplicit = $false
+                $selectionMode = Read-TuiMenu '請選擇安裝內容的挑選方式' @(
+                    (New-TuiOption '使用 Profile' 'profiles' '選一組或多組 Profile，畫面會列出各組包含的具體內容。')
+                    (New-TuiOption '只選個別項目' 'individual' '直接挑選一個或多個 Skill、Plugin、套件或其他擴充。')
+                    (New-TuiOption '進階選項' 'advanced' '微調 Profile：額外加入、排除，或同時設定兩者。')
+                ) -AllowBack
+                if ($selectionMode -eq $script:TuiBackValue) { continue scope }
+                if ($selectionMode -eq 'advanced') {
+                    $selectionMode = Read-TuiMenu '請選擇 Profile 微調方式' @(
+                        (New-TuiOption '加入個別項目' 'add' '使用 Profile，並額外加入指定項目。')
+                        (New-TuiOption '排除個別項目' 'exclude' '使用 Profile，但略過其中的指定項目。')
+                        (New-TuiOption '同時加入與排除' 'both' '同時設定額外加入與排除清單。')
+                    ) -AllowBack
+                    if ($selectionMode -eq $script:TuiBackValue) { continue selection }
+                }
+
+                if ($selectionMode -ne 'individual') {
+                    $selectedProfiles = @(Read-TuiMenu '請選擇 Profiles' $profileOptions $suggestedProfiles -MultiSelect -AllowBack)
+                    if ($selectedProfiles.Count -eq 1 -and $selectedProfiles[0] -eq $script:TuiBackValue) { continue selection }
+                    $script:Profiles = $selectedProfiles
+                }
+                if ($selectionMode -in @('individual', 'add', 'both')) {
+                    $title = if ($selectionMode -eq 'individual') { '請選擇要安裝的個別項目' } else { '請選擇要額外加入的項目' }
+                    $selectedItems = @(Read-TuiMenu $title $itemOptions -MultiSelect -AllowBack)
+                    if ($selectedItems.Count -eq 1 -and $selectedItems[0] -eq $script:TuiBackValue) { continue selection }
+                    $script:Assets = $selectedItems
+                }
+                if ($selectionMode -in @('exclude', 'both')) {
+                    $excludedItems = @(Read-TuiMenu '請選擇要排除的項目' $itemOptions -MultiSelect -AllowBack)
+                    if ($excludedItems.Count -eq 1 -and $excludedItems[0] -eq $script:TuiBackValue) { continue selection }
+                    $script:Exclude = $excludedItems
+                }
+                $script:TuiExplicitSelection = $true
+                $resolvedSelection = Get-Selections $Catalog $Scope $resolvedRoot
+                $availableOverlays = if ($Scope -eq 'project') {
+                    @($Catalog.overlays | Where-Object {
+                        @($_.scopes) -contains $Scope -and @($resolvedSelection.assets.id) -contains $_.targetAssetId
+                    })
+                }
+                else { @() }
+                if ($availableOverlays.Count -gt 0) {
+                    $suggestedOverlays = if ($manifest) { @($manifest.overlays) } else { $installedOverlayIds }
+                    $overlayOptions = @($availableOverlays | ForEach-Object {
+                        New-TuiOption "[Overlay] $($_.name)" $_.id "$($_.description)；目標：$($_.targetName)" ($installedOverlayIds -contains $_.id)
+                    })
+                    $selectedOverlays = @(Read-TuiMenu '請選擇要套用的增修規則（Overlay）' $overlayOptions $suggestedOverlays -MultiSelect -AllowEmpty -AllowBack)
+                    if ($selectedOverlays.Count -eq 1 -and $selectedOverlays[0] -eq $script:TuiBackValue) { continue selection }
+                    $script:Overlays = $selectedOverlays
+                    $script:OverlaySelectionExplicit = $true
+                }
+                if ($Action -eq 'apply') {
+                    $scopeLabel = if ($Scope -eq 'global') { '全域設定' } else { '目前專案' }
+                    if (-not (Confirm-TuiAction "確定要將選取內容套用到${scopeLabel}嗎？")) { continue selection }
+                }
+                return $true
+            }
+        }
+    }
+}
 
 function Write-Result {
     param([Parameter(Mandatory = $true)]$Value)
@@ -121,7 +420,7 @@ function Get-Catalog {
     }
     $catalog = Get-Content -LiteralPath $CatalogPath -Raw | ConvertFrom-Json
     $schemaVersion = if ($catalog.PSObject.Properties['schemaVersion']) { $catalog.schemaVersion } else { '<missing>' }
-    if ($schemaVersion -ne 3) {
+    if ($schemaVersion -ne 4) {
         throw "Unsupported asset catalog schema: $schemaVersion"
     }
     return $catalog
@@ -136,10 +435,43 @@ function Get-ProjectManifest {
     }
     $manifest = Get-Content -LiteralPath $path -Raw | ConvertFrom-Json
     $schemaVersion = if ($manifest.PSObject.Properties['schemaVersion']) { $manifest.schemaVersion } else { '<missing>' }
-    if ($schemaVersion -ne 1) {
+    if ($schemaVersion -notin @(1, 2)) {
         throw "Unsupported project asset manifest schema: $schemaVersion"
     }
+    foreach ($propertyName in @('profiles', 'assets', 'exclude', 'overlays')) {
+        if (-not $manifest.PSObject.Properties[$propertyName]) {
+            $manifest | Add-Member -NotePropertyName $propertyName -NotePropertyValue @()
+        }
+    }
+    $manifest.schemaVersion = 2
     return $manifest
+}
+
+function Save-ProjectManifest {
+    param(
+        [Parameter(Mandatory = $true)][string]$ResolvedProjectRoot,
+        [Parameter(Mandatory = $true)]$Selection
+    )
+
+    $path = Join-Path $ResolvedProjectRoot '.opencode\assets.json'
+    $manifest = Get-ProjectManifest $ResolvedProjectRoot
+    if (-not $manifest) {
+        $manifest = [pscustomobject]@{
+            schemaVersion = 2
+            profiles = @()
+            assets = @()
+            exclude = @()
+            overlays = @()
+        }
+    }
+    Set-ObjectProperty $manifest 'schemaVersion' 2
+    Set-ObjectProperty $manifest 'profiles' @($Selection.profiles)
+    Set-ObjectProperty $manifest 'assets' @($Selection.assetIds)
+    Set-ObjectProperty $manifest 'exclude' @($Selection.exclude)
+    Set-ObjectProperty $manifest 'overlays' @($Selection.overlayIds)
+    $parent = Split-Path -Parent $path
+    if (-not (Test-Path -LiteralPath $parent)) { New-Item -ItemType Directory -Path $parent | Out-Null }
+    $manifest | ConvertTo-Json -Depth 20 | Set-Content -LiteralPath $path -Encoding utf8
 }
 
 function Get-LockPath {
@@ -159,20 +491,38 @@ function Get-AssetLock {
 
     if (-not (Test-Path -LiteralPath $Path)) {
         return [pscustomobject]@{
-            schemaVersion = 1
+            schemaVersion = 2
             managerVersion = $script:ManagerVersion
             generatedAt = $null
             scope = $Scope
             projectRoot = if ($Scope -eq 'project') { $ProjectRoot } else { $null }
             profiles = @()
             assets = @()
+            overlays = @()
+            overlayOutputs = @()
         }
     }
     $lock = Get-Content -LiteralPath $Path -Raw | ConvertFrom-Json
     $schemaVersion = if ($lock.PSObject.Properties['schemaVersion']) { $lock.schemaVersion } else { '<missing>' }
-    if ($schemaVersion -ne 1) {
+    if ($schemaVersion -notin @(1, 2)) {
         throw "Unsupported asset lock schema: $schemaVersion"
     }
+    $defaults = [ordered]@{
+        managerVersion = $script:ManagerVersion
+        generatedAt = $null
+        scope = $Scope
+        projectRoot = if ($Scope -eq 'project') { $ProjectRoot } else { $null }
+        profiles = @()
+        assets = @()
+        overlays = @()
+        overlayOutputs = @()
+    }
+    foreach ($propertyName in $defaults.Keys) {
+        if (-not $lock.PSObject.Properties[$propertyName]) {
+            $lock | Add-Member -NotePropertyName $propertyName -NotePropertyValue $defaults[$propertyName]
+        }
+    }
+    $lock.schemaVersion = 2
     return $lock
 }
 
@@ -188,6 +538,7 @@ function Save-AssetLock {
     }
     $Lock.generatedAt = [DateTimeOffset]::UtcNow.ToString('o')
     $Lock.managerVersion = $script:ManagerVersion
+    $Lock.schemaVersion = 2
     $Lock | ConvertTo-Json -Depth 20 | Set-Content -LiteralPath $Path -Encoding utf8
 }
 
@@ -225,23 +576,29 @@ function Get-Selections {
     $selectedProfiles = @($Profiles)
     $selectedAssets = @($Assets)
     $excludedAssets = @($Exclude)
+    $selectedOverlays = @($Overlays)
 
-    if ($selectedProfiles.Count -eq 0 -and $manifest) {
+    $overlayOnlyRemoval = $Action -eq 'remove' -and $script:OverlaySelectionExplicit -and @($Assets).Count -eq 0
+    if ($selectedProfiles.Count -eq 0 -and $manifest -and -not $script:TuiExplicitSelection -and -not $overlayOnlyRemoval) {
         $selectedProfiles = @($manifest.profiles)
     }
-    if ($selectedAssets.Count -eq 0 -and $manifest) {
+    if ($selectedAssets.Count -eq 0 -and $manifest -and -not $script:TuiExplicitSelection -and -not $overlayOnlyRemoval) {
         $selectedAssets = @($manifest.assets)
     }
-    if ($excludedAssets.Count -eq 0 -and $manifest) {
+    if ($excludedAssets.Count -eq 0 -and $manifest -and -not $script:TuiExplicitSelection -and -not $overlayOnlyRemoval) {
         $excludedAssets = @($manifest.exclude)
     }
-    if ($selectedProfiles.Count -eq 0 -and $ResolvedScope -eq 'global') {
+    if ($selectedOverlays.Count -eq 0 -and $manifest -and -not $script:OverlaySelectionExplicit) {
+        $selectedOverlays = @($manifest.overlays)
+    }
+    if ($selectedProfiles.Count -eq 0 -and $ResolvedScope -eq 'global' -and -not $script:TuiExplicitSelection) {
         $selectedProfiles = @($Catalog.defaultProfiles)
     }
 
     $selectedProfiles = @($selectedProfiles | ForEach-Object { $_ -split ',' } | ForEach-Object { $_.Trim() } | Where-Object { $_ } | Select-Object -Unique)
     $selectedAssets = @($selectedAssets | ForEach-Object { $_ -split ',' } | ForEach-Object { $_.Trim() } | Where-Object { $_ } | Select-Object -Unique)
     $excludedAssets = @($excludedAssets | ForEach-Object { $_ -split ',' } | ForEach-Object { $_.Trim() } | Where-Object { $_ } | Select-Object -Unique)
+    $selectedOverlays = @($selectedOverlays | ForEach-Object { $_ -split ',' } | ForEach-Object { $_.Trim() } | Where-Object { $_ } | Select-Object -Unique)
 
     foreach ($profile in $selectedProfiles) {
         if (-not $Catalog.profiles.PSObject.Properties[$profile]) {
@@ -299,11 +656,23 @@ function Get-Selections {
         }
     }
 
+    $resolvedOverlays = [Collections.Generic.List[object]]::new()
+    foreach ($id in $selectedOverlays) {
+        $overlay = @($Catalog.overlays | Where-Object id -eq $id) | Select-Object -First 1
+        if (-not $overlay) { throw "Unknown overlay id: $id" }
+        if (@($overlay.scopes) -notcontains $ResolvedScope) {
+            throw "Overlay $id does not support $ResolvedScope scope."
+        }
+        $resolvedOverlays.Add($overlay)
+    }
+
     return [pscustomobject]@{
         profiles = $selectedProfiles
         assetIds = $selectedAssets
         exclude = $excludedAssets
         assets = @($resolved)
+        overlayIds = $selectedOverlays
+        overlays = @($resolvedOverlays)
     }
 }
 
@@ -816,6 +1185,160 @@ function Install-MarketplaceAsset {
     }
 }
 
+function Get-OverlayTargetPath {
+    param(
+        [Parameter(Mandatory = $true)]$Overlay,
+        [Parameter(Mandatory = $true)][string]$ResolvedProjectRoot
+    )
+
+    if ($Overlay.targetAssetId -ne 'oh-my-opencode-slim' -or $Overlay.targetKind -ne 'agent-prompt') {
+        throw "Unsupported overlay target: $($Overlay.targetAssetId)/$($Overlay.targetKind)"
+    }
+    if ([string]::IsNullOrWhiteSpace($Overlay.targetName) -or $Overlay.targetName -notmatch '^[a-zA-Z0-9_-]+$') {
+        throw "Invalid overlay target name: $($Overlay.targetName)"
+    }
+    return [IO.Path]::GetFullPath((Join-Path $ResolvedProjectRoot ".opencode\oh-my-opencode-slim\$($Overlay.targetName)_append.md"))
+}
+
+function Get-OverlayOutputContent {
+    param([Parameter(Mandatory = $true)][object[]]$ResolvedOverlays)
+
+    $sections = [Collections.Generic.List[string]]::new()
+    $sections.Add('<!-- Generated by opencode-assets.ps1. Edit Overlay sources, not this file. -->')
+    foreach ($overlay in @($ResolvedOverlays | Sort-Object @{ Expression = { [int]$_.priority } }, id)) {
+        $source = [IO.Path]::GetFullPath((Resolve-HomePath $overlay.sourcePath))
+        if (-not (Test-Path -LiteralPath $source -PathType Leaf)) {
+            throw "Overlay source not found: $source"
+        }
+        $sourceHash = (Get-FileHash -LiteralPath $source -Algorithm SHA256).Hash.ToLowerInvariant()
+        $body = (Get-Content -LiteralPath $source -Raw).Trim()
+        $sections.Add("<!-- opencode-overlay:start id=$($overlay.id) source-sha256=$sourceHash -->`n$body`n<!-- opencode-overlay:end id=$($overlay.id) -->")
+    }
+    return ($sections -join "`n`n") + "`n"
+}
+
+function Test-ManagedOverlayOutput {
+    param([Parameter(Mandatory = $true)]$Output)
+
+    if (-not (Test-Path -LiteralPath $Output.targetPath)) { return }
+    $actualHash = (Get-FileHash -LiteralPath $Output.targetPath -Algorithm SHA256).Hash.ToLowerInvariant()
+    if ($actualHash -ne $Output.contentHash) {
+        throw "Refusing to overwrite drifted Overlay output: $($Output.targetPath)"
+    }
+}
+
+function Test-SelectedOverlays {
+    param(
+        [Parameter(Mandatory = $true)][AllowEmptyCollection()][object[]]$ResolvedOverlays,
+        [Parameter(Mandatory = $true)][string]$ResolvedProjectRoot,
+        [Parameter(Mandatory = $true)]$ExistingLock
+    )
+
+    $existingOutputs = @($ExistingLock.overlayOutputs)
+    $groups = @($ResolvedOverlays | Group-Object { Get-OverlayTargetPath $_ $ResolvedProjectRoot })
+    $desiredPaths = @($groups | ForEach-Object { $_.Name })
+    foreach ($group in $groups) {
+        $targetPath = [string]$group.Name
+        $previousOutput = @($existingOutputs | Where-Object targetPath -eq $targetPath) | Select-Object -First 1
+        if ((Test-Path -LiteralPath $targetPath) -and -not $previousOutput) {
+            throw "Refusing to overwrite an unmanaged Overlay output: $targetPath"
+        }
+        if ($previousOutput) { Test-ManagedOverlayOutput $previousOutput }
+        [void](Get-OverlayOutputContent @($group.Group))
+    }
+    foreach ($staleOutput in @($existingOutputs | Where-Object { $desiredPaths -notcontains $_.targetPath })) {
+        Test-ManagedOverlayOutput $staleOutput
+    }
+}
+
+function Install-SelectedOverlays {
+    param(
+        [Parameter(Mandatory = $true)]$Catalog,
+        [Parameter(Mandatory = $true)][AllowEmptyCollection()][object[]]$ResolvedOverlays,
+        [Parameter(Mandatory = $true)][string]$ResolvedProjectRoot,
+        [Parameter(Mandatory = $true)]$ExistingLock
+    )
+
+    $existingOutputs = @($ExistingLock.overlayOutputs)
+    Test-SelectedOverlays $ResolvedOverlays $ResolvedProjectRoot $ExistingLock
+    $groups = @($ResolvedOverlays | Group-Object {
+        Get-OverlayTargetPath $_ $ResolvedProjectRoot
+    })
+    $desiredPaths = @($groups | ForEach-Object { $_.Name })
+
+    foreach ($staleOutput in @($existingOutputs | Where-Object { $desiredPaths -notcontains $_.targetPath })) {
+        Test-ManagedOverlayOutput $staleOutput
+        if (Test-Path -LiteralPath $staleOutput.targetPath) {
+            Remove-Item -LiteralPath $staleOutput.targetPath -Force
+        }
+    }
+
+    $overlayEntries = [Collections.Generic.List[object]]::new()
+    $outputEntries = [Collections.Generic.List[object]]::new()
+    foreach ($group in $groups) {
+        $targetPath = [string]$group.Name
+        $previousOutput = @($existingOutputs | Where-Object targetPath -eq $targetPath) | Select-Object -First 1
+        if (Test-Path -LiteralPath $targetPath) {
+            if (-not $previousOutput) {
+                throw "Refusing to overwrite an unmanaged Overlay output: $targetPath"
+            }
+            Test-ManagedOverlayOutput $previousOutput
+        }
+        $parent = Split-Path -Parent $targetPath
+        if (-not (Test-Path -LiteralPath $parent)) { New-Item -ItemType Directory -Path $parent | Out-Null }
+        $content = Get-OverlayOutputContent @($group.Group)
+        Set-Content -LiteralPath $targetPath -Value $content -Encoding utf8 -NoNewline
+        $contentHash = (Get-FileHash -LiteralPath $targetPath -Algorithm SHA256).Hash.ToLowerInvariant()
+        $overlayIds = @($group.Group | Sort-Object @{ Expression = { [int]$_.priority } }, id | ForEach-Object { [string]$_.id })
+        $outputEntries.Add([pscustomobject]@{
+            targetPath = $targetPath
+            overlayIds = $overlayIds
+            contentHash = $contentHash
+        })
+        foreach ($overlay in @($group.Group)) {
+            $source = [IO.Path]::GetFullPath((Resolve-HomePath $overlay.sourcePath))
+            $overlayEntries.Add([pscustomobject]@{
+                id = $overlay.id
+                targetAssetId = $overlay.targetAssetId
+                targetPath = $targetPath
+                sourceHash = (Get-FileHash -LiteralPath $source -Algorithm SHA256).Hash.ToLowerInvariant()
+            })
+        }
+    }
+    return [pscustomobject]@{ overlays = @($overlayEntries); outputs = @($outputEntries) }
+}
+
+function Get-OverlayStatus {
+    param(
+        [Parameter(Mandatory = $true)]$Selection,
+        [Parameter(Mandatory = $true)]$Lock
+    )
+
+    $rows = foreach ($overlay in @($Selection.overlays)) {
+        $entry = @($Lock.overlays | Where-Object id -eq $overlay.id) | Select-Object -First 1
+        $output = if ($entry) { @($Lock.overlayOutputs | Where-Object targetPath -eq $entry.targetPath) | Select-Object -First 1 } else { $null }
+        $missing = -not $output -or -not (Test-Path -LiteralPath $entry.targetPath)
+        $contentChanged = $false
+        if ($entry) {
+            $source = [IO.Path]::GetFullPath((Resolve-HomePath $overlay.sourcePath))
+            $sourceChanged = -not (Test-Path -LiteralPath $source) -or
+                (Get-FileHash -LiteralPath $source -Algorithm SHA256).Hash.ToLowerInvariant() -ne $entry.sourceHash
+            $outputChanged = -not $missing -and
+                (Get-FileHash -LiteralPath $entry.targetPath -Algorithm SHA256).Hash.ToLowerInvariant() -ne $output.contentHash
+            $contentChanged = $sourceChanged -or $outputChanged
+        }
+        [pscustomobject]@{
+            id = $overlay.id
+            kind = 'overlay'
+            channel = 'generated-append'
+            state = if (-not $entry) { 'not-managed' } elseif ($missing -or $contentChanged) { 'drifted' } else { 'installed' }
+            missingPaths = if ($missing -and $entry) { @($entry.targetPath) } else { @() }
+            contentChanged = $contentChanged
+        }
+    }
+    return @($rows)
+}
+
 function Remove-LockedAsset {
     param(
         [Parameter(Mandatory = $true)]$Catalog,
@@ -928,6 +1451,30 @@ function Test-Catalog {
             $warnings.Add("Asset $($asset.id) is provenance-only and cannot be applied.")
         }
     }
+    $overlayIds = @($Catalog.overlays.id)
+    foreach ($duplicate in @($overlayIds | Group-Object | Where-Object Count -gt 1)) {
+        $errors.Add("Duplicate overlay id: $($duplicate.Name)")
+    }
+    foreach ($overlay in @($Catalog.overlays)) {
+        foreach ($propertyName in @('id', 'name', 'targetAssetId', 'targetKind', 'targetName', 'sourcePath', 'priority')) {
+            if (-not $overlay.PSObject.Properties[$propertyName]) {
+                $errors.Add("Overlay requires ${propertyName}: $($overlay.id)")
+            }
+        }
+        if ($ids -notcontains $overlay.targetAssetId) {
+            $errors.Add("Overlay $($overlay.id) targets unknown asset $($overlay.targetAssetId)")
+        }
+        if ($overlay.targetAssetId -ne 'oh-my-opencode-slim' -or $overlay.targetKind -ne 'agent-prompt') {
+            $errors.Add("Overlay $($overlay.id) uses unsupported target $($overlay.targetAssetId)/$($overlay.targetKind)")
+        }
+        if (@($overlay.scopes) -notcontains 'project' -or @($overlay.scopes) -contains 'global') {
+            $errors.Add("Overlay $($overlay.id) must use project scope only.")
+        }
+        $source = [IO.Path]::GetFullPath((Resolve-HomePath $overlay.sourcePath))
+        if (-not (Test-Path -LiteralPath $source -PathType Leaf)) {
+            $errors.Add("Overlay $($overlay.id) source not found: $source")
+        }
+    }
     return [pscustomobject]@{ errors = @($errors); warnings = @($warnings) }
 }
 
@@ -991,6 +1538,7 @@ function Get-Status {
         }
         [pscustomobject]@{
             id = $asset.id
+            kind = 'asset'
             channel = $asset.channel
             state = if (-not $entry) { 'not-managed' } elseif ($missing.Count -gt 0 -or $fingerprintChanged -or $pluginChanged -or $frameworkConfigChanged) { 'drifted' } else { 'installed' }
             missingPaths = $missing
@@ -1000,7 +1548,17 @@ function Get-Status {
     return @($rows)
 }
 
-$catalog = Get-Catalog
+function Wait-TuiContinue {
+    Write-Host
+    Write-Host '按任意鍵返回主畫面...' -ForegroundColor DarkGray
+    [void][Console]::ReadKey($true)
+}
+
+function Invoke-AssetManagerAction {
+    param([Parameter(Mandatory = $true)]$ResolvedCatalog)
+
+    $script:AssetActionExitCode = 0
+    $catalog = $ResolvedCatalog
 $projectRootResolved = [IO.Path]::GetFullPath($ProjectRoot)
 $catalogCheck = Test-Catalog $catalog
 
@@ -1013,12 +1571,14 @@ if ($Action -eq 'profiles') {
         }
     }
     Write-Result @($rows)
-    exit 0
+    return
 }
 
 if ($Action -eq 'list') {
-    Write-Result @($catalog.assets | Select-Object id, type, channel, profiles, scopes, defaultScope, revision)
-    exit 0
+    $assetRows = @($catalog.assets | Select-Object id, @{ Name = 'kind'; Expression = { 'asset' } }, type, channel, profiles, scopes, defaultScope, revision)
+    $overlayRows = @($catalog.overlays | Select-Object id, @{ Name = 'kind'; Expression = { 'overlay' } }, targetKind, targetAssetId, targetName, profiles, scopes, priority)
+    Write-Result @($assetRows + $overlayRows)
+    return
 }
 
 if ($catalogCheck.errors.Count -gt 0) {
@@ -1028,6 +1588,10 @@ if ($catalogCheck.errors.Count -gt 0) {
 $selection = Get-Selections $catalog $Scope $projectRootResolved
 $lockPath = Get-LockPath $Scope $projectRootResolved
 $lock = Get-AssetLock $lockPath
+if ($Scope -eq 'project' -and -not $script:OverlaySelectionExplicit -and $selection.overlays.Count -eq 0 -and $lock.overlays.Count -gt 0) {
+    $selection.overlayIds = @($lock.overlays | ForEach-Object { $_.id })
+    $selection.overlays = @($catalog.overlays | Where-Object { $selection.overlayIds -contains $_.id })
+}
 
 if ($Action -eq 'plan') {
     Write-Result ([pscustomobject]@{
@@ -1036,18 +1600,26 @@ if ($Action -eq 'plan') {
         projectRoot = if ($Scope -eq 'project') { $projectRootResolved } else { $null }
         profiles = $selection.profiles
         assets = @($selection.assets | Select-Object id, type, channel, revision)
+        overlays = @($selection.overlays | ForEach-Object {
+            [pscustomobject]@{
+                id = $_.id
+                targetAssetId = $_.targetAssetId
+                targetPath = Get-OverlayTargetPath $_ $projectRootResolved
+                priority = $_.priority
+            }
+        })
         lockPath = $lockPath
     })
-    exit 0
+    return
 }
 
 if ($Action -eq 'status') {
-    Write-Result (Get-Status $selection $lock)
-    exit 0
+    Write-Result @(@(Get-Status $selection $lock) + @(Get-OverlayStatus $selection $lock))
+    return
 }
 
 if ($Action -eq 'doctor') {
-    $status = @(Get-Status $selection $lock)
+    $status = @(@(Get-Status $selection $lock) + @(Get-OverlayStatus $selection $lock))
     $drift = @($status | Where-Object state -eq 'drifted')
     $result = [pscustomobject]@{
         valid = $catalogCheck.errors.Count -eq 0 -and $drift.Count -eq 0
@@ -1058,15 +1630,21 @@ if ($Action -eq 'doctor') {
         lock = $lockPath
     }
     Write-Result $result
-    if (-not $result.valid) { exit 1 }
-    exit 0
+    if (-not $result.valid) { $script:AssetActionExitCode = 1 }
+    return
 }
 
 if ($Action -eq 'remove') {
-    $selectedIds = @($selection.assets.id)
-    if ($selectedIds.Count -eq 0) {
-        throw 'No managed assets selected for removal.'
+    $selectedIds = @($selection.assets | ForEach-Object { $_.id })
+    $selectedOverlayIds = @($selection.overlayIds)
+    $selectedOverlayIds += @($lock.overlays | Where-Object { $selectedIds -contains $_.targetAssetId } | ForEach-Object { $_.id })
+    $selectedOverlayIds = @($selectedOverlayIds | Select-Object -Unique)
+    if ($selectedIds.Count -eq 0 -and $selectedOverlayIds.Count -eq 0) {
+        throw 'No managed assets or Overlays selected for removal.'
     }
+    $remainingOverlayIds = @($lock.overlays | Where-Object { $selectedOverlayIds -notcontains $_.id } | ForEach-Object { $_.id })
+    $remainingOverlays = @($catalog.overlays | Where-Object { $remainingOverlayIds -contains $_.id })
+    Test-SelectedOverlays $remainingOverlays $projectRootResolved $lock
     $remaining = [Collections.Generic.List[object]]::new()
     foreach ($entry in @($lock.assets)) {
         if ($selectedIds -contains $entry.id) {
@@ -1077,10 +1655,30 @@ if ($Action -eq 'remove') {
         }
     }
     $lock.assets = @($remaining)
+    $overlayResult = Install-SelectedOverlays $catalog $remainingOverlays $projectRootResolved $lock
+    $lock.overlays = @($overlayResult.overlays)
+    $lock.overlayOutputs = @($overlayResult.outputs)
     $lock.profiles = @($lock.profiles | Where-Object { $selection.profiles -notcontains $_ })
     Save-AssetLock $lockPath $lock
-    Write-Result ([pscustomobject]@{ removed = $selectedIds; lockPath = $lockPath })
-    exit 0
+    if ($Scope -eq 'project') {
+        $manifest = Get-ProjectManifest $projectRootResolved
+        if ($manifest) {
+            $manifestProfiles = @($manifest.profiles)
+            $profileAssetIds = @($catalog.assets | Where-Object {
+                @($_.profiles | Where-Object { $manifestProfiles -contains $_ }).Count -gt 0
+            } | ForEach-Object { $_.id })
+            $manifestExclude = @($manifest.exclude)
+            $manifestExclude += @($selectedIds | Where-Object { $profileAssetIds -contains $_ })
+            Save-ProjectManifest $projectRootResolved ([pscustomobject]@{
+                profiles = $manifestProfiles
+                assetIds = @($manifest.assets | Where-Object { $selectedIds -notcontains $_ })
+                exclude = @($manifestExclude | Select-Object -Unique)
+                overlayIds = @($manifest.overlays | Where-Object { $selectedOverlayIds -notcontains $_ })
+            })
+        }
+    }
+    Write-Result ([pscustomobject]@{ removed = $selectedIds; removedOverlays = $selectedOverlayIds; lockPath = $lockPath })
+    return
 }
 
 if ($Action -ne 'apply') {
@@ -1100,13 +1698,20 @@ foreach ($asset in @($selection.assets)) {
     }
 }
 
-if ($selection.assets.Count -eq 0) {
+if ($selection.assets.Count -eq 0 -and $selection.overlays.Count -eq 0) {
     throw 'No assets selected. Supply -Profiles/-Assets or create .opencode/assets.json.'
 }
 
+foreach ($overlay in @($selection.overlays)) {
+    if ($selectedIds -notcontains $overlay.targetAssetId -and $managedIds -notcontains $overlay.targetAssetId) {
+        throw "Overlay $($overlay.id) requires managed asset $($overlay.targetAssetId)."
+    }
+}
+Test-SelectedOverlays @($selection.overlays) $projectRootResolved $lock
+
 $updatedEntries = [Collections.Generic.List[object]]::new()
 foreach ($entry in @($lock.assets)) {
-    if (@($selection.assets.id) -notcontains $entry.id) {
+    if ($selectedIds -notcontains $entry.id) {
         $updatedEntries.Add($entry)
     }
 }
@@ -1128,14 +1733,49 @@ foreach ($asset in @($selection.assets)) {
     $updatedEntries.Add($entry)
 }
 
+$overlayResult = Install-SelectedOverlays $catalog @($selection.overlays) $projectRootResolved $lock
+
 $lock.scope = $Scope
 $lock.projectRoot = if ($Scope -eq 'project') { $projectRootResolved } else { $null }
 $lock.profiles = @($selection.profiles)
 $lock.assets = @($updatedEntries)
+$lock.overlays = @($overlayResult.overlays)
+$lock.overlayOutputs = @($overlayResult.outputs)
 Save-AssetLock $lockPath $lock
+if ($Scope -eq 'project') { Save-ProjectManifest $projectRootResolved $selection }
 Write-Result ([pscustomobject]@{
-    applied = @($selection.assets.id)
+    applied = @($selection.assets | ForEach-Object { $_.id })
     profiles = $selection.profiles
+    overlays = @($selection.overlays | ForEach-Object { $_.id })
     scope = $Scope
     lockPath = $lockPath
 })
+}
+
+function Start-AssetManagerSession {
+    param([Parameter(Mandatory = $true)]$ResolvedCatalog)
+
+    while ($true) {
+        if (-not (Start-AssetManagerTui $ResolvedCatalog)) { return }
+        try {
+            Invoke-AssetManagerAction $ResolvedCatalog
+        }
+        catch {
+            $script:AssetActionExitCode = 1
+            Write-Host
+            Write-Host "操作失敗：$($_.Exception.Message)" -ForegroundColor Red
+        }
+        Wait-TuiContinue
+    }
+}
+
+$catalog = Get-Catalog
+$actionWasProvided = $PSBoundParameters.ContainsKey('Action')
+if (-not $actionWasProvided -and -not $Json -and (Test-InteractiveTerminal)) {
+    Start-AssetManagerSession $catalog
+    exit 0
+}
+
+if (-not $actionWasProvided) { $Action = 'status' }
+Invoke-AssetManagerAction $catalog
+exit $script:AssetActionExitCode

@@ -54,7 +54,7 @@ return {
         -- ── 程式碼 / LSP ──────────────────────────────
         { "<leader>ca", desc = "程式碼動作" },
         { "<leader>cd", desc = "顯示本行診斷" },
-        { "<leader>cf", desc = "格式化（dprint→biome→prettier→LSP）" },
+        { "<leader>cf", desc = "格式化（dprint LSP / Conform）" },
         { "<leader>ch", desc = "切換複選框（Markdown）" },
         { "<leader>cm", desc = "開啟 Mason" },
         { "<leader>cr", desc = "重新命名符號" },

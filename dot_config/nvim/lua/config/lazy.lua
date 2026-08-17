@@ -22,6 +22,7 @@ require("lazy").setup({
         { import = "plugins.shared" }, -- VSCode + Neovim 共用插件
         { import = "plugins.blink" }, -- blink.cmp 覆寫配置
         { import = "plugins.development" }, -- 開發工具
+        { import = "plugins.dprint" }, -- dprint LSP 與存檔格式化
         { import = "plugins.formatting" }, -- 格式化設定 (conform.nvim)
         { import = "plugins.linting" }, -- lint 設定 (nvim-lint)
         { import = "plugins.persistence" }, -- session 儲存設定

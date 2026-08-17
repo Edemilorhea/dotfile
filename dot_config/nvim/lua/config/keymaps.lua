@@ -52,7 +52,7 @@ vim.api.nvim_create_autocmd("User", {
         vim.keymap.set("v", "<C-/>", "gc", { remap = true, nowait = true, desc = "註解選取範圍" })
         vim.keymap.set("v", "<C-_>", "gc", { remap = true, nowait = true, desc = "註解選取範圍" })
 
-        -- 覆蓋 LazyVim 預設格式化，改走 conform 的 formatter chain：dprint → biome → prettier → LSP
+        -- 覆蓋 LazyVim 預設格式化；dprint 檔型走 LSP，其餘檔型走 Conform/LSP fallback。
         pcall(vim.keymap.del, "n", "<leader>cf")
         pcall(vim.keymap.del, "v", "<leader>cf")
         vim.keymap.set({ "n", "v" }, "<leader>cf", function()

@@ -8,6 +8,16 @@ Shared instructions for coding agents.
 - Treat an explicit request to create, modify, fix, run, or apply as approval for that scope.
 - Be concise. Ask only when missing information would change correctness or scope.
 
+## Communication skill routing
+
+- Select the smallest useful set of communication skills from the user's need. Do not load all of them by default.
+- Use `iso-24495-plain-language` for substantial explanations, reports, guides, requirements, onboarding, or other content whose structure must help the reader find, understand, and use information.
+- Use `asd-ste100` for procedures, SOPs, API or CLI steps, safety-sensitive instructions, mixed English proficiency, or any answer where sentence-level ambiguity is costly.
+- Use `eli5-explainer` when the user is new to a concept, asks for ELI5, an analogy, a simple mental model, or needs intuition before technical detail.
+- Use `wait-what` when the user says they are lost, the answer is too complex, they must reread it, they cannot connect the parts, or they ask for a different explanation. Re-pitch the missing bridge; do not repeat the same answer.
+- For complex beginner-facing explanations, combine them in this order: `iso-24495-plain-language` for information design, `asd-ste100` for direct sentences, and `eli5-explainer` only for concepts that need intuition. When comprehension has already failed, let `wait-what` control the recovery.
+- Preserve exact identifiers, commands, paths, API names, constraints, risks, and uncertainty even when simplifying.
+
 ## Safety
 
 - Do not modify secrets, `.env` files, credentials, or generated dependency directories.
