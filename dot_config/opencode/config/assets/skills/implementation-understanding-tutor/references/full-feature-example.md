@@ -120,31 +120,15 @@ Branches：無效 item 在步驟 2 拒絕；DB commit 失敗時步驟 5 不回�
 
 ### Code Teach group 1：`CreateOrderHandler.Handle`
 
-**Position / handoff：** `OrdersController.Create` → **`Handle`** → `UnitOfWork.Commit` → controller 使用回傳 ID。
+以下 causal node 只作導航：
 
-**Overall result：** 系統已持久保存 `ORD-42` 及其待送物流通知，呼叫端可取得訂單 ID。
-
-**Pre-state / inputs：** DB 尚無 `ORD-42`；輸入是 `CreateOrderRequest(C-7, items)` 與 cancellation token；handler 擁有本次協調流程。
+- **Position**：`OrdersController.Create` → **`Handle`** → `UnitOfWork.Commit` → controller 使用回傳 ID。
+- **Responsibility / Not responsible for**：協調建立訂單並提交 business/outbox state；不投遞物流通知，也不處理 retry 或 completion state。
+- **Input / Pre-state**：DB 尚無 `ORD-42`；輸入是 `CreateOrderRequest(C-7, items)` 與 cancellation token。
+- **Result / Effect**：系統已持久保存 `ORD-42` 及其待送物流通知，呼叫端可取得訂單 ID。
+- **Handoff / Downstream impact**：controller 以 ID 回 `201`；已提交的 outbox row 讓 worker 之後能接棒。Commit 失敗時兩者都不能發生。
 
 **Implementation algorithm：** (1) 驗證 request；(2) 建立 aggregate/event；(3) 交 repository tracking；(4) await commit；(5) commit 成功才 return ID。`src/application/CreateOrderHandler.cs:30-67`
-
-以下 card 只作導航：
-
-- **Overall result**：系統已持久保存 `ORD-42` 及其待送物流通知，呼叫端可取得訂單 ID。
-- **Flow role**：Layer 2 步驟 2 至 4 的 Producer / application coordinator。
-- **Responsibility**：協調建立訂單並提交 business state 與 outbox state。
-- **Not responsible for**：不投遞物流通知，也不處理 retry 或 completion state。
-- **Caller**：`OrdersController.Create`。
-- **When**：HTTP transport validation 完成後。
-- **Input**：`CreateOrderRequest` 與 cancellation token。
-- **Guards**：customer 存在、items 非空且可售。
-- **Logic**：建立 order，要求 repository 追蹤，commit unit of work。
-- **Transformation**：DTO → domain values → aggregate/event。
-- **State change**：commit 前只改記憶體；commit 後寫入 DB。
-- **Calls**：validator、`Order.Create`、repository、unit of work。
-- **Return value**：`order.Id`，此例為 `ORD-42`。
-- **Failure**：validation error 或 commit exception。
-- **Confidence**：Confirmed，`src/application/CreateOrderHandler.cs:30-67`。
 
 **Bounded code walkthrough：**
 
@@ -164,40 +148,25 @@ return order.Id;                                      // 只在 commit 成功後
 
 ### Code Teach group 2：`OutboxWorker.Process`
 
-**Position / handoff：** hosted-service polling loop → **`Process`** → `LogisticsClient.CreateShipment` → `MarkProcessed` / `ScheduleRetry` → commit。
+以下 causal node 只作導航：
 
-**Overall result：** 一筆到期通知已完成一次物流投遞嘗試，資料庫留下成功或重試結果。
-
-**Pre-state / inputs：** `ORD-42` 的 outbox row 已 commit、`ProcessedAt=null` 且已到期；worker 收到 message payload，物流與 outbox repository 是其 collaborators。
+- **Position**：hosted-service polling loop → **`Process`** → `LogisticsClient.CreateShipment` → `MarkProcessed` / `ScheduleRetry` → commit。
+- **Responsibility / Not responsible for**：協調單次 delivery attempt 並推進 outbox state；不建立 order、不回應原始 HTTP request，也不決定物流服務內部是否去重。
+- **Input / Pre-state**：`ORD-42` 的 outbox row 已 commit、`ProcessedAt=null` 且已到期；worker 收到 message payload。
+- **Result / Effect**：一筆到期通知已完成一次物流投遞嘗試，資料庫留下成功或重試結果。
+- **Handoff / Downstream impact**：成功 state 使未來 polling 跳過此 row；retry state 使未來 iteration 能再次接棒。未分類 exception 的 downstream effect 是 Unknown。
 
 **Implementation algorithm：** (1) payload mapping；(2) await 外部 call；(3) success branch 標記 processed，timeout branch 安排 retry；(4) await commit 保存 branch 結果。`src/workers/OutboxWorker.cs:28-71`
 
-#### Primitive / Framework Bridge：`async` / `await`
+#### Mechanism Unit / Primitive Bridge：`async` / `await`
 
-- **General meaning**：`async` method 可在等待 I/O 時暫停並回傳 `Task`；`await` 在工作完成後從下一行續跑，而不是佔住 thread 忙等。
-- **Role here**：第一次 `await` 等 Logistics API 結果，讓後續 success/retry branch 依真實結果執行；第二次等 DB commit 完成。
-- **Actors / protected resource**：worker 啟動兩次 I/O，Logistics client 與 database 完成它們；`async/await` 不保護 shared memory，也不是 lock。
-- **Enabled / prevented behavior**：允許 thread 在 I/O 期間服務其他工作，並讓 exception 在 await 點進入 `catch`；它本身不防止兩個 workers 同時處理同一 row。
-- **Scope / limitations**：只描述此 process 內的非同步控制流；不提供 transaction、cross-process mutual exclusion、delivery exactly-once 或 distributed coordination。
-- **Exact code mapping**：`await logistics.CreateShipment` 是 lines 45-46 的 external I/O；`await unitOfWork.Commit` 是 lines 66-67 的 persistence I/O。回到演算法第 2 步繼續。
-
-以下 card 只作導航：
-
-- **Overall result**：一筆到期通知已完成一次物流投遞嘗試，資料庫留下成功或重試結果。
-- **Flow role**：Layer 2 步驟 6 至 7 的 Consumer / Completion coordinator。
-- **Responsibility**：協調單次 delivery attempt，並依結果推進 outbox 狀態。
-- **Not responsible for**：不建立 order、不回應原始 HTTP request，也不決定物流服務內部是否去重。
-- **Caller**：Hosted service polling loop。
-- **When**：找到到期且未處理的 outbox row。
-- **Input**：`OrderPlaced` payload。
-- **Guards**：`ProcessedAt` 為 null，`NextAttemptAt <= now`。
-- **Logic**：呼叫物流；依結果標記成功或安排 retry。
-- **Transformation**：Outbox payload → Logistics DTO。
-- **State change**：更新 processed/retry columns。
-- **Calls**：Logistics client、outbox repository、unit of work。
-- **Return value**：`Task`，完成時不攜帶 domain value。
-- **Failure**：timeout 保留可重試狀態；未分類 exception 行為為 Unknown。
-- **Confidence**：Confirmed，`src/workers/OutboxWorker.cs:28-71`。
+- **Problem / general meaning**：外部與 DB I/O 不會立即完成；`await` 暫停 method，完成後從下一行續跑。
+- **Actors / shared resource**：worker 啟動兩次 I/O，Logistics client 與 database 完成它們；`async/await` 不保護 shared memory。
+- **Coordination sequence**：先等 Logistics 結果，依 success/timeout 選 branch，再等 DB commit 保存結果。
+- **Guarantees / prevented failures**：後續 branch 只在 await 取得結果後執行，exception 在 await 點進入 `catch`；它不防止兩個 workers 同時處理同一 row。
+- **Limitations**：只描述此 process 內的非同步控制流；不提供 transaction、cross-process mutual exclusion、delivery exactly-once 或 distributed coordination。
+- **Failure / retry / recovery**：timeout 進 retry branch；cancellation 或其他 exception 的 recovery 無證據，標成 Unknown。
+- **Exact code touchpoints**：`await logistics.CreateShipment` 是 lines 45-46 的 external I/O；`await unitOfWork.Commit` 是 lines 66-67 的 persistence I/O。回到演算法第 2 步繼續。
 
 **Bounded code walkthrough：**
 

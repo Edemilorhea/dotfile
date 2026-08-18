@@ -233,6 +233,9 @@
         "Deconstructor": {
             "model": "openai/gpt-5.6-sol-fast"
         },
+        "ResearchCurator": {
+            "model": "openai/gpt-5.6-sol-fast"
+        },
         "Skeptic": {
             "model": "openai/gpt-5.6-sol-fast"
         },

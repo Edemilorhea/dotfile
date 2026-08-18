@@ -15,7 +15,7 @@
     },
     {
       "id": 2,
-      "prompt": "完整解釋 order outbox 從 API、transaction、worker 到外部物流 API 怎麼跑。我要知道同一個 orderId 的 logic、data、program、state flow，也要解釋 eventual consistency。",
+      "prompt": "完整解釋 order outbox 從 API、transaction、worker 到外部物流 API 怎麼跑。我要知道同一個 orderId 的 logic、data、program、state flow，也要解釋 eventual consistency。請一次輸出。",
       "expected_output": "A six-layer Full Understanding report that aligns all four flows per operation step, marks transaction and async boundaries, follows one orderId, and uses a bounded intuition-precise-limits explanation only for genuinely difficult mechanisms.",
       "assertions": [
         "Uses the same orderId across all six layers.",
@@ -27,7 +27,7 @@
     },
     {
       "id": 3,
-      "prompt": "完整教懂我 commit abc123。我要看到 Before/After、改動如何落在整個操作流程、設計理由，以及測試有沒有真的跑過。",
+      "prompt": "完整教懂我 commit abc123。我要看到 Before/After、改動如何落在整個操作流程、設計理由，以及測試有沒有真的跑過。請一次輸出。",
       "expected_output": "A six-layer commit explanation whose change units map back to operation steps, with old/current evidence, Confirmed/Inferred/Unknown rationale, and strict separation of tests present, verification plan, and actual execution evidence.",
       "assertions": [
         "Maps every important change unit to a Layer 2 or Layer 3 operation step.",
@@ -44,8 +44,8 @@
       "assertions": [
         "Uses the Focused Deep Dive headings rather than the six Full Understanding layers.",
         "Passes the Orientation Gate with only the minimal surrounding operation map, explicitly loads vibe-coding-tutor for actual Code Teach, and includes a one-line upstream/downstream Method-chain mental map.",
-        "Uses a result-first card as navigation, then teaches pre-state and inputs, the implementation algorithm in execution order, bounded important code lines, every branch and return meaning, post-state, and caller consumption or next handoff.",
-        "Distinguishes the semantic Overall result from the code-level Return value, including when the return is void or null.",
+        "Uses only the five-field causal node for navigation, then separately teaches the execution-order algorithm, bounded important code lines, every branch and return meaning, post-state, caller consumption, and downstream impact.",
+        "Distinguishes the semantic Result or Effect from the code-level Return value, including when the return is void or null.",
         "Places the method in the minimal surrounding operation flow.",
         "Does not expand unrelated authentication paths."
       ],
@@ -53,7 +53,7 @@
     },
     {
       "id": 5,
-      "prompt": "完整說明這個 payment handler 怎麼被執行。如果 repository 裡找不到 caller，不要猜 framework 會自動呼叫。",
+      "prompt": "完整說明這個 payment handler 怎麼被執行。如果 repository 裡找不到 caller，不要猜 framework 會自動呼叫。請一次輸出。",
       "expected_output": "A full six-layer explanation that reports the missing caller as Unknown, distinguishes registration or symbol existence from execution evidence, and avoids fabricated runtime order.",
       "assertions": [
         "Keeps all six Full Understanding headings even when caller evidence is missing.",
@@ -78,28 +78,30 @@
     {
       "id": 7,
       "prompt": "用 guided 模式完整教我 inventory reservation feature。",
-      "expected_output": "A guided Full Understanding delivery whose first response contains scope and Layer 1 only, while preserving the fixed future sequence of Layers 2-3, a true Code Teach round for Layer 4, then Layers 5-6.",
+      "expected_output": "A four-lens guided delivery that uses the six-layer model only as an internal coverage ledger, answers one primary learning question in the first response, follows the reading budget, and ends with concise progress and next choices.",
       "assertions": [
-        "The first guided response contains scope and Layer 1, not a reordered subset.",
-        "States the remaining fixed sequence as Layers 2-3, Layer 4 Code Teach, then Layers 5-6.",
-        "Defines round 3 as method-chain map, needed primitive/framework bridges and bounded ELI5, result-first cards as navigation, implementation/code walkthrough, and one small understanding check, teaching one coherent method group at a time when needed.",
-        "Keeps the same shared inventory example for subsequent rounds.",
-        "Does not let focus or specialist output reorder the six-layer model."
+        "Uses a user-facing Architecture, Flow, Mechanism, or Code learning unit rather than dumping six layer headings in the first guided response.",
+        "Answers one primary question with at most one main diagram or table, no more than seven architecture components or flow steps, and only one mechanism or coherent method group.",
+        "Explains each important node through Responsibility, Input or Pre-state, Result or Effect, Handoff, and Downstream impact rather than only listing callers.",
+        "Keeps the same shared inventory example and tracks the remaining six-layer coverage internally.",
+        "Treats change and verification as evidence overlays inside a four-lens unit or concise closure, never as additional guided lenses.",
+        "Ends with concise Completed, Current, and Pending progress plus no more than two next choices."
       ],
       "files": []
     },
     {
       "id": 8,
       "prompt": "完整教懂我 tenant notification feature：API 建立 outbox 工作後，會經過 Allocate、enqueue helper、Queue.Enqueue、Worker.ProcessTenantAsync、Processor.ProcessPendingAsync、TryClaimNext、ProcessOneAsync，最後送到外部通知服務並記錄完成或重試。請用同一個 tenantId 和 notificationId，從 request、transaction、queue wake-up、worker 到 completion 說清楚每個方法實際負責什麼、如何交接，以及可驗證的證據。一次輸出；不要因名稱相似就假設它們做同一件事。",
-      "expected_output": "A six-layer Full Understanding report that traces one notification through the API, outbox transaction, queue wake-up, worker, processor, external call, and completion. Layer 4 passes the Orientation Gate, loads vibe-coding-tutor, compresses the seven-method chain into responsibility-grouped nodes, supplies one bounded intuition model, then uses cards only as navigation before teaching coherent method groups in actual execution order.",
+      "expected_output": "A six-layer Full Understanding report that traces one notification through the API, outbox transaction, queue wake-up, worker, processor, external call, and completion. Layer 4 passes the Orientation Gate, loads vibe-coding-tutor, compresses the seven-method chain into responsibility-grouped causal nodes, supplies one bounded intuition model, then teaches coherent method groups in actual execution order.",
       "assertions": [
-        "Layer 4 begins with a Method-chain mental map before any individual method card.",
+        "Layer 4 begins with a Method-chain mental map before any individual causal node.",
         "The map groups only supported responsibilities such as Producer, Wake-up, Consumer, External, and Completion, and marks transaction, process, queue, and external boundaries where evidence supports them.",
-        "Before the cards, proactively uses one bounded ELI5 model for the seven-method high-confusion cluster, maps that model back to exact methods, states its limits, and does not apply ELI5 to the whole report.",
-        "Every method card starts, in order, with Overall result, Flow role, Responsibility, and Not responsible for before caller, input, or logic details.",
+        "Before the causal nodes, proactively uses one bounded ELI5 model for the seven-method high-confusion cluster, maps that model back to exact methods, states its limits, and does not apply ELI5 to the whole report.",
+        "Every method or coherent group uses only Position, Responsibility or Not responsible for, Input or Pre-state, Result or Effect, and Handoff or Downstream impact as its navigation node.",
+        "Does not render algorithm, branches, post-state, caller consumption, or confidence as another fixed-field card; those details appear naturally in the bounded execution-order walkthrough.",
         "Clearly distinguishes Allocate from TryClaimNext, the enqueue helper from Queue.Enqueue, Worker.ProcessTenantAsync from the Processor methods, and ProcessPendingAsync from ProcessOneAsync; wrappers or delegation are explicit.",
-        "For each method or coherent group, teaches position and handoff, overall result, pre-state and inputs, implementation algorithm, bounded code walkthrough, every branch and return meaning, post-state, and caller consumption or next handoff; cards do not substitute for code teaching.",
-        "Overall result states the observable semantic outcome and remains distinct from Return value, including void, null, Task, IDs, or status values.",
+        "For each method or coherent group, separately teaches the implementation algorithm, bounded code walkthrough, every branch and return meaning, post-state, caller consumption, and downstream impact; causal nodes do not substitute for code teaching.",
+        "Result or Effect states the observable semantic outcome and remains distinct from Return value, including void, null, Task, IDs, or status values.",
         "Uses the same tenantId and notificationId across all six layers and supports code-specific claims with file and line evidence plus confidence."
       ],
       "files": []
@@ -111,12 +113,56 @@
       "assertions": [
         "States that the prior Queue/Worker orientation satisfies the Orientation Gate and does not repeat the full business or architecture flow.",
         "Explicitly loads vibe-coding-tutor and integrates its teaching support into the Focused Code Teach rather than appending a separate report.",
-        "For each of Channel, lock, and ConcurrentDictionary, explains general meaning, exact role in Queue.Enqueue, writers/readers or protected shared resource, enabled or prevented behavior/race/failure, scope and limitations, and exact file:line mapping before resuming method flow.",
+        "For each necessary mechanism involving Channel, lock, and ConcurrentDictionary, explains the problem, actors and shared resource, coordination sequence, guarantees, limitations, failure or recovery behavior, and exact file:line touchpoints before resuming method flow.",
         "Clearly states that these in-memory concurrency primitives are process-local and do not by themselves provide database locking, distributed coordination, durable queueing, or cross-process mutual exclusion.",
-        "Places Queue.Enqueue between its upstream caller and worker consumer, gives its one-sentence overall result, pre-state and inputs, and follows the implementation algorithm in actual execution order.",
+        "Places Queue.Enqueue between its upstream caller and worker consumer, states responsibility and non-responsibility, inputs and pre-state, result or effect, handoff and downstream impact, and then follows the implementation algorithm in actual execution order.",
         "Walks bounded important code lines and explains every branch, early return, status or exception meaning without explaining every syntax token.",
         "Explains post-state and how the caller consumes the result or how the worker receives the next handoff, with code evidence and confidence.",
         "Does not surface correctness, security, performance, maintainability, approval, or other conventional Code Review findings."
+      ],
+      "files": []
+    },
+    {
+      "id": 10,
+      "prompt": "這個分支的所有修改，幫我進行完整的 Code Teach。我要你真的帶我讀 code，不是先給我一份架構、機制或 change report。",
+      "expected_output": "A full-scope guided Code Teach. It treats '所有修改/完整' as scope and depth, treats explicit 'Code Teach/帶我讀 code' as the delivery intent, builds an internal coverage ledger, gives only minimal orientation, and starts the first coherent execution-ordered bounded code walkthrough in the first substantive response.",
+      "assertions": [
+        "Infers full branch scope and guided code-focused delivery; it does not let '完整' select a report-first response.",
+        "The first substantive response contains bounded actual code and teaches the first coherent method group in execution order after no more than a minimal 3-to-7-step orientation.",
+        "Does not spend the first response only on change inventory, architecture, mechanism summaries, four-flow tables, causal nodes, or a six-layer report.",
+        "Builds or states a coverage plan that separates runtime execution stories, shared infrastructure, data/schema, configuration/static changes, and tests so one representative flow is not presented as all branch changes.",
+        "For the method group being taught, explains Responsibility, Input or Pre-state, Result or Effect, Handoff and Downstream impact, then concrete code, branches and returns, and post-state with file:line evidence.",
+        "Keeps code review findings separate and does not evaluate correctness, security, performance, maintainability, or approval unless separately requested."
+      ],
+      "files": []
+    },
+    {
+      "id": 11,
+      "prompt": "我想完整理解 Worker、OperationStream 和外部 processor 這段實作，但長報告我讀不下去。請分段帶我看：先說各元件負責什麼，再走一次互動流程，需要時才補協作機制，最後帶讀 actual code。每次只講一個重點。",
+      "expected_output": "A full-coverage guided explanation that exposes Architecture, Flow, Mechanism, and Code as separate reader-facing lenses, preserves the six-layer model only as an internal ledger, uses one causal learning unit per response, and keeps mechanisms just-in-time.",
+      "assertions": [
+        "Selects guided full coverage rather than a six-layer report or a single representative focused path.",
+        "The first response uses one four-lens learning unit, one primary question, and no more than seven main components or steps.",
+        "Architecture distinguishes Worker, OperationStream, and processor responsibilities, non-responsibilities, dependencies, boundaries, data ownership, and downstream consumers without expanding method internals.",
+        "The planned Flow follows trigger-to-result time order and includes data or state changes, handoffs, boundaries, and downstream effects rather than only a caller graph.",
+        "Mechanism is inserted only when needed for the next Flow handoff or Code group and covers actors, shared resource, rules, guarantees, limitations, failure or recovery, and code touchpoints before returning to the interrupted path.",
+        "Code Teach uses a five-field causal node only for navigation, then a separate bounded execution-order code walkthrough with branches, returns, post-state, caller consumption, and downstream impact.",
+        "Treats change and verification as evidence overlays or concise closure, not as fifth and sixth guided lenses.",
+        "Shows concise Completed, Current, and Pending coverage and offers no more than two next choices."
+      ],
+      "files": []
+    },
+    {
+      "id": 12,
+      "prompt": "請把這個分支的完整 Code Teach 一次輸出給我。我需要六層可留存內容，但不要先花大量篇幅講架構或 change inventory；最小定位後就開始帶讀 actual code。",
+      "expected_output": "A one-shot six-layer Code Teach report that preserves all exact report headings while compressing Layers 1 through 3 into no more than three to seven orientation items and making bounded actual code in Layer 4 the dominant content.",
+      "assertions": [
+        "Selects report because the user explicitly requests one-shot delivery and preserves all six exact headings in order.",
+        "Treats full branch scope separately from delivery mode and builds the broad-change coverage ledger.",
+        "Compresses Layers 1 through 3 together into no more than three to seven main orientation items while retaining compact Logic, Data, Program, State, Boundary, and Evidence coverage.",
+        "Does not expand branches, full change inventory, or nonessential mechanisms before Layer 4.",
+        "Makes Layer 4 dominant and starts bounded execution-order actual code immediately after the compressed orientation.",
+        "Uses only the five-field causal node for navigation; algorithm, branches, post-state, caller consumption, confidence, and downstream effects are woven into the separate code walkthrough rather than rendered as extra fixed card fields."
       ],
       "files": []
     }

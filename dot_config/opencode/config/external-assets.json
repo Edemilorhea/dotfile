@@ -115,6 +115,18 @@
       "skills": ["to-tickets"]
     },
     {
+      "id": "research",
+      "type": "skill",
+      "channel": "skills-cli",
+      "profiles": ["core"],
+      "scopes": ["global", "project"],
+      "defaultScope": "global",
+      "repository": "https://github.com/mattpocock/skills.git",
+      "revision": "2ab958093e83e0ec752e6c1c5932da465bf23e0c",
+      "skills": ["research"],
+      "notes": "Use only from a root agent with a bounded scope; delegated research agents must not delegate again."
+    },
+    {
       "id": "find-docs",
       "type": "skill",
       "channel": "skills-cli",
@@ -186,6 +198,59 @@
       "defaultScope": "global",
       "sourcePath": "~/.config/opencode/config/assets/skills/implementation-understanding-tutor",
       "targetPath": "~/.agents/skills/implementation-understanding-tutor"
+    },
+    {
+      "id": "implementation-understanding-report-contract",
+      "type": "skill",
+      "channel": "copy-template",
+      "profiles": ["core"],
+      "scopes": ["global"],
+      "defaultScope": "global",
+      "sourcePath": "~/.config/opencode/config/assets/skills/implementation-understanding-report-contract",
+      "targetPath": "~/.agents/skills/implementation-understanding-report-contract"
+    },
+    {
+      "id": "implementation-understanding-code-teach-contract",
+      "type": "skill",
+      "channel": "copy-template",
+      "profiles": ["core"],
+      "scopes": ["global"],
+      "defaultScope": "global",
+      "sourcePath": "~/.config/opencode/config/assets/skills/implementation-understanding-code-teach-contract",
+      "targetPath": "~/.agents/skills/implementation-understanding-code-teach-contract"
+    },
+    {
+      "id": "implementation-understanding-mechanism-contract",
+      "type": "skill",
+      "channel": "copy-template",
+      "profiles": ["core"],
+      "scopes": ["global"],
+      "defaultScope": "global",
+      "sourcePath": "~/.config/opencode/config/assets/skills/implementation-understanding-mechanism-contract",
+      "targetPath": "~/.agents/skills/implementation-understanding-mechanism-contract"
+    },
+    {
+      "id": "implementation-understanding-quality-contract",
+      "type": "skill",
+      "channel": "copy-template",
+      "profiles": ["core"],
+      "scopes": ["global"],
+      "defaultScope": "global",
+      "sourcePath": "~/.config/opencode/config/assets/skills/implementation-understanding-quality-contract",
+      "targetPath": "~/.agents/skills/implementation-understanding-quality-contract"
+    },
+    {
+      "id": "research-curator-storm",
+      "type": "agent",
+      "channel": "copy-template",
+      "profiles": ["core"],
+      "scopes": ["global"],
+      "defaultScope": "global",
+      "sourcePath": "~/.config/opencode/config/assets/agents/research-curator/ResearchCurator.md",
+      "targetPath": "~/.config/opencode/agent/selfmade/subagents/learning/ResearchCurator.md",
+      "upstreamRepository": "https://github.com/stanford-oval/storm.git",
+      "upstreamRevision": "fb951af7744dab086e34962e9bc6fe878e145f83",
+      "notes": "Methodology-only STORM and Co-STORM adaptation; no knowledge-storm Python runtime, credentials, or external service is installed."
     },
     {
       "id": "eli5-explainer",

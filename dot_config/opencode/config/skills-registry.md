@@ -12,7 +12,7 @@ This registry is the source of the skill-pack decision. It separates where a ski
 | `~/.agents/skills` | Cross-agent external auto-scan | mixed installer payloads; reproducible entries are declared in `external-assets.json` |
 | `~/.claude/skills` | Claude compatibility auto-scan | installer-created junctions that mirror selected `.agents` skills |
 
-`~/.agents/skills/.manifest.json` identifies bundled third-party ownership for several external skills. `config/external-assets.json` is the schema v3 catalog used by `opencode-assets`; project selections live in `.opencode/assets.json` and resolved ownership is recorded in `.opencode/assets.lock.json`.
+`~/.agents/skills/.manifest.json` identifies bundled third-party ownership for several external skills. `config/external-assets.json` is the schema v4 catalog used by `opencode-assets`; project selections live in `.opencode/assets.json` and resolved ownership is recorded in `.opencode/assets.lock.json`.
 
 ## Ownership Policy
 
@@ -42,12 +42,21 @@ The Fable pack is the sole orchestration authority. `fable-loop` and `fable-judg
 | Skills | Pack | Target exposure | Owner / provenance |
 | --- | --- | --- | --- |
 | `find-docs` | `dev-foundation` | `global` | official `upstash/context7` skill; installed through `skills@1.5.21` from pinned revision `8276a7c`; authentication remains runtime-only |
+| `research` | `dev-foundation` | `global` | unmodified Matt Pocock skill installed through `skills@1.5.21` from pinned `mattpocock/skills` revision `2ab9580`; root agents must bound scope and prevent recursive delegation |
 | `change-understanding-review` | `dev-foundation` | `global` | chezmoi-managed local skill |
 | `init` | `core` | `global` | zencoderai-derived template deployed by `opencode-assets` to `~/.agents/skills/init` |
-| `implementation-understanding-tutor` | `learning-code` | `global` | chezmoi-managed template deployed by `opencode-assets` |
+| `implementation-understanding-tutor`, `implementation-understanding-report-contract`, `implementation-understanding-code-teach-contract`, `implementation-understanding-mechanism-contract`, `implementation-understanding-quality-contract` | `learning-code` | `global` as one indivisible orchestrator pack | chezmoi-managed templates deployed by `opencode-assets`; contract skills are invoked only by the tutor orchestrator |
 | `understand`, `understand-chat`, `understand-dashboard`, `understand-diff`, `understand-domain`, `understand-explain`, `understand-knowledge`, `understand-onboard` | `repo-understanding` | `project` | external; currently `.agents` only; provenance unrecorded |
 | `vibe-coding-tutor` | `learning-code` | `global` | chezmoi-managed; upstream `tortoiseknightma/vibe-coding-tutor` with pinned provenance recorded locally |
 | `teach` | `learning-code` | `explicit` | Optional `learning` profile; pinned `mattpocock/skills` source in `external-assets.json` |
+
+## External Research Systems
+
+| Asset | Exposure | Owner / provenance | Managed behavior |
+| --- | --- | --- | --- |
+| `ResearchCurator` | `global` | Local methodology adaptation of Stanford OVAL STORM and Co-STORM, reviewed at revision `fb951af` | `research-curator-storm` copies one read-only OpenCode agent through the `core` profile. It does not install `knowledge-storm`, Python dependencies, credentials, or a research service. |
+
+`ResearchCurator` prepares multi-perspective evidence and learning outlines. It is not a publication engine and must not claim to execute the upstream STORM runtime. Focused primary-source technical research remains the responsibility of the `research` skill; simple questions remain with the active primary agent.
 
 ## Communication Clarity Pack
 
