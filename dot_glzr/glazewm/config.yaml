@@ -132,10 +132,17 @@ workspaces:
   - name: '9'
 
 window_rules:
+  # Let GlazeWM focus the switcher without putting it in the tiling layout.
+  - commands: ['set-floating --centered']
+    match:
+      - window_process: { equals: 'zebar' }
+        window_title: { regex: '^Zebar - overline-custom / window-switcher$' }
+
   - commands: ['ignore']
     match:
-      # Ignores any Zebar windows.
+      # Ignore every Zebar window except the keyboard-focused switcher.
       - window_process: { equals: 'zebar' }
+        window_title: { not_regex: '^Zebar - overline-custom / window-switcher$' }
 
       # Ignores picture-in-picture windows for browsers.
       - window_title: { regex: '[Pp]icture.in.[Pp]icture' }
@@ -161,17 +168,23 @@ binding_modes:
   # When enabled, the focused window can be resized via arrow keys or HJKL.
   - name: 'resize'
     keybindings:
-      - commands: ['resize --width -2%']
+      - commands: ['resize --width -1%']
         bindings: ['h', 'left']
-      - commands: ['resize --width +2%']
+      - commands: ['resize --width +1%']
         bindings: ['l', 'right']
-      - commands: ['resize --height +2%']
+      - commands: ['resize --height +1%']
         bindings: ['k', 'up']
-      - commands: ['resize --height -2%']
+      - commands: ['resize --height -1%']
         bindings: ['j', 'down']
       # Press enter/escape to return to default keybindings.
       - commands: ['wm-disable-binding-mode --name resize']
         bindings: ['escape', 'enter']
+
+  # Keep normal GlazeWM shortcuts disabled while the Zebar window switcher is open.
+  - name: 'window-switcher'
+    keybindings:
+      - commands: ['wm-disable-binding-mode --name window-switcher']
+        bindings: ['escape', 'alt+shift+g']
 
   # Release all other GlazeWM shortcuts while this mode is active.
   - name: 'passthrough'
@@ -201,13 +214,13 @@ keybindings:
     bindings: ['alt+shift+j', 'alt+shift+down']
 
   # Resize focused window by a percentage or pixel amount.
-  - commands: ['resize --width -2%']
+  - commands: ['resize --width -1%']
     bindings: ['alt+u']
-  - commands: ['resize --width +2%']
+  - commands: ['resize --width +1%']
     bindings: ['alt+p']
-  - commands: ['resize --height +2%']
+  - commands: ['resize --height +1%']
     bindings: ['alt+o']
-  - commands: ['resize --height -2%']
+  - commands: ['resize --height -1%']
     bindings: ['alt+i']
 
   # As an alternative to the resize keybindings above, resize mode enables
@@ -229,8 +242,8 @@ keybindings:
   - commands: ['wm-cycle-focus']
     bindings: ['alt+c']
 
-  # Show all windows in the focused workspace.
-  - commands: ['shell-exec powershell.exe -NoProfile -WindowStyle Hidden -ExecutionPolicy Bypass -File C:\Users\tc_tseng\.glzr\glazewm\workspace-window-list.ps1']
+  # Open the Zebar window switcher on the focused monitor.
+  - commands: ['wm-enable-binding-mode --name window-switcher']
     bindings: ['alt+shift+g']
 
   # Change the focused window to be floating.
