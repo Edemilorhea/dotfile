@@ -75,15 +75,26 @@ function WindowSwitcher() {
   };
 
   const activate = async (window: WorkspaceWindow) => {
-    if (!glazewm) return;
+    if (!glazewm || closing.current) return;
+
+    closing.current = true;
+    const widget = zebar.currentWidget();
 
     try {
+      if (
+        glazewm.bindingModes.some((mode) => mode.name === 'window-switcher')
+      ) {
+        await glazewm.runCommand(
+          'wm-disable-binding-mode --name window-switcher'
+        );
+      }
+
       if (window.state.type === 'minimized') {
         await glazewm.runCommand('toggle-minimized', window.id);
       }
       await glazewm.runCommand(`focus --container-id ${window.id}`);
     } finally {
-      await close();
+      await widget.close();
     }
   };
 
