@@ -15,6 +15,9 @@ The workspace window button and `Alt+Shift+G` open a centered selector on the
 current monitor. It only shows windows from that monitor's displayed workspace,
 sorts minimized windows first, and restores a minimized window before focusing
 it. Use arrow keys or `J`/`K` to select, `Enter` to open, and `Escape` to close.
+The selector closes its Zebar widget after a window is activated so it does not
+remain as a stale window. The top bar also shows a clickable `PAUSED` indicator
+while GlazeWM window management is paused.
 
 Editable custom source files are preserved under `custom-src`:
 

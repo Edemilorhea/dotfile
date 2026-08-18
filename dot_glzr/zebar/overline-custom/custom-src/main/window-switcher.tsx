@@ -59,7 +59,7 @@ function WindowSwitcher() {
   const close = async () => {
     if (closing.current) return;
     closing.current = true;
-    const widgetWindow = zebar.currentWidget().tauriWindow;
+    const widget = zebar.currentWidget();
 
     try {
       if (
@@ -70,7 +70,7 @@ function WindowSwitcher() {
         );
       }
     } finally {
-      await widgetWindow.destroy();
+      await widget.close();
     }
   };
 

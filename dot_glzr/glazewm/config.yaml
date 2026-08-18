@@ -132,6 +132,11 @@ workspaces:
   - name: '9'
 
 window_rules:
+  # Let Windows manage Remote Desktop clients without GlazeWM interference.
+  - commands: ['ignore']
+    match:
+      - window_process: { equals: 'mstsc' }
+
   # Let GlazeWM focus the switcher without putting it in the tiling layout.
   - commands: ['set-floating --centered']
     match:
@@ -232,6 +237,10 @@ keybindings:
   # Release all other keybindings until alt+shift+p is pressed again.
   - commands: ['wm-enable-binding-mode --name passthrough']
     bindings: ['alt+shift+p']
+
+  # Pause or resume all GlazeWM window management.
+  - commands: ['wm-toggle-pause']
+    bindings: ['alt+shift+oem_close_brackets']
 
   # Change tiling direction. This determines where new tiling windows will
   # be inserted.
