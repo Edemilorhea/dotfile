@@ -19,7 +19,10 @@ The selector closes its Zebar widget after a window is activated so it does not
 remain as a stale window. It disables the selector binding mode before changing
 focus, which prevents another monitor or workspace from reopening the selector.
 The top bar also shows a clickable `PAUSED` indicator while GlazeWM window
-management is paused.
+management is paused. A black status label immediately to the left of the
+workspace numbers shows the focused managed window's current state (`TILING`,
+`FLOATING`, `FULLSCREEN`, or `MINIMIZED`). It queries GlazeWM over its local IPC
+WebSocket so state changes appear without requiring a focus change.
 
 Editable custom source files are preserved under `custom-src`:
 
@@ -27,6 +30,7 @@ Editable custom source files are preserved under `custom-src`:
 - `main/App.tsx`: Opens the selector for the focused monitor when the GlazeWM
   `window-switcher` binding mode activates.
 - `main/leftButtons.tsx`: Adds the clickable selector button.
+- `main/windowStateIndicator.tsx`: Shows the live focused-window state.
 - `main/openWindowSwitcher.ts`: Places the selector on the bar's monitor.
 - `main/window-switcher.tsx`, `main/window-switcher.html`, and
   `main/vite.config.ts`: Selector UI and multi-page build entry.

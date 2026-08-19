@@ -153,6 +153,11 @@ window_rules:
       - window_title: { regex: '[Pp]icture.in.[Pp]icture' }
         window_class: { regex: 'Chrome_WidgetWin_1|MozillaDialogClass' }
 
+      # Ignore Zen Browser picture-in-picture windows with a zh-TW title.
+      - window_process: { equals: 'zen' }
+        window_title: { equals: '子母畫面' }
+        window_class: { equals: 'MozillaDialogClass' }
+
       # Ignore rules for various 3rd-party apps.
       - window_process: { equals: 'PowerToys' }
         window_class: { regex: 'HwndWrapper\[PowerToys\.PowerAccent.*?\]' }
@@ -241,6 +246,10 @@ keybindings:
   # Pause or resume all GlazeWM window management.
   - commands: ['wm-toggle-pause']
     bindings: ['alt+shift+oem_close_brackets']
+
+  # Stop managing the focused window. Reopen it to make it managed again.
+  - commands: ['ignore']
+    bindings: ['alt+shift+i']
 
   # Change tiling direction. This determines where new tiling windows will
   # be inserted.

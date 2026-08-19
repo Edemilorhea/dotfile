@@ -11,6 +11,7 @@ import { TimeDisplay } from './components/TimeDisplay';
 import VolumeControl from './components/volume';
 import { WindowTitle } from './components/windowTitle/WindowTitle';
 import { WorkspaceControls } from './components/WorkspaceControls';
+import { WindowStateIndicator } from './components/windowStateIndicator';
 import { cn } from './utils/cn';
 import { useAutoTiling } from './utils/useAutoTiling';
 import { openWindowSwitcher } from './utils/openWindowSwitcher';
@@ -102,6 +103,9 @@ function App() {
       >
         <div className="flex items-center gap-2 h-full">
           <LeftButtons glazewm={output.glazewm} />
+        </div>
+        <div className="flex items-center h-full">
+          <WindowStateIndicator glazewm={output.glazewm} />
         </div>
         <div className="flex items-center h-full">
           <WorkspaceControls glazewm={output.glazewm} />
