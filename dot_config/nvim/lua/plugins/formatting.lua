@@ -5,7 +5,7 @@ return {
       "<leader>cf",
       function()
         require("conform").format({
-          async = true,
+          async = false,
           lsp_format = "fallback",
         })
       end,
@@ -52,7 +52,7 @@ return {
       fish = { "fish_indent" },
     })
 
-    -- 這些檔型只走 dprint LSP，避免 Conform 在同一次存檔重複格式化。
+    -- 有專案 dprint 設定時只執行一次 dprint CLI；找不到設定時才 fallback 到 LSP。
     for _, filetype in ipairs({
       "cs",
       "javascript",
@@ -68,7 +68,7 @@ return {
       "less",
       "html",
     }) do
-      opts.formatters_by_ft[filetype] = {}
+      opts.formatters_by_ft[filetype] = { "dprint" }
     end
 
     opts.formatters = vim.tbl_deep_extend("force", opts.formatters or {}, {
