@@ -74,7 +74,7 @@ Write-Host "Scanning agent/command files under: $Root" -ForegroundColor Cyan
 
 $agentFiles = Get-ChildItem -Path (Join-Path $Root "agent") -Recurse -File -ErrorAction SilentlyContinue |
     Where-Object { $_.Name -match '\.md(\.tmpl)?$' }
-$commandFiles = Get-ChildItem -Path (Join-Path $Root "command") -Recurse -Filter *.md -File -ErrorAction SilentlyContinue
+$commandFiles = Get-ChildItem -Path (Join-Path $Root "commands") -Recurse -Filter *.md -File -ErrorAction SilentlyContinue
 $allMdFiles = @($agentFiles) + @($commandFiles)
 
 $issues = [System.Collections.Generic.List[PSCustomObject]]::new()
@@ -165,20 +165,20 @@ foreach ($f in $agentFiles) {
 
 # 5. Review routing boundary. The command uses the built-in primary agent and
 # contains a self-contained review contract without an external review skill.
-$reviewCommandPath = Join-Path $Root "command\selfmade\review.md"
+$reviewCommandPath = Join-Path $Root "commands\selfmade\review.md"
 if (Test-Path -LiteralPath $reviewCommandPath) {
     $reviewCommand = Get-Content -Raw -LiteralPath $reviewCommandPath
     if ($reviewCommand -notmatch '(?m)^agent:\s*build\s*$' -or $reviewCommand -notmatch '(?m)^subtask:\s*false\s*$') {
         $issues.Add([PSCustomObject]@{
             Type   = "ReviewCommandRoute"
-            Detail = "command/selfmade/review.md must route through build with subtask: false"
+            Detail = "commands/selfmade/review.md must route through build with subtask: false"
             Files  = $reviewCommandPath
         })
     }
     if ($reviewCommand -notmatch '(?m)Review the supplied diff/files directly' -or $reviewCommand -match '(?m)^\d+\.\s+Load the `[^`]+` skill') {
         $issues.Add([PSCustomObject]@{
             Type   = "ReviewContractMissing"
-            Detail = "command/selfmade/review.md must contain a direct review contract without an external review skill"
+            Detail = "commands/selfmade/review.md must contain a direct review contract without an external review skill"
             Files  = $reviewCommandPath
         })
     }

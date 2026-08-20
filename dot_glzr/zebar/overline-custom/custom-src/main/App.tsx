@@ -37,6 +37,46 @@ function App() {
     providers.onOutput(() => setOutput(providers.outputMap));
   }, []);
 
+  useEffect(() => {
+    let cancelled = false;
+    let timeoutId: number;
+    let attempts = 0;
+
+    const refreshCommand =
+      'shell-exec -- pwsh.exe -NoProfile -File C:\\Users\\tc_tseng\\.glzr\\glazewm\\refresh-work-area.ps1';
+
+    const refreshAfterDocking = async () => {
+      attempts += 1;
+
+      try {
+        const glazewm = providers.outputMap.glazewm;
+        if (!glazewm) {
+          throw new Error('GlazeWM provider is not ready.');
+        }
+
+        await Promise.race([
+          glazewm.runCommand(refreshCommand),
+          new Promise((_, reject) =>
+            window.setTimeout(() => reject(new Error('GlazeWM timed out.')), 1500)
+          ),
+        ]);
+      } catch {
+        if (!cancelled && attempts < 3) {
+          timeoutId = window.setTimeout(refreshAfterDocking, 1000);
+        }
+      }
+    };
+
+    // Zebar recreates its native AppBar when this widget reloads. Give Windows
+    // time to publish the new work area, then make GlazeWM read it again.
+    timeoutId = window.setTimeout(refreshAfterDocking, 1500);
+
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timeoutId);
+    };
+  }, []);
+
   useAutoTiling();
   useEffect(() => {
     const glazewm = output.glazewm;

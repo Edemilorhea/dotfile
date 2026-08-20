@@ -13,9 +13,16 @@ interface FocusedResponse {
   data?: {
     focused?: {
       type?: string;
-      state?: { type?: string };
+      state?: { type?: string; maximized?: boolean };
     };
   };
+}
+
+function stateLabel(state?: { type?: string; maximized?: boolean }) {
+  if (!state?.type) return null;
+  return state.type === 'fullscreen' && state.maximized
+    ? 'maximized'
+    : state.type;
 }
 
 export function WindowStateIndicator({
@@ -23,7 +30,7 @@ export function WindowStateIndicator({
 }: WindowStateIndicatorProps) {
   const providerState =
     glazewm?.focusedContainer.type === 'window'
-      ? glazewm.focusedContainer.state.type
+      ? stateLabel(glazewm.focusedContainer.state)
       : null;
   const [windowState, setWindowState] = useState<string | null>(providerState);
 
@@ -68,7 +75,7 @@ export function WindowStateIndicator({
 
           const focused = response.data?.focused;
           setWindowState(
-            focused?.type === 'window' ? focused.state?.type ?? null : null
+            focused?.type === 'window' ? stateLabel(focused.state) : null
           );
         } catch {
           // Ignore unrelated or malformed IPC messages.

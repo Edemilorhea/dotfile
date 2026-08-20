@@ -190,6 +190,14 @@ function WindowSwitcher() {
           <div className="space-y-1">
             {windows.map((window, index) => {
               const minimized = window.state.type === 'minimized';
+              const effectiveState =
+                minimized && window.prevState ? window.prevState : window.state;
+              const stateLabel =
+                effectiveState.type === 'fullscreen'
+                  ? effectiveState.maximized
+                    ? 'maximized'
+                    : 'fullscreen'
+                  : effectiveState.type;
               const selected = index === selectedIndex;
 
               return (
@@ -212,6 +220,9 @@ function WindowSwitcher() {
                     <span className="flex items-center gap-2">
                       <span className="truncate text-sm font-semibold">
                         {window.processName || 'Unknown'}
+                      </span>
+                      <span className="shrink-0 rounded bg-primary/15 px-1.5 py-0.5 text-[10px] text-primary">
+                        {stateLabel}
                       </span>
                       {minimized && (
                         <span className="flex shrink-0 items-center gap-1 rounded bg-button px-1.5 py-0.5 text-[10px] text-muted-foreground">

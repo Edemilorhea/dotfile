@@ -14,7 +14,7 @@
     {
       "name": "main",
       "htmlPath": "./widgets/main/dist/index.html",
-      "zOrder": "normal",
+      "zOrder": "top_most",
       "shownInTaskbar": false,
       "focused": false,
       "resizable": false,
@@ -55,9 +55,9 @@
             "type": "all"
           },
           "dockToEdge": {
-            "enabled": false,
-            "edge": null,
-            "windowMargin": "0px"
+            "enabled": true,
+            "edge": "top",
+            "windowMargin": "2px"
           }
         }
       ]

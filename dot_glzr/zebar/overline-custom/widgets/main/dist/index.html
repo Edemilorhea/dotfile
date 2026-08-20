@@ -4,11 +4,61 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>overline-zebar</title>
-    <script type="module" crossorigin src="./assets/main-BFvfY57b.js"></script>
-    <link rel="modulepreload" crossorigin href="./assets/check-BolAQpOo.js">
-    <link rel="stylesheet" crossorigin href="./assets/check-bdxKLcqZ.css">
+    <script>
+      // Runtime backport of custom-src/main/App.tsx. A future source rebuild
+      // can remove this block because App.tsx performs the same recovery.
+      window.setTimeout(() => {
+        let attempts = 0;
+        const command = 'command shell-exec -- pwsh.exe -NoProfile -File C:\\Users\\tc_tseng\\.glzr\\glazewm\\refresh-work-area.ps1';
+
+        const refreshAfterDocking = () => {
+          attempts += 1;
+          let socket;
+          let settled = false;
+
+          const retry = () => {
+            if (settled) return;
+            settled = true;
+            socket?.close();
+            if (attempts < 3) window.setTimeout(refreshAfterDocking, 1000);
+          };
+
+          try {
+            socket = new WebSocket('ws://localhost:6123');
+          } catch {
+            retry();
+            return;
+          }
+
+          socket.addEventListener('open', () => {
+            socket.send(command);
+          });
+          socket.addEventListener('message', (event) => {
+            try {
+              const response = JSON.parse(event.data);
+              if (response.clientMessage !== command) return;
+              if (!response.success || response.error) {
+                retry();
+                return;
+              }
+              settled = true;
+              socket.close();
+            } catch {
+              retry();
+            }
+          });
+          socket.addEventListener('error', retry, { once: true });
+          window.setTimeout(retry, 1500);
+        };
+
+        refreshAfterDocking();
+      }, 1500);
+    </script>
+    <script type="module" crossorigin src="./assets/main-bpZAbHnM.js"></script>
+    <link rel="modulepreload" crossorigin href="./assets/x-CUxEtkCo.js">
+    <link rel="stylesheet" crossorigin href="./assets/x-B652vGJs.css">
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root"></div>
   </body>
 </html>

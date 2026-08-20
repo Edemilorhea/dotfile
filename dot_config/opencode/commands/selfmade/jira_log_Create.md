@@ -8,7 +8,7 @@ subtask: true
 
 此命令是 `/selfmade:worklog jira` 的相容入口。所有事實調查、日期配置、安全限制與 Jira 輸出格式，皆以以下檔案為唯一規則來源：
 
-`C:/Users/tc_tseng/.config/opencode/command/selfmade/worklog.md`
+`C:/Users/tc_tseng/.config/opencode/commands/selfmade/worklog.md`
 
 ## 參數
 

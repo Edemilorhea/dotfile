@@ -122,3 +122,17 @@ end
 
 vim.api.nvim_create_autocmd("ColorScheme", { pattern = "rose-pine*", callback = set_indent_hl })
 set_indent_hl() -- 啟動時立即套用
+
+local function convert_line_endings(fileformat)
+    vim.cmd([[silent! %s/\r$//e]])
+    vim.bo.fileformat = fileformat
+    vim.cmd.write()
+end
+
+vim.api.nvim_create_user_command("ToCRLF", function()
+    convert_line_endings("dos")
+end, { desc = "Convert current file to CRLF" })
+
+vim.api.nvim_create_user_command("ToLF", function()
+    convert_line_endings("unix")
+end, { desc = "Convert current file to LF" })

@@ -8,7 +8,7 @@ import {
   resolveFormatter,
   shouldFormatFile,
   type FormatterSelection,
-} from "../plugin/mandatory-format"
+} from "../plugins/selfmade/mandatory-format"
 
 async function withProject(
   run: (projectDirectory: string) => Promise<void>,

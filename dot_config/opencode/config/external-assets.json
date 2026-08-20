@@ -1,6 +1,6 @@
 {
   "schemaVersion": 4,
-  "managerVersion": "1.4.0",
+  "managerVersion": "1.5.0",
   "defaultProfiles": ["core"],
   "installers": {
     "skillsCli": {
@@ -89,6 +89,19 @@
       "scopes": ["project"],
       "sourcePath": "~/.config/opencode/config/assets/overlays/oh-my-opencode-slim/orchestrator/fast-path.md",
       "priority": 100
+    },
+    {
+      "id": "orchestrator-adversarial-plan-review",
+      "name": "重大計畫抗辯審查",
+      "description": "重大或高風險計畫實作前，由 Skeptic、RedTeam、Simplifier 平行抗辯並修正計畫。",
+      "targetAssetId": "oh-my-opencode-slim",
+      "targetKind": "agent-prompt",
+      "targetName": "orchestrator",
+      "profiles": ["oh-my-opencode-slim"],
+      "scopes": ["project"],
+      "sourcePath": "~/.config/opencode/config/assets/overlays/oh-my-opencode-slim/orchestrator/adversarial-plan-review.md",
+      "priority": 200,
+      "dependsOn": ["adversarial-review-pack"]
     }
   ],
   "assets": [
@@ -404,6 +417,33 @@
       "configPath": ".opencode/opencode.json",
       "conflictsWith": ["gsd"],
       "notes": "The Asset Manager adds only the pinned plugin spec and never runs the upstream installer."
+    },
+    {
+      "id": "adversarial-review-pack",
+      "type": "agent-command-bundle",
+      "channel": "copy-template",
+      "profiles": [],
+      "scopes": ["project"],
+      "defaultScope": "project",
+      "files": [
+        {
+          "source": "~/.config/opencode/config/assets/agents/adversarial-review/skeptic.md",
+          "target": ".opencode/agents/adversarial/skeptic.md"
+        },
+        {
+          "source": "~/.config/opencode/config/assets/agents/adversarial-review/red-team.md",
+          "target": ".opencode/agents/adversarial/red-team.md"
+        },
+        {
+          "source": "~/.config/opencode/config/assets/agents/adversarial-review/simplifier.md",
+          "target": ".opencode/agents/adversarial/simplifier.md"
+        },
+        {
+          "source": "~/.config/opencode/config/assets/commands/adversarial-review/adv-review.md",
+          "target": ".opencode/commands/adv-review.md"
+        }
+      ],
+      "notes": "Installed automatically when the adversarial plan review Overlay is selected."
     },
     {
       "id": "gsd",
