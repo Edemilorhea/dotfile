@@ -43,7 +43,7 @@ function App() {
     let attempts = 0;
 
     const refreshCommand =
-      'shell-exec -- pwsh.exe -NoProfile -File C:\\Users\\tc_tseng\\.glzr\\glazewm\\refresh-work-area.ps1';
+      'shell-exec -- wscript.exe //B C:\\Users\\tc_tseng\\.glzr\\glazewm\\refresh-work-area.vbs';
 
     const refreshAfterDocking = async () => {
       attempts += 1;

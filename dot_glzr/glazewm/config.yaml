@@ -271,8 +271,8 @@ keybindings:
   - commands: ['wm-enable-binding-mode --name window-switcher']
     bindings: ['alt+shift+g']
 
-  # Change the focused window to be floating.
-  - commands: ['toggle-floating --centered']
+  # Float the focused window at a usable centered size.
+  - commands: ['set-floating --centered --width 900px --height 650px']
     bindings: ['alt+shift+space']
 
   # Change the focused window to be tiling.

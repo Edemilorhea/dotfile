@@ -25,12 +25,13 @@ workspace numbers shows the focused managed window's current state (`TILING`,
 WebSocket so state changes appear without requiring a focus change.
 
 When the main widget starts or reloads, it waits for Zebar to register its
-Windows AppBar and then runs `~/.glzr/glazewm/refresh-work-area.ps1`. The helper
-sends GlazeWM the Windows work-area-change message that makes it read the new
-monitor geometry and redraw existing windows. A short named mutex prevents the
-per-monitor widgets from running overlapping refreshes. It refreshes during
-registration and once more after all monitor widgets have had time to settle.
-The checked-in `dist/index.html` contains the runtime backport;
+Windows AppBar and then runs `~/.glzr/glazewm/refresh-work-area.vbs`. This hidden
+launcher starts `refresh-work-area.ps1` without opening a terminal window. The
+PowerShell helper sends GlazeWM the Windows work-area-change message that makes
+it read the new monitor geometry and redraw existing windows. A short named
+mutex prevents the per-monitor widgets from running overlapping refreshes. It
+refreshes during registration and once more after all monitor widgets have had
+time to settle. The checked-in `dist/index.html` contains the runtime backport;
 `custom-src/main/App.tsx` is the source for future builds.
 
 Editable custom source files are preserved under `custom-src`:

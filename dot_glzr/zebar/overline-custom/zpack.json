@@ -14,7 +14,7 @@
     {
       "name": "main",
       "htmlPath": "./widgets/main/dist/index.html",
-      "zOrder": "top_most",
+      "zOrder": "normal",
       "shownInTaskbar": false,
       "focused": false,
       "resizable": false,

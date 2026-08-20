@@ -9,7 +9,7 @@
       // can remove this block because App.tsx performs the same recovery.
       window.setTimeout(() => {
         let attempts = 0;
-        const command = 'command shell-exec -- pwsh.exe -NoProfile -File C:\\Users\\tc_tseng\\.glzr\\glazewm\\refresh-work-area.ps1';
+        const command = 'command shell-exec -- wscript.exe //B C:\\Users\\tc_tseng\\.glzr\\glazewm\\refresh-work-area.vbs';
 
         const refreshAfterDocking = () => {
           attempts += 1;
