@@ -30,6 +30,11 @@ Shared instructions for coding agents.
 - The source of truth is chezmoi. Update `{{ .chezmoi.sourceDir | replace "\\" "/" }}` first, then apply it to runtime.
 - Restart OpenCode after changing its configuration, agents, commands, skills, or this file.
 
+## Chezmoi-managed scopes
+
+- Before modifying configuration, themes, scripts, or their deployment assets, check the requested paths and their nearest ancestors for a `.chezmanga/` marker. In chezmoi source state, also recognize the encoded `dot_chezmanga/` name.
+- Load `chezmoi-management` when a marker is found or whenever the user asks to put something under chezmoi management.
+
 ## Line endings
 
 - Before editing a text file, determine its line ending from the nearest applicable `.editorconfig` or `.gitattributes`, then from the file's existing consistent line ending, and then from the repository's dominant convention. Use the operating-system convention only when none of those sources provides an answer: CRLF on Windows and LF on Unix-like systems.

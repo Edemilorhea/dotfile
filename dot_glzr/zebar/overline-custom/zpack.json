@@ -39,11 +39,11 @@
             "argsRegex": "^(/s /t 60|/h)$"
           },
           {
-            "program": "C:\\Users\\tc_tseng\\.glzr\\zebar\\overline-custom\\tools\\SleepHelper.exe",
+            "program": "tools/SleepHelper.exe",
             "argsRegex": ""
           },
           {
-            "program": "C:\\Users\\tc_tseng\\.glzr\\zebar\\overline-custom\\tools\\WindowIconHelper.exe",
+            "program": "tools/WindowIconHelper.exe",
             "argsRegex": "^[A-Za-z0-9._ -]{1,128}$"
           }
         ]

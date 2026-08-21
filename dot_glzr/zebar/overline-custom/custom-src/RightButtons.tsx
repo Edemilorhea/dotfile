@@ -4,8 +4,11 @@ import { Moon, Power, Snowflake } from 'lucide-react';
 import { useState } from 'react';
 import * as zebar from 'zebar';
 
-const sleepHelper =
-  'C:\\Users\\tc_tseng\\.glzr\\zebar\\overline-custom\\tools\\SleepHelper.exe';
+const sleepHelper = 'tools/SleepHelper.exe';
+const widgetPackPath = zebar.currentWidget().htmlPath.replace(
+  /[\\/]widgets[\\/]main[\\/]dist[\\/][^\\/]+$/,
+  ''
+);
 
 export default function RightButtons() {
   return (
@@ -20,14 +23,19 @@ function PowerOffButton() {
 
   const runPowerCommand = async (program: string, args: string[]) => {
     setMenuOpen(false);
-    await zebar.shellExec(program, args).then((output) => {
-      if (output.code !== 0) {
-        throw new Error(output.stderr || `Process exited with code ${output.code}`);
-      }
-    }).catch((err) => {
-      logger.error(`Error executing ${program}`);
-      logger.error(err);
-    });
+    await zebar
+      .shellExec(program, args, { cwd: widgetPackPath })
+      .then((output) => {
+        if (output.code !== 0) {
+          throw new Error(
+            output.stderr || `Process exited with code ${output.code}`
+          );
+        }
+      })
+      .catch((err) => {
+        logger.error(`Error executing ${program}`);
+        logger.error(err);
+      });
   };
 
   return (

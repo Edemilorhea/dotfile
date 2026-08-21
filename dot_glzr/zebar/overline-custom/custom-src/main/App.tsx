@@ -29,6 +29,12 @@ const providers = zebar.createProviderGroup({
   systray: { type: 'systray' },
   battery: { type: 'battery' },
 });
+const widgetPackPath = zebar.currentWidget().htmlPath.replace(
+  /[\\/]widgets[\\/]main[\\/]dist[\\/][^\\/]+$/,
+  ''
+);
+const glzrPath = widgetPackPath.replace(/[\\/]zebar[\\/][^\\/]+$/, '');
+const refreshScriptPath = `${glzrPath}\\glazewm\\refresh-work-area.vbs`;
 
 function App() {
   const [output, setOutput] = useState(providers.outputMap);
@@ -44,7 +50,7 @@ function App() {
     let attempts = 0;
 
     const refreshCommand =
-      'shell-exec -- wscript.exe //B C:\\Users\\tc_tseng\\.glzr\\glazewm\\refresh-work-area.vbs';
+      `shell-exec -- wscript.exe //B "${refreshScriptPath}"`;
 
     const refreshAfterDocking = async () => {
       attempts += 1;
