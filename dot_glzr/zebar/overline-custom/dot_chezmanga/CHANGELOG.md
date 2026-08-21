@@ -28,3 +28,18 @@
 - Portability: Removed user-profile absolute path assumptions from authored configuration and the deployed bundle.
 - Chezmoi: Updated managed source and deployment assets within the Overline scope.
 - Verification: The bundle passed `node --check`; JSON, HTML asset references, personal-path scans, LF line endings, and scoped chezmoi state were validated.
+
+## 2026-08-21T22:08:23+08:00 - Fix workspace application icons
+
+- Status: Completed
+- Machine: DESKTOP-3JHKCAP
+- Platform: windows/x64
+- Scope: `custom-src/main/workspaceDock.tsx`, `widgets/main/dist/assets/main-BmnlOnvA.js`, `zpack.json`
+- Summary: Restored workspace application icons by launching the pack-relative icon helper through `cmd.exe` from the widget pack directory.
+- Important records:
+  - Zebar does not reliably resolve a relative executable against `shellExec`'s working directory on Windows.
+  - The `cmd.exe` privilege only permits the fixed helper command and the existing restricted process-name character set.
+  - The deployed bundle was patched in place because this managed pack does not include the upstream monorepo dependencies needed to rebuild it.
+- Portability: The helper remains pack-relative and contains no user-profile or machine-specific path.
+- Chezmoi: Updated existing managed source, deployment asset, privilege configuration, and changelog.
+- Verification: The `cmd.exe` helper path returned a Discord PNG, unsafe shell characters failed the privilege regex, the bundle passed `node --check`, `zpack.json` parsed successfully, scoped apply completed, and the rendered files and LF line endings were validated.

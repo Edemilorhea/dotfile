@@ -3,7 +3,8 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import * as zebar from 'zebar';
 import type { GlazeWmOutput } from 'zebar';
 
-const iconHelper = 'tools/WindowIconHelper.exe';
+const iconHelper = 'tools\\WindowIconHelper.exe';
+const iconShell = 'cmd.exe';
 const widgetPackPath = zebar.currentWidget().htmlPath.replace(
   /[\\/]widgets[\\/]main[\\/]dist[\\/][^\\/]+$/,
   ''
@@ -33,7 +34,9 @@ function getWindowIcon(processName: string) {
   if (existing) return existing;
 
   const lookup = zebar
-    .shellExec(iconHelper, [processName], { cwd: widgetPackPath })
+    .shellExec(iconShell, ['/d', '/s', '/c', iconHelper, processName], {
+      cwd: widgetPackPath,
+    })
     .then((output) => {
       const base64 = output.stdout.trim();
       return output.code === 0 && base64 ? base64 : null;

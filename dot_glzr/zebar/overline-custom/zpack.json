@@ -43,8 +43,8 @@
             "argsRegex": ""
           },
           {
-            "program": "tools/WindowIconHelper.exe",
-            "argsRegex": "^[A-Za-z0-9._ -]{1,128}$"
+            "program": "cmd.exe",
+            "argsRegex": "^/d /s /c tools\\\\WindowIconHelper\\.exe [A-Za-z0-9._ -]{1,128}$"
           }
         ]
       },
