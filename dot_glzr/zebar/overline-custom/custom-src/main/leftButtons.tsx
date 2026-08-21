@@ -1,7 +1,7 @@
 import { useWidgetSetting } from '@overline-zebar/config';
 import { Button } from '@overline-zebar/ui';
 import { AnimatePresence, motion } from 'framer-motion';
-import { ChevronRight, LayoutGrid, List } from 'lucide-react';
+import { ChevronRight, Keyboard, LayoutGrid, List } from 'lucide-react';
 import { useRef } from 'react';
 import * as zebar from 'zebar';
 import { GlazeWmOutput } from 'zebar';
@@ -15,6 +15,7 @@ interface LeftButtonsProps {
 
 export function LeftButtons({ glazewm }: LeftButtonsProps) {
   const buttonRef = useRef<HTMLButtonElement>(null);
+  const shortcutGuideButtonRef = useRef<HTMLButtonElement>(null);
   const [marginX] = useWidgetSetting('main', 'marginX');
 
   if (!glazewm) return null;
@@ -33,6 +34,18 @@ export function LeftButtons({ glazewm }: LeftButtonsProps) {
   const handleOpenScriptLauncher = async () => {
     const placement = await calculatePlacementFromRef();
     await zebar.startWidget('script-launcher', placement, {});
+  };
+
+  const handleOpenShortcutGuide = async () => {
+    const placement = await calculateWidgetPlacementFromLeft(
+      shortcutGuideButtonRef,
+      {
+        width: 680,
+        height: 620,
+      },
+      marginX
+    );
+    await zebar.startWidget('shortcut-guide', placement, {});
   };
 
   return (
@@ -79,6 +92,16 @@ export function LeftButtons({ glazewm }: LeftButtonsProps) {
         onClick={handleOpenScriptLauncher}
       >
         <LayoutGrid strokeWidth={2.5} className="h-3 w-3" />
+      </Button>
+
+      <Button
+        size="icon-sm"
+        ref={shortcutGuideButtonRef}
+        className="h-full"
+        title="GlazeWM 快捷鍵"
+        onClick={handleOpenShortcutGuide}
+      >
+        <Keyboard strokeWidth={2.5} className="h-3 w-3" />
       </Button>
 
       <Button

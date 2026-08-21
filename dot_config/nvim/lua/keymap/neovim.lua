@@ -42,9 +42,7 @@ function M.setup()
     -- 搜尋和取代
     vim.keymap.set("n", "<leader>sr", ":%s/\\<<C-r><C-w>\\>/", { desc = "Replace word under cursor" })
     vim.keymap.set("v", "<leader>sr", ":s/", { desc = "Replace in selection" })
-    -- Terminal 相關 (Neovim 專用)
-    -- \tt 已移至 floaterm (tools.lua)，保留 terminal mode 退出鍵
-    vim.keymap.set("t", "<Esc><Esc>", "<C-\\><C-n>", { desc = "Exit terminal mode" })
+    -- Terminal mode 使用 Neovim 原生 <C-\><C-n> 離開，避免 <Esc> 與終端程式衝突
     -- LSP / 診斷：已由 LazyVim 內建，不重複定義
     -- (gd, gy, gi, gr, K, [d, ]d, \ca, \rn 皆由 LazyVim 處理)
     vim.keymap.set("n", "<leader>xx", vim.diagnostic.open_float, { desc = "Show line diagnostic" })
@@ -90,4 +88,3 @@ function M.setup()
 end
 
 return M
-

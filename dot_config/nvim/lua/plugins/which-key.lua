@@ -142,6 +142,7 @@ return {
         { "<leader>tg", desc = "開啟 Lazygit" },
         { "<leader>tq", desc = "關閉終端機" },
         { "<leader>th", desc = "隱藏終端機" },
+        { "<leader>ts", desc = "切換浮動／右側分割" },
 
         -- ── 其他 / Neo-tree（LazyVim / Snacks）────────
         { "<leader>e", desc = "Snacks Explorer（專案根目錄）" },

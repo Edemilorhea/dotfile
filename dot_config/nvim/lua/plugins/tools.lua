@@ -58,6 +58,20 @@ return {
         -- Float term（改為按鍵/命令觸發的 lazy load，加速啟動）
         "voldikss/vim-floaterm",
         cmd = { "FloatermNew", "FloatermToggle", "FloatermPrev", "FloatermNext", "FloatermKill", "FloatermHide" },
+        config = function()
+            vim.api.nvim_create_user_command("FloatermToggleLayout", function()
+                if vim.bo.filetype ~= "floaterm" then
+                    vim.notify("目前不在 Floaterm 中", vim.log.levels.WARN)
+                    return
+                end
+
+                if vim.b.floaterm_wintype == "float" then
+                    vim.cmd("FloatermUpdate --wintype=vsplit --position=botright --width=0.45")
+                else
+                    vim.cmd("FloatermUpdate --wintype=float --position=center --width=0.95 --height=0.95")
+                end
+            end, { desc = "切換 Floaterm 浮動／右側分割佈局" })
+        end,
         keys = {
             { "<leader>tc", ":FloatermNew --height=0.95 --width=0.95<CR>", desc = "新增終端機" },
             { "<leader>tt", ":FloatermToggle<CR>", desc = "切換終端機" },
@@ -66,6 +80,13 @@ return {
             { "<leader>tg", ":FloatermNew --height=0.95 --width=0.95 lazygit<CR>", desc = "開啟 Lazygit" },
             { "<leader>tq", ":FloatermKill<CR>", desc = "關閉終端機" },
             { "<leader>th", ":FloatermHide<CR>", desc = "隱藏終端機" },
+            { "<leader>ts", "<cmd>FloatermToggleLayout<CR>", desc = "切換浮動／右側分割" },
+            {
+                "<leader>ts",
+                "<C-\\><C-n><cmd>FloatermToggleLayout<CR>",
+                mode = "t",
+                desc = "切換浮動／右側分割",
+            },
         },
     },
     {

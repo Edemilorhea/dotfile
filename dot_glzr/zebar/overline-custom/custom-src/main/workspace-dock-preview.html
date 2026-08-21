@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Overline Workspace Dock Preview</title>
+    <style>
+      :root { color-scheme: dark; font-family: ui-monospace, "Geist Mono", monospace; }
+      * { box-sizing: border-box; }
+      body { min-width: 960px; margin: 0; background: Canvas; color: CanvasText; }
+      .bar { display: flex; align-items: center; gap: 8px; height: 36px; padding: 4px 12px; border-bottom: 1px solid GrayText; }
+      .label, .media, .panel { color: GrayText; font-size: 11px; }
+      .workspace, button { height: 28px; border: 1px solid GrayText; background: Canvas; color: CanvasText; font: inherit; }
+      .workspace { display: flex; align-items: center; padding: 0 8px; font-size: 11px; }
+      button { cursor: pointer; }
+      button:focus-visible { outline: 1px solid Highlight; outline-offset: 1px; }
+      .dock, .rail { display: flex; align-items: center; gap: 4px; height: 28px; }
+      .toggle { min-width: 30px; font-size: 10px; }
+      .rail { width: min(22vw, 352px); overflow-x: auto; border-left: 1px solid GrayText; padding-left: 4px; }
+      .app { position: relative; flex: 0 0 28px; font-size: 11px; font-weight: 700; }
+      .focused::after { position: absolute; right: 0; bottom: 0; left: 0; height: 2px; content: ""; background: Highlight; }
+      .minimized { opacity: .5; }
+      .minimized::before { position: absolute; top: 3px; right: 3px; width: 4px; height: 4px; content: ""; background: GrayText; }
+      .panel { padding: 48px 12px; }
+    </style>
+  </head>
+  <body>
+    <main aria-label="Workspace Dock preview">
+      <header class="bar">
+        <span class="label">PAUSED</span><span class="label">TILING</span><span class="workspace">1 · code</span>
+        <section class="dock" aria-label="目前工作區視窗">
+          <button class="toggle" type="button" aria-expanded="true" title="收合目前工作區視窗 (12)">▦ 12</button>
+          <div class="rail">
+            <button class="app focused" title="Code: workspaceDock.tsx · tiling">C</button><button class="app" title="chrome: Overline · fullscreen">C</button><button class="app minimized" title="Discord: Messages · minimized">D</button><button class="app" title="WindowsTerminal: pnpm build · tiling">T</button><button class="app" title="explorer: Downloads · floating">E</button><button class="app" title="Spotify: Music · tiling">S</button><button class="app minimized" title="Notepad: notes · minimized">N</button><button class="app" title="Obsidian: vault · tiling">O</button><button class="app" title="PowerToys: settings · floating">P</button><button class="app" title="Slack: inbox · tiling">S</button>
+          </div>
+        </section>
+        <span class="media">Media · The Workspace</span>
+      </header>
+      <p class="panel">Preview states: expanded with overflow, focused underline, minimized dots. Click the count to inspect collapsed and empty states.</p>
+    </main>
+    <script>
+      const toggle = document.querySelector('.toggle');
+      const rail = document.querySelector('.rail');
+      let state = 'expanded';
+      toggle.addEventListener('click', () => {
+        state = state === 'expanded' ? 'collapsed' : state === 'collapsed' ? 'empty' : 'expanded';
+        rail.hidden = state !== 'expanded';
+        toggle.setAttribute('aria-expanded', String(state === 'expanded'));
+        toggle.textContent = state === 'empty' ? '▦ 0' : '▦ 12';
+        toggle.title = `展開目前工作區視窗 (${state === 'empty' ? 0 : 12})`;
+      });
+    </script>
+  </body>
+</html>

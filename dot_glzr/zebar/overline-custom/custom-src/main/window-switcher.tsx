@@ -29,7 +29,7 @@ function WindowSwitcher() {
   const [selectedIndex, setSelectedIndex] = useState(0);
   const closing = useRef(false);
   const modeWasActive = useRef(false);
-  const selectedRef = useRef<HTMLButtonElement>(null);
+  const windowListRef = useRef<HTMLElement>(null);
 
   const windows = useMemo(() => {
     if (!glazewm) return [];
@@ -121,7 +121,19 @@ function WindowSwitcher() {
   }, [windows.length]);
 
   useEffect(() => {
-    selectedRef.current?.scrollIntoView({ block: 'nearest' });
+    const windowList = windowListRef.current;
+    const selectedButton = windowList?.querySelector<HTMLButtonElement>(
+      '[data-selected="true"]'
+    );
+    if (!windowList || !selectedButton) return;
+
+    const listBounds = windowList.getBoundingClientRect();
+    const selectedBounds = selectedButton.getBoundingClientRect();
+    if (selectedBounds.top < listBounds.top) {
+      windowList.scrollTop -= listBounds.top - selectedBounds.top;
+    } else if (selectedBounds.bottom > listBounds.bottom) {
+      windowList.scrollTop += selectedBounds.bottom - listBounds.bottom;
+    }
   }, [selectedIndex]);
 
   useEffect(() => {
@@ -159,7 +171,7 @@ function WindowSwitcher() {
   }, [glazewm, selectedIndex, windows]);
 
   return (
-    <main className="h-screen rounded-xl border border-border bg-background/95 p-3 font-mono text-text shadow-2xl backdrop-blur-xl">
+    <main className="h-screen overflow-hidden rounded-xl border border-border bg-background/95 p-3 font-mono text-text shadow-2xl backdrop-blur-xl">
       <header className="mb-2 flex h-11 items-center justify-between border-b border-border px-2">
         <div>
           <div className="text-sm font-semibold">Workspace windows</div>
@@ -181,7 +193,7 @@ function WindowSwitcher() {
         </button>
       </header>
 
-      <section className="h-[332px] overflow-y-auto pr-1">
+      <section ref={windowListRef} className="h-[332px] overflow-y-auto pr-1">
         {windows.length === 0 ? (
           <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
             目前 workspace 沒有視窗
@@ -203,8 +215,8 @@ function WindowSwitcher() {
               return (
                 <button
                   key={window.id}
-                  ref={selected ? selectedRef : undefined}
                   type="button"
+                  data-selected={selected ? 'true' : undefined}
                   className={`flex w-full items-center gap-3 rounded-lg border px-3 py-2.5 text-left transition-colors ${
                     selected
                       ? 'border-primary bg-primary/15'

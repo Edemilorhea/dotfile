@@ -44,6 +44,7 @@ export default defineConfig({
       input: {
         main: resolve(__dirname, 'index.html'),
         'window-switcher': resolve(__dirname, 'window-switcher.html'),
+        'shortcut-guide': resolve(__dirname, 'shortcut-guide.html'),
       },
     },
   },

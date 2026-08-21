@@ -25,7 +25,8 @@
         "widgets/main/dist/config.json",
         "widgets/main/dist/geistMono/**",
         "widgets/main/README.md",
-        "tools/SleepHelper.exe"
+        "tools/SleepHelper.exe",
+        "tools/WindowIconHelper.exe"
       ],
       "caching": {
         "defaultDuration": 604800,
@@ -40,6 +41,10 @@
           {
             "program": "C:\\Users\\tc_tseng\\.glzr\\zebar\\overline-custom\\tools\\SleepHelper.exe",
             "argsRegex": ""
+          },
+          {
+            "program": "C:\\Users\\tc_tseng\\.glzr\\zebar\\overline-custom\\tools\\WindowIconHelper.exe",
+            "argsRegex": "^[A-Za-z0-9._ -]{1,128}$"
           }
         ]
       },
@@ -91,6 +96,46 @@
           "offsetY": "0px",
           "width": "640px",
           "height": "440px",
+          "monitorSelection": {
+            "type": "primary"
+          },
+          "dockToEdge": {
+            "enabled": false,
+            "edge": null,
+            "windowMargin": "0px"
+          }
+        }
+      ]
+    },
+    {
+      "name": "shortcut-guide",
+      "htmlPath": "./widgets/main/dist/shortcut-guide.html",
+      "zOrder": "top_most",
+      "shownInTaskbar": false,
+      "focused": true,
+      "resizable": false,
+      "transparent": true,
+      "includeFiles": [
+        "widgets/main/dist/shortcut-guide.html",
+        "widgets/main/dist/assets/**",
+        "widgets/main/dist/config.json",
+        "widgets/main/dist/geistMono/**"
+      ],
+      "caching": {
+        "defaultDuration": 604800,
+        "rules": []
+      },
+      "privileges": {
+        "shellCommands": []
+      },
+      "presets": [
+        {
+          "name": "default",
+          "anchor": "top_left",
+          "offsetX": "0px",
+          "offsetY": "0px",
+          "width": "680px",
+          "height": "620px",
           "monitorSelection": {
             "type": "primary"
           },

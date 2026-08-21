@@ -24,6 +24,20 @@ workspace numbers shows the focused managed window's current state (`TILING`,
 `FLOATING`, `FULLSCREEN`, or `MINIMIZED`). It queries GlazeWM over its local IPC
 WebSocket so state changes appear without requiring a focus change.
 
+The keyboard button immediately after the script launcher opens a focused,
+top-most GlazeWM shortcut guide below the bar. It lists every configured
+binding in Traditional Chinese, supports search by key, action, or category,
+and closes with `Esc`, the close button, or when it loses focus.
+
+The main bar includes an expanded-by-default workspace Dock after the workspace
+controls. It follows the bar monitor's displayed workspace, keeps one target
+per managed window, restores minimized windows before focusing them, and stores
+its expanded preference per widget in local storage. Its icon rail is capped at
+352px and maps vertical wheel movement to horizontal scrolling. `WindowIconHelper.exe`
+extracts local executable icons; failed or inaccessible lookups fall back to a
+themed process initial. The main widget may execute only this helper with a
+single bounded process-name argument.
+
 When the main widget starts or reloads, it waits for Zebar to register its
 Windows AppBar and then runs `~/.glzr/glazewm/refresh-work-area.vbs`. This hidden
 launcher starts `refresh-work-area.ps1` without opening a terminal window. The
@@ -40,12 +54,21 @@ Editable custom source files are preserved under `custom-src`:
 - `main/App.tsx`: Opens the selector for the focused monitor when the GlazeWM
   `window-switcher` binding mode activates.
 - `main/leftButtons.tsx`: Adds the clickable selector button.
+- `main/workspaceDock.tsx`: Current-monitor workspace Dock and icon lookup cache.
 - `main/windowStateIndicator.tsx`: Shows the live focused-window state.
 - `main/openWindowSwitcher.ts`: Places the selector on the bar's monitor.
 - `main/window-switcher.tsx`, `main/window-switcher.html`, and
   `main/vite.config.ts`: Selector UI and multi-page build entry.
+- `main/shortcut-guide.tsx` and `main/shortcut-guide.html`: Searchable
+  GlazeWM shortcut guide and its build entry.
 
 The runtime bundle is built into `widgets/main/dist`.
+
+Build the icon helper after changing `tools/WindowIconHelper.cs`:
+
+```powershell
+& "$env:WINDIR\Microsoft.NET\Framework64\v4.0.30319\csc.exe" /target:exe /r:System.Drawing.dll /out:tools\WindowIconHelper.exe tools\WindowIconHelper.cs
+```
 
 Hibernate requires Windows hibernation to be enabled.
 

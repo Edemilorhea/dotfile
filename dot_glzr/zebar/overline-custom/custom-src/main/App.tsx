@@ -12,6 +12,7 @@ import VolumeControl from './components/volume';
 import { WindowTitle } from './components/windowTitle/WindowTitle';
 import { WorkspaceControls } from './components/WorkspaceControls';
 import { WindowStateIndicator } from './components/windowStateIndicator';
+import { WorkspaceDock } from './workspaceDock';
 import { cn } from './utils/cn';
 import { useAutoTiling } from './utils/useAutoTiling';
 import { openWindowSwitcher } from './utils/openWindowSwitcher';
@@ -163,6 +164,7 @@ function App() {
 
       {/* Right */}
       <div className="flex gap-2 items-center h-full z-10">
+        <WorkspaceDock glazewm={output.glazewm} />
         <div className="flex items-center h-full">
           <StatProviders
             weather={output.weather}

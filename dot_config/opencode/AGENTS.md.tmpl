@@ -22,12 +22,19 @@ Shared instructions for coding agents.
 
 - Do not modify secrets, `.env` files, credentials, or generated dependency directories.
 - Confirm before destructive or irreversible operations.
+- Before running any shell command, test runner, script, or CLI tool, read and follow `~/.config/opencode/docs/tool-command-lifecycle.md`. Determine whether it exits on its own or waits for user input, an interrupt, or a persistent process lifecycle.
 - Run the closest relevant validation after a change and report failures instead of masking them.
 
 ## Configuration maintenance
 
 - The source of truth is chezmoi. Update `{{ .chezmoi.sourceDir | replace "\\" "/" }}` first, then apply it to runtime.
 - Restart OpenCode after changing its configuration, agents, commands, skills, or this file.
+
+## Line endings
+
+- Before editing a text file, determine its line ending from the nearest applicable `.editorconfig` or `.gitattributes`, then from the file's existing consistent line ending, and then from the repository's dominant convention. Use the operating-system convention only when none of those sources provides an answer: CRLF on Windows and LF on Unix-like systems.
+- Preserve the selected line ending throughout the entire file. Never introduce mixed CRLF and LF line endings.
+- After editing, verify each touched text file for mixed line endings. If a touched file is mixed, normalize only that file to the selected convention; do not normalize unrelated files.
 
 ## Project instructions
 

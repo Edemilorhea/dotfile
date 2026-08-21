@@ -160,6 +160,7 @@ window_rules:
         window_class: { equals: 'MozillaDialogClass' }
 
       # Ignore rules for various 3rd-party apps.
+      - window_process: { equals: 'MemPlus' }
       - window_process: { equals: 'PowerToys' }
         window_class: { regex: 'HwndWrapper\[PowerToys\.PowerAccent.*?\]' }
       - window_title: { equals: 'Command Palette' }
@@ -179,14 +180,23 @@ binding_modes:
   # When enabled, the focused window can be resized via arrow keys or HJKL.
   - name: 'resize'
     keybindings:
-      - commands: ['resize --width -1%']
+      - commands: ['resize --width -30px']
         bindings: ['h', 'left']
-      - commands: ['resize --width +1%']
+      - commands: ['resize --width +30px']
         bindings: ['l', 'right']
-      - commands: ['resize --height +1%']
+      - commands: ['resize --height +30px']
         bindings: ['k', 'up']
-      - commands: ['resize --height -1%']
+      - commands: ['resize --height -30px']
         bindings: ['j', 'down']
+      # Hold shift for pixel-perfect edge alignment.
+      - commands: ['resize --width -1px']
+        bindings: ['shift+h', 'shift+left']
+      - commands: ['resize --width +1px']
+        bindings: ['shift+l', 'shift+right']
+      - commands: ['resize --height +1px']
+        bindings: ['shift+k', 'shift+up']
+      - commands: ['resize --height -1px']
+        bindings: ['shift+j', 'shift+down']
       # Press enter/escape to return to default keybindings.
       - commands: ['wm-disable-binding-mode --name resize']
         bindings: ['escape', 'enter']
@@ -230,14 +240,14 @@ keybindings:
   - commands: ['move --direction down']
     bindings: ['alt+shift+j', 'alt+shift+down']
 
-  # Resize focused window by a percentage or pixel amount.
-  - commands: ['resize --width -1%']
+  # Resize focused window in predictable pixel increments.
+  - commands: ['resize --width -30px']
     bindings: ['alt+u']
-  - commands: ['resize --width +1%']
+  - commands: ['resize --width +30px']
     bindings: ['alt+p']
-  - commands: ['resize --height +1%']
+  - commands: ['resize --height +30px']
     bindings: ['alt+o']
-  - commands: ['resize --height -1%']
+  - commands: ['resize --height -30px']
     bindings: ['alt+i']
 
   # As an alternative to the resize keybindings above, resize mode enables
