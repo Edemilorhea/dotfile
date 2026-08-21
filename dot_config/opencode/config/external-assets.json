@@ -16,6 +16,10 @@
       "description": "Global baseline rebuilt on every managed machine.",
       "defaultScope": "global"
     },
+    "claude": {
+      "description": "Optional Claude Code marketplaces; requires the Claude CLI.",
+      "defaultScope": "global"
+    },
     "oac": {
       "description": "Project-local custom OAC agents and commands from the pinned personal fork.",
       "defaultScope": "project"
@@ -166,7 +170,7 @@
       "id": "claude-code-plugins",
       "type": "marketplace",
       "channel": "claude-marketplace",
-      "profiles": ["core"],
+      "profiles": ["claude"],
       "scopes": ["global"],
       "defaultScope": "global",
       "marketplace": "claude-code-plugins",
@@ -176,7 +180,7 @@
       "id": "claude-plugins-official",
       "type": "marketplace",
       "channel": "claude-marketplace",
-      "profiles": ["core"],
+      "profiles": ["claude"],
       "scopes": ["global"],
       "defaultScope": "global",
       "marketplace": "claude-plugins-official",

@@ -744,7 +744,7 @@ function Install-SkillsCliAsset {
         if ($ResolvedScope -eq 'global') {
             $arguments += '--global'
         }
-        $arguments += @('--yes', '--skill') + @($Asset.skills)
+        $arguments += @('--yes', '--agent', 'opencode', '--copy', '--skill') + @($Asset.skills)
         Invoke-CheckedCommand 'npx' $arguments "Failed to install $($Asset.id)" $ResolvedProjectRoot
     }
     finally {
