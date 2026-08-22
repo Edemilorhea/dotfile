@@ -225,9 +225,9 @@ keybindings:
     bindings: ['alt+j', 'alt+down']
 
   # Cycle through all windows in the current workspace.
-  - commands: ['shell-exec wscript.exe //B C:\Users\tc_tseng\.glzr\glazewm\cycle-workspace-window.vbs previous']
+  - commands: ['shell-exec wscript.exe //B "{{ .chezmoi.homeDir | replace "/" "\\" }}\.glzr\glazewm\cycle-workspace-window.vbs" previous']
     bindings: ['alt+oem_open_brackets']
-  - commands: ['shell-exec wscript.exe //B C:\Users\tc_tseng\.glzr\glazewm\cycle-workspace-window.vbs next']
+  - commands: ['shell-exec wscript.exe //B "{{ .chezmoi.homeDir | replace "/" "\\" }}\.glzr\glazewm\cycle-workspace-window.vbs" next']
     bindings: ['alt+oem_close_brackets']
 
   # Move focused window in a given direction.
