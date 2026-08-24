@@ -313,8 +313,10 @@ keybindings:
   - commands: ['wm-reload-config']
     bindings: ['alt+shift+r']
 
-  # Redraw all windows.
-  - commands: ['wm-redraw']
+  # Refresh the Windows work area and redraw all windows.
+  - commands:
+      - 'shell-exec wscript.exe //B "{{ .chezmoi.homeDir | replace "/" "\\" }}\.glzr\glazewm\refresh-work-area.vbs"'
+      - 'wm-redraw'
     bindings: ['alt+shift+w']
 
   # Focus the workspace that last had focus.

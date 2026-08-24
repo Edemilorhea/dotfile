@@ -27,3 +27,17 @@
 - Portability: The template normalizes `.chezmoi.homeDir` to Windows backslashes for each target machine.
 - Chezmoi: Renamed the source to `config.yaml.tmpl` and kept the rendered target at `config.yaml`.
 - Verification: The template rendered the current home directory correctly; scoped apply and synchronization checks completed successfully.
+
+## 2026-08-24T18:59:20+08:00 - Add work-area refresh shortcut
+
+- Status: Completed
+- Machine: DESKTOP-3JHKCAP
+- Platform: windows/x64
+- Scope: `config.yaml`
+- Summary: Extended `Alt+Shift+W` to refresh the Windows work area before redrawing GlazeWM windows.
+- Important records:
+  - The existing redraw shortcut was reused to avoid adding another key combination.
+  - The helper runs hidden through `wscript.exe` and does not restart GlazeWM.
+- Portability: The template renders the helper path from `.chezmoi.homeDir` with Windows path separators.
+- Chezmoi: Updated the existing managed `config.yaml.tmpl` source and applied the rendered target.
+- Verification: GlazeWM reloaded the configuration successfully, and the background refresh helper exited successfully against the running instance.
