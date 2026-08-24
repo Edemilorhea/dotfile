@@ -36,7 +36,41 @@ of comparing source names literally. Once the mapping is known, treat both
 paths as the same management scope. Keep `.chezmanga/` and its changelog
 managed so the intent and history travel to other machines.
 
-## Required Workflow
+## Choose The Smallest Workflow
+
+Use the routine fast path when all of these conditions are true:
+
+- Every intended target is already managed and its source mapping is known.
+- The task does not add, remove, or rename files.
+- The task does not involve binaries, generated deployment assets, secrets,
+  permissions, symlinks, templates, or machine-specific paths.
+- Source and target do not have conflicting edits.
+- The user did not request an audit, review, commit, or push.
+
+For the routine fast path:
+
+1. Locate the nearest marker and run `chezmoi source-path <target>`.
+2. Run `chezmoi status <target>` before editing. If it is clean, continue. If
+   it reports a difference, inspect scoped `chezmoi diff <target>` before
+   deciding which version is authoritative.
+3. Edit the source-state file, then apply only that target.
+4. After the task's final edit, run one smallest relevant check for code or
+   behavior changes. Documentation, changelog, marker, comment, and
+   formatting-only changes need no test command by default.
+5. Append one changelog entry for the user-visible task, not one per file or
+   intermediate edit, and apply that changelog target.
+6. Run scoped `chezmoi status` for the target and changelog to confirm they are
+   synchronized. Check line endings only in manually edited source code or
+   structured configuration.
+
+The fast path does not require Git status, a repository-wide diff, candidate
+inventory, secret scanning, portability analysis, or `chezmoi data`. Use those
+checks only when the task's scope or risk requires them.
+
+Use the full workflow below when any fast-path condition is false. Also use it
+when the user explicitly asks for complete verification.
+
+## Full Workflow
 
 ### 1. Inspect Before Editing
 

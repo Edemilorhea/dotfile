@@ -27,3 +27,18 @@
 - Portability: The workflow prefers relative paths, environment variables, and chezmoi templates or data over machine-specific absolute paths.
 - Chezmoi: Updated the source template and added the skill under the OpenCode-managed scope.
 - Verification: Source and runtime files matched after scoped apply; skill frontmatter, LF line endings, and scoped chezmoi diff were validated.
+
+## 2026-08-21T22:02:53+08:00 - Reduce routine task overhead
+
+- Status: Completed
+- Machine: TC-TSENG
+- Platform: windows/x64
+- Scope: `AGENTS.md.tmpl`, `skills/chezmoi-management/SKILL.md`
+- Summary: Limited routine validation and line-ending checks to the smallest relevant scope and added a fast path for ordinary edits to existing managed files.
+- Important records:
+  - Code and behavior validation now runs once after the task's final edit instead of after every intermediate edit.
+  - Routine managed-file edits no longer require Git status, repository-wide diff, candidate inventory, secret scanning, or portability analysis.
+  - The full workflow remains required for new files, generated or binary assets, sensitive or machine-specific content, conflicts, audits, and commit or push requests.
+- Portability: No platform behavior changed; the lighter workflow still preserves scoped source-to-target synchronization.
+- Chezmoi: Updated the managed OpenCode instructions and skill, then applied both exact targets.
+- Verification: Runtime content matched source after scoped apply, scoped status was clean, and the two manually edited configuration files remained LF-only.

@@ -72,57 +72,60 @@ return {
     end
 
     opts.formatters = vim.tbl_deep_extend("force", opts.formatters or {}, {
-        stylua = {
-          prepend_args = { "--indent-type", "Spaces", "--indent-width", "4" },
-        },
-        black = {
-          prepend_args = { "--line-length", "88", "--target-version", "py38" },
-        },
-        prettier = {
-          prepend_args = { "--tab-width", "4", "--use-tabs", "false" },
-          condition = function(_, ctx)
-            return has_config(ctx, {
-              ".prettierrc",
-              ".prettierrc.json",
-              ".prettierrc.json5",
-              ".prettierrc.yml",
-              ".prettierrc.yaml",
-              ".prettierrc.js",
-              ".prettierrc.cjs",
-              ".prettierrc.mjs",
-              "prettier.config.js",
-              "prettier.config.cjs",
-              "prettier.config.mjs",
-            })
-          end,
-        },
-        biome = {
-          condition = function(_, ctx)
-            return has_config(ctx, { "biome.json", "biome.jsonc" })
-          end,
-        },
-        gofmt = {
-          prepend_args = { "-s" },
-        },
-        rustfmt = {
-          prepend_args = { "--edition", "2021" },
-        },
-        clang_format = {
-          prepend_args = { "--style={IndentWidth: 4, UseTab: Never}" },
-        },
-        ["google-java-format"] = {
-          prepend_args = { "--aosp" },
-        },
-        php_cs_fixer = {
-          prepend_args = { "--rules=@PSR12,array_indentation" },
-        },
-        shfmt = {
-          prepend_args = { "-i", "4", "-ci" },
-        },
-        fish_indent = {
-          prepend_args = {},
-        },
-      })
+      dprint = {
+        require_cwd = true,
+      },
+      stylua = {
+        prepend_args = { "--indent-type", "Spaces", "--indent-width", "4" },
+      },
+      black = {
+        prepend_args = { "--line-length", "88", "--target-version", "py38" },
+      },
+      prettier = {
+        prepend_args = { "--tab-width", "4", "--use-tabs", "false" },
+        condition = function(_, ctx)
+          return has_config(ctx, {
+            ".prettierrc",
+            ".prettierrc.json",
+            ".prettierrc.json5",
+            ".prettierrc.yml",
+            ".prettierrc.yaml",
+            ".prettierrc.js",
+            ".prettierrc.cjs",
+            ".prettierrc.mjs",
+            "prettier.config.js",
+            "prettier.config.cjs",
+            "prettier.config.mjs",
+          })
+        end,
+      },
+      biome = {
+        condition = function(_, ctx)
+          return has_config(ctx, { "biome.json", "biome.jsonc" })
+        end,
+      },
+      gofmt = {
+        prepend_args = { "-s" },
+      },
+      rustfmt = {
+        prepend_args = { "--edition", "2021" },
+      },
+      clang_format = {
+        prepend_args = { "--style={IndentWidth: 4, UseTab: Never}" },
+      },
+      ["google-java-format"] = {
+        prepend_args = { "--aosp" },
+      },
+      php_cs_fixer = {
+        prepend_args = { "--rules=@PSR12,array_indentation" },
+      },
+      shfmt = {
+        prepend_args = { "-i", "4", "-ci" },
+      },
+      fish_indent = {
+        prepend_args = {},
+      },
+    })
 
     return opts
   end,
