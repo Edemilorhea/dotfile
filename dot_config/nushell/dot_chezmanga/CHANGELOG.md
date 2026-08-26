@@ -27,3 +27,17 @@
 - Portability: The hook uses Nushell built-ins and the terminal OSC protocol without machine-specific paths.
 - Chezmoi: Updated the already managed `modules/interface.nu` source and applied only that target.
 - Verification: A new isolated Nushell pane ran `sleep 20sec`; `psmux list-panes` reported `pane_current_command` as `sleep 20sec`, and the temporary session was removed.
+
+## 2026-08-26T14:03:52+08:00 - Disable stale vendor transient prompt
+
+- Status: Completed
+- Machine: TC-TSENG
+- Platform: windows/x64
+- Scope: `modules/prompt.nu`
+- Summary: Disabled the Oh My Posh transient prompt left by vendor autoload so the managed prompt remains the sole prompt implementation.
+- Important records:
+  - The generated vendor prompt inferred `CMD_DURATION_MS` as an integer but received a string from Nushell 0.114.1, causing `nu::shell::type_mismatch` after commands.
+  - The generated vendor file remains unmanaged; the managed user autoload overrides its prompt behavior after vendor integrations load.
+- Portability: The fix uses a Nushell prompt environment variable and contains no machine-specific path.
+- Chezmoi: Updated the already managed `modules/prompt.nu` source and applied only that target.
+- Verification: Isolated interactive sessions verified both standard and OpenCode prompts, confirmed the transient prompt was unset, and completed five consecutive standard-prompt commands including a 1.2-second command without the type mismatch error. Sixteen bounded Oh My Posh primary calls also completed in 210-372 ms without timeout or stderr.

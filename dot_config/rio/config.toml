@@ -101,3 +101,12 @@ keys = [
 [developer]
 log-level = "WARN"
 enable-log-file = true
+
+[platform]
+# Avoid the unstable automatic Vulkan path on this Windows Intel driver.
+windows.env-vars = [
+  "TERM=xterm-256color",
+  "LANG=zh_TW.UTF-8",
+  "LC_ALL=zh_TW.UTF-8",
+  "WGPU_BACKEND=gl",
+]

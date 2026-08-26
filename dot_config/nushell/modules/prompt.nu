@@ -29,3 +29,6 @@ if ($env.OPENCODE_SESSION? | is-not-empty) {
         $env.PROMPT_COMMAND_RIGHT = {|| "" }
     }
 }
+
+# Vendor integrations load first and may leave their transient prompt active.
+$env.TRANSIENT_PROMPT_COMMAND = null

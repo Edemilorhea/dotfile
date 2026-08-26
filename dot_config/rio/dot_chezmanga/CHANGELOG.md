@@ -14,3 +14,18 @@
 - Portability: Rio platform-neutral settings are shared; the user-scoped `RIO_CONFIG_HOME` selects this path on Windows.
 - Chezmoi: Added and managed as `dot_config/rio/config.toml` with a dedicated Rio marker and changelog.
 - Verification: Nushell parsed the TOML, scoped apply deployed the config, and Rio 0.5.26 ran for three seconds with an empty warning log; final scoped synchronization was clean.
+
+## 2026-08-26T15:08:51+08:00 - Stabilize Windows renderer startup
+
+- Status: Completed
+- Machine: TC-TSENG
+- Platform: windows/x64
+- Scope: `config.toml`
+- Summary: Selected Rio's OpenGL WebGPU backend on Windows to remove the multi-second startup tail from automatic Vulkan adapter initialization.
+- Important records:
+  - TRACE diagnostics showed the automatic path creating Vulkan, DX12, and OpenGL backends before selecting the Intel Vulkan adapter.
+  - Controlled measurements reproduced 1.85-4.33 second automatic-backend starts; OpenGL completed in 0.89-1.85 seconds under the same test.
+  - DX12 was not selected because it was inconsistent and reached 2.71 seconds in the comparison.
+- Portability: The backend override is under `platform.windows`; other operating systems retain Rio's default renderer selection.
+- Chezmoi: Updated the already managed `config.toml` source and applied only that target.
+- Verification: A Windows platform override created only the OpenGL backend and selected the Intel OpenGL adapter. Five bounded checks of the applied configuration reached a responding Rio window in 329-599 ms with no timeout; full Rio, Nushell, and first-prompt checks completed in 721-1025 ms before the portability refinement.
