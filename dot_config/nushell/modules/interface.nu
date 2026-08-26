@@ -27,3 +27,13 @@ if (which carapace | is-not-empty) {
 } else {
     print "⚠️  carapace 未安裝"
 }
+
+# Report the running command through psmux's shell-integration channel.
+$env.config.hooks.pre_execution = (
+    $env.config.hooks.pre_execution?
+    | default []
+    | append {||
+        let cmd = (commandline)
+        print -n $"(ansi escape)]1337;SetUserVar=WEZTERM_PROG=($cmd | encode base64)(char bel)"
+    }
+)

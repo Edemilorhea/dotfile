@@ -1,0 +1,103 @@
+# Rio configuration based on the Alacritty setup.
+# Top-level options must stay before the first table.
+confirm-before-quit = true
+copy-on-select = false
+draw-bold-text-with-light-colors = false
+enable-scroll-bar = true
+grapheme-clustering = true
+hide-mouse-cursor-when-typing = true
+line-height = 1.1
+padding = [4]
+scrollback-history-limit = 10000
+env-vars = [
+  "TERM=xterm-256color",
+  "LANG=zh_TW.UTF-8",
+  "LC_ALL=zh_TW.UTF-8",
+]
+
+[window]
+columns = 120
+rows = 28
+mode = "Maximized"
+opacity = 0.9
+blur = true
+
+[fonts]
+size = 16
+hinting = false
+use-drawable-chars = true
+
+[fonts.regular]
+family = "JetBrains Maple Mono"
+style = "Regular"
+weight = 500
+
+[fonts.bold]
+family = "JetBrains Maple Mono"
+style = "Bold"
+weight = 700
+
+[fonts.italic]
+family = "JetBrains Maple Mono"
+style = "Italic"
+
+[fonts.bold-italic]
+family = "JetBrains Maple Mono"
+style = "Bold Italic"
+
+[colors]
+background = "#1c1f24"
+foreground = "#c0c5ce"
+cursor = "#c0c5ce"
+selection-foreground = "#c0c5ce"
+selection-background = "#4f5b66"
+black = "#343d46"
+red = "#bf616a"
+green = "#a3be8c"
+yellow = "#ebcb8b"
+blue = "#8fa1b3"
+magenta = "#b48ead"
+cyan = "#96b5b4"
+white = "#c0c5ce"
+light-black = "#65737e"
+light-red = "#bf616a"
+light-green = "#a3be8c"
+light-yellow = "#ebcb8b"
+light-blue = "#8fa1b3"
+light-magenta = "#b48ead"
+light-cyan = "#96b5b4"
+light-white = "#eff1f5"
+
+[cursor]
+shape = "block"
+blinking = true
+blinking-interval = 750
+
+[scroll]
+multiplier = 3.0
+divider = 1.0
+
+[shell]
+program = "nu.exe"
+args = []
+
+[navigation]
+mode = "Tab"
+use-split = false
+hide-if-single = true
+
+[keyboard]
+ime-cursor-positioning = true
+
+[bindings]
+keys = [
+  # psmux: forward Control+F12 as the standard xterm sequence.
+  { key = "F12", with = "control", esc = "\u001b[24;5~" },
+  { key = "/", with = "control", esc = "\u001f" },
+  # Preserve Control+H for Neovim instead of sending Backspace.
+  { key = "h", with = "control", esc = "\u001b[104;5u" },
+]
+
+[developer]
+log-level = "WARN"
+enable-log-file = true
