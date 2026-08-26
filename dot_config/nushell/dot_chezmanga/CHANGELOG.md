@@ -41,3 +41,17 @@
 - Portability: The fix uses a Nushell prompt environment variable and contains no machine-specific path.
 - Chezmoi: Updated the already managed `modules/prompt.nu` source and applied only that target.
 - Verification: Isolated interactive sessions verified both standard and OpenCode prompts, confirmed the transient prompt was unset, and completed five consecutive standard-prompt commands including a 1.2-second command without the type mismatch error. Sixteen bounded Oh My Posh primary calls also completed in 210-372 ms without timeout or stderr.
+
+## 2026-08-26T20:25:36+08:00 - Remove slow Rio emoji fallback
+
+- Status: Completed
+- Machine: TC-TSENG
+- Platform: windows/x64
+- Scope: `config.nu`
+- Summary: Replaced the welcome banner's emoji labels with ASCII art and text so Rio does not block while discovering the Windows emoji fallback font.
+- Important records:
+  - Rio TRACE showed a 5.32-second gap immediately before Sugarloaf registered Segoe UI Emoji for U+1F550 from the welcome banner.
+  - Oh My Posh remains enabled with the M365Princess theme; temporary theme and multiline-indicator diagnostics were reverted.
+- Portability: The welcome banner now uses only portable ASCII characters and contains no machine-specific path.
+- Chezmoi: Updated the managed `config.nu` source and applied only the Nushell configuration targets.
+- Verification: Nushell loaded the rendered configuration without error, scoped chezmoi status was clean, and a user-launched Rio session with Nushell became interactive without the previous five-second delay.
