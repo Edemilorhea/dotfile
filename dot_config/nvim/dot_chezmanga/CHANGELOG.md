@@ -41,3 +41,17 @@
 - Portability: The header uses terminal block and box-drawing glyphs without machine-specific paths.
 - Chezmoi: Updated the managed plugin configuration and applied only that target.
 - Verification: Headless Neovim resolved the merged Snacks options and printed the complete six-line custom header without errors.
+
+## 2026-08-28T01:23:05+08:00 - Manage persistence session override
+
+- Status: Completed
+- Machine: TC-TSENG
+- Platform: windows/x64
+- Scope: `lua/plugins/persistence.lua`
+- Summary: Added the persistence.nvim override to chezmoi so Neovim skips Git branch lookup when saving sessions on exit.
+- Important records:
+  - `branch = false` keeps one session per working directory instead of deriving a branch-specific session name.
+  - The configured chezmoi add hook created commit `6e54095`, but its automatic push was rejected because the remote branch is ahead; no pull, rebase, or retry was performed.
+- Portability: The override uses no machine-specific paths and applies across worktrees and supported operating systems.
+- Chezmoi: Added the previously unmanaged runtime file as `dot_config/nvim/lua/plugins/persistence.lua`.
+- Verification: `chezmoi source-path` resolved the target; scoped diff was empty; headless Neovim parsed the Lua file successfully; Git reported LF in the index and worktree.
