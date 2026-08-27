@@ -6,7 +6,7 @@ general:
 
   # Commands to run just before the WM is shutdown.
   # Example: The below command kills Zebar.
-  shutdown_commands: ['shell-exec taskkill /IM zebar.exe /F']
+  shutdown_commands: ['shell-exec wscript.exe //B "{{ .chezmoi.homeDir | replace "/" "\\" }}\.glzr\glazewm\stop-zebar.vbs"']
 
   # Commands to run after the WM config is reloaded.
   config_reload_commands: []
@@ -49,7 +49,7 @@ gaps:
 
   # Gap between windows and the screen edge.
   outer_gap:
-    # Zebar reserves the top 40px through dockToEdge.
+    # Zebar reserves the top work area through dockToEdge.
     top: '0px'
     right: '0px'
     bottom: '0px'
@@ -313,10 +313,8 @@ keybindings:
   - commands: ['wm-reload-config']
     bindings: ['alt+shift+r']
 
-  # Refresh the Windows work area and redraw all windows.
-  - commands:
-      - 'shell-exec wscript.exe //B "{{ .chezmoi.homeDir | replace "/" "\\" }}\.glzr\glazewm\refresh-work-area.vbs"'
-      - 'wm-redraw'
+  # Fully restart GlazeWM and Zebar to rebuild docked work areas.
+  - commands: ['shell-exec wscript.exe //B "{{ .chezmoi.homeDir | replace "/" "\\" }}\.glzr\glazewm\restart-glazewm.vbs"']
     bindings: ['alt+shift+w']
 
   # Focus the workspace that last had focus.

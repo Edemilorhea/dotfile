@@ -203,11 +203,21 @@ return {
         end,
     },
 
-    -- Snacks Explorer：LazyVim 新版預設檔案瀏覽器
+    -- Snacks Dashboard 與 Explorer
     {
         "folke/snacks.nvim",
         cond = not vim.g.vscode,
         opts = function(_, opts)
+            opts.dashboard = opts.dashboard or {}
+            opts.dashboard.preset = opts.dashboard.preset or {}
+            opts.dashboard.preset.header = [[
+███████╗██████╗ ███████╗███╗   ███╗██╗██╗      ██████╗ ██████╗ ██╗  ██╗███████╗ █████╗
+██╔════╝██╔══██╗██╔════╝████╗ ████║██║██║     ██╔═══██╗██╔══██╗██║  ██║██╔════╝██╔══██╗
+█████╗  ██║  ██║█████╗  ██╔████╔██║██║██║     ██║   ██║██████╔╝███████║█████╗  ███████║
+██╔══╝  ██║  ██║██╔══╝  ██║╚██╔╝██║██║██║     ██║   ██║██╔══██╗██╔══██║██╔══╝  ██╔══██║
+███████╗██████╔╝███████╗██║ ╚═╝ ██║██║███████╗╚██████╔╝██║  ██║██║  ██║███████╗██║  ██║
+╚══════╝╚═════╝ ╚══════╝╚═╝     ╚═╝╚═╝╚══════╝ ╚═════╝ ╚═╝  ╚═╝╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝]]
+
             opts.explorer = opts.explorer or {}
             -- 彩虹縮排:每層縮排線不同色
             opts.indent = opts.indent or {}

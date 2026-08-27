@@ -1,14 +1,13 @@
 {
     "$schema": "https://opencode.ai/config.json",
     "model": "openai/gpt-5.6-sol-fast",
-    "autoupdate": false, // 1.15.6 is ok
+    "autoupdate": true, // 1.18.21 is ok
     "instructions": [
         "AGENTS.md"
     ],
     "plugin": [
         "@ex-machina/opencode-anthropic-auth",
         "@franlol/opencode-md-table-formatter@latest",
-        "@mohak34/opencode-notifier@latest",
         // "@different-ai/opencode-browser",
         "@tarquinen/opencode-dcp@3.1.14",
         "./plugins/selfmade/mandatory-format.ts",
@@ -21,7 +20,7 @@
         "opencode-chrome-devtools",
         "opencode-openai-codex-auth"
     ],
-    "default_agent": "build",
+    "default_agent": "plan",
     "disabled_providers": [
         "google",
         "nvidia"

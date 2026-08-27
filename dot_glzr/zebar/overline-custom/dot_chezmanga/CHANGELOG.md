@@ -43,3 +43,18 @@
 - Portability: The helper remains pack-relative and contains no user-profile or machine-specific path.
 - Chezmoi: Updated existing managed source, deployment asset, privilege configuration, and changelog.
 - Verification: The `cmd.exe` helper path returned a Discord PNG, unsafe shell characters failed the privilege regex, the bundle passed `node --check`, `zpack.json` parsed successfully, scoped apply completed, and the rendered files and LF line endings were validated.
+
+## 2026-08-26T13:03:50+08:00 - Investigate top-bar spacing
+
+- Status: Partial
+- Machine: TC-TSENG
+- Platform: windows/x64
+- Scope: `zpack.json`
+- Summary: Restored the main widget's original edge reservation and normal z-order after alternative spacing approaches proved less usable.
+- Important records:
+  - Zebar remained visible after resume even when Windows lost its appbar working-area reservation.
+  - Zebar again owns the Windows working-area reservation through `dockToEdge`.
+  - Normal z-order keeps the bar from overlaying maximized application content.
+- Portability: The setting is machine-neutral and remains paired with the managed 36px bar geometry and 2px margins.
+- Chezmoi: Updated the existing managed widget pack configuration and applied it to the current machine.
+- Verification: The rendered widget uses normal z-order with edge docking enabled, and all three monitors immediately reported a 40px top reservation after one Zebar restart; resume remains unresolved.

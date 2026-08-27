@@ -27,3 +27,17 @@
 - Portability: Uses Conform's project-root detection and contains no machine-specific path.
 - Chezmoi: Updated the existing managed source and synchronized the corresponding target file.
 - Verification: Isolated headless Neovim checks reported dprint unavailable with `Root directory not found` outside a configured project and available inside the Neovim project; the Lua file parsed successfully; source and target hashes matched; line endings were LF; scoped `chezmoi status` was empty.
+
+## 2026-08-27T00:49:24+08:00 - Replace dashboard logo
+
+- Status: Completed
+- Machine: TC-TSENG
+- Platform: windows/x64
+- Scope: `lua/plugins/ui-restructured.lua`
+- Summary: Replaced the LazyVim Snacks dashboard header with a static ANSI Shadow rendering of `EDEMILORHEA`.
+- Important records:
+  - The customization overrides only `dashboard.preset.header`; existing dashboard keys and Explorer settings remain intact.
+  - The generated banner is stored statically, so Neovim startup does not invoke Node.js or FIGlet.
+- Portability: The header uses terminal block and box-drawing glyphs without machine-specific paths.
+- Chezmoi: Updated the managed plugin configuration and applied only that target.
+- Verification: Headless Neovim resolved the merged Snacks options and printed the complete six-line custom header without errors.

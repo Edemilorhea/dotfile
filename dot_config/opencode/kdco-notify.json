@@ -1,0 +1,7 @@
+{
+  "notifyChildSessions": false,
+  "timeout": 0,
+  "quietHours": {
+    "enabled": false
+  }
+}

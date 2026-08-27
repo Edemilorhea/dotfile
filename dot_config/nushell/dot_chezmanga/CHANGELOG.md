@@ -55,3 +55,17 @@
 - Portability: The welcome banner now uses only portable ASCII characters and contains no machine-specific path.
 - Chezmoi: Updated the managed `config.nu` source and applied only the Nushell configuration targets.
 - Verification: Nushell loaded the rendered configuration without error, scoped chezmoi status was clean, and a user-launched Rio session with Nushell became interactive without the previous five-second delay.
+
+## 2026-08-27T00:18:27+08:00 - Remove rejected welcome artwork
+
+- Status: Completed
+- Machine: TC-TSENG
+- Platform: windows/x64
+- Scope: `config.nu`
+- Summary: Removed the manually generated ASCII artwork and restored the concise ASCII-only welcome line.
+- Important records:
+  - The artwork did not match the supplied frog image closely enough and was rejected.
+  - The welcome line remains emoji-free, preserving the verified Rio startup fix.
+- Portability: The welcome output uses portable ASCII text and contains no machine-specific path.
+- Chezmoi: Updated the managed `config.nu` source and applied only that target.
+- Verification: Source and runtime configuration match; Nushell loads the rendered configuration without error.
