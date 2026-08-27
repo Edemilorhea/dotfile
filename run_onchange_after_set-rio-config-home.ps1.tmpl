@@ -1,0 +1,14 @@
+{{- if eq .chezmoi.os "windows" -}}
+$ErrorActionPreference = 'Stop'
+$rioConfigHome = Join-Path $HOME '.config/rio'
+$currentValue = [Environment]::GetEnvironmentVariable('RIO_CONFIG_HOME', 'User')
+
+if ($currentValue -ne $rioConfigHome) {
+    [Environment]::SetEnvironmentVariable('RIO_CONFIG_HOME', $rioConfigHome, 'User')
+    Write-Host "[Rio] Set RIO_CONFIG_HOME to $rioConfigHome"
+} else {
+    Write-Host "[Rio] RIO_CONFIG_HOME is already set to $rioConfigHome"
+}
+
+$env:RIO_CONFIG_HOME = $rioConfigHome
+{{- end }}

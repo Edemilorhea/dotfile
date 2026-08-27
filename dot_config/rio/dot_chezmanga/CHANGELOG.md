@@ -29,3 +29,17 @@
 - Portability: The backend override is under `platform.windows`; other operating systems retain Rio's default renderer selection.
 - Chezmoi: Updated the already managed `config.toml` source and applied only that target.
 - Verification: A Windows platform override created only the OpenGL backend and selected the Intel OpenGL adapter. Five bounded checks of the applied configuration reached a responding Rio window in 329-599 ms with no timeout; full Rio, Nushell, and first-prompt checks completed in 721-1025 ms before the portability refinement.
+
+## 2026-08-28T01:00:06+08:00 - Automate Rio config path
+
+- Status: Completed
+- Machine: DESKTOP-3JHKCAP
+- Platform: windows/x64
+- Scope: `run_onchange_after_set-rio-config-home.ps1.tmpl`
+- Summary: Added a Windows chezmoi script that persists `RIO_CONFIG_HOME` at the user level so Rio reads configuration and themes from `~/.config/rio`.
+- Important records:
+  - The script also sets the variable in its own process; existing shells and applications must be restarted to inherit the persisted user environment.
+  - `run_onchange` reruns only when the managed script content changes.
+- Portability: The script renders only on Windows and derives the path from the active user's home directory without a machine-specific absolute path.
+- Chezmoi: Added a managed root-level script associated with the Rio configuration scope.
+- Verification: The rendered PowerShell parsed successfully, scoped chezmoi application persisted the expected user environment value, and the Rio targets remained synchronized.
