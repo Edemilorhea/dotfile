@@ -9,6 +9,9 @@
 {{- $syncPowershell := promptBoolOnce . "syncPowershell" "sync powershell config" true }}
 {{- $syncIdeavimrc := promptBoolOnce . "syncIdeavimrc" "sync ideavimrc config" true }}
 
+[add]
+    templateSymlinks = false
+
 [edit]
     command = "nvim"
 
@@ -16,6 +19,10 @@
     autoCommit = true
     autoPush = true
     commitMessageTemplate = "Update dotfiles: {{ "{{" }} .chezmoi.hostname {{ "}}" }}"
+
+[hooks.add.pre]
+    command = "git"
+    args = ["-C", {{ .chezmoi.sourceDir | quote }}, "pull", "--rebase", "--autostash"]
 
 [data]
     gitName = {{ $gitName | quote }}
