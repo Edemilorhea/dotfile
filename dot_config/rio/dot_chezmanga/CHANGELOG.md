@@ -43,3 +43,17 @@
 - Portability: The script renders only on Windows and derives the path from the active user's home directory without a machine-specific absolute path.
 - Chezmoi: Added a managed root-level script associated with the Rio configuration scope.
 - Verification: The rendered PowerShell parsed successfully, scoped chezmoi application persisted the expected user environment value, and the Rio targets remained synchronized.
+
+## 2026-08-29T12:13:06+08:00 - Deepen terminal background
+
+- Status: Completed
+- Machine: TC-TSENG
+- Platform: windows/x64
+- Scope: `config.toml`
+- Summary: Changed the Rio background from `#1c1f24` to the deeper gray `#121417` to improve contrast for Nushell completion selections.
+- Important records:
+  - Foreground and selection colors remain unchanged so the adjustment is limited to the terminal background.
+  - Existing target-only comments and `navigation.mode` casing were preserved instead of applying the full source file over them.
+- Portability: The color is platform-neutral and contains no machine-specific paths or values.
+- Chezmoi: Updated the managed source and the active target directly because unrelated target differences already existed.
+- Verification: The source and active target use the same background value; TOML parsing and scoped synchronization were checked after the edit.

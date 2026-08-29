@@ -10,7 +10,7 @@ $env.config.history.sync_on_enter = true
 $env.config.history.file_format = "sqlite"
 $env.config.history.isolation = false
 $env.config.menus = [
-    { name: completion_menu only_buffer_difference: false marker: "| " type: { layout: columnar, columns: 4, col_width: 20, col_padding: 2 } style: { text: green, selected_text: { attr: r }, description_text: yellow } }
+    { name: completion_menu only_buffer_difference: false marker: "| " type: { layout: columnar, columns: 4, col_width: 20, col_padding: 2 } style: { text: green, selected_text: { fg: "#eff1f5", bg: "#3b4652", attr: b }, selected_match_text: { fg: "#eff1f5", bg: "#3b4652", attr: b }, description_text: yellow } }
     { name: history_menu only_buffer_difference: false marker: "? " type: { layout: list, page_size: 10 } style: { text: green, selected_text: green_reverse, description_text: yellow } }
 ]
 $env.config.use_ansi_coloring = true

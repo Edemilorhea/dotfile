@@ -321,6 +321,28 @@
       "skills": ["interactive-diagram"]
     },
     {
+      "id": "diagram-design",
+      "type": "skill",
+      "channel": "skills-cli",
+      "profiles": ["design"],
+      "scopes": ["project"],
+      "defaultScope": "project",
+      "repository": "https://github.com/cathrynlavery/diagram-design.git",
+      "revision": "ac490fd1ac4b4014100f93e729cb4ad198700bd4",
+      "skills": ["diagram-design"]
+    },
+    {
+      "id": "archify",
+      "type": "skill",
+      "channel": "skills-cli",
+      "profiles": ["design"],
+      "scopes": ["project"],
+      "defaultScope": "project",
+      "repository": "https://github.com/tt-a1i/archify.git",
+      "revision": "49a7821d194a70c531219f48fd0d6a08ba9ba9d7",
+      "skills": ["archify"]
+    },
+    {
       "id": "teach",
       "type": "skill",
       "channel": "skills-cli",

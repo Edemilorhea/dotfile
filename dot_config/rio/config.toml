@@ -46,7 +46,7 @@ family = "JetBrains Maple Mono"
 style = "Bold Italic"
 
 [colors]
-background = "#1c1f24"
+background = "#121417"
 foreground = "#c0c5ce"
 cursor = "#c0c5ce"
 selection-foreground = "#c0c5ce"

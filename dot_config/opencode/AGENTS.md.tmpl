@@ -17,6 +17,7 @@ Shared instructions for coding agents.
 - Use `eli5-explainer` when the user is new to a concept, asks for ELI5, an analogy, a simple mental model, or needs intuition before technical detail.
 - Use `wait-what` when the user says they are lost, the answer is too complex, they must reread it, they cannot connect the parts, or they ask for a different explanation. Re-pitch the missing bridge; do not repeat the same answer.
 - For complex beginner-facing explanations, combine them in this order: `iso-24495-plain-language` for information design, `asd-ste100` for direct sentences, and `eli5-explainer` only for concepts that need intuition. When comprehension has already failed, let `wait-what` control the recovery.
+- When explaining concepts, use ASCII diagrams whenever they help visualize relationships, flows, or structure.
 - Preserve exact identifiers, commands, paths, API names, constraints, risks, and uncertainty even when simplifying.
 
 ## Safety

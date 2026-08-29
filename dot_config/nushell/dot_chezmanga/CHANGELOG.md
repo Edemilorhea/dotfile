@@ -69,3 +69,17 @@
 - Portability: The welcome output uses portable ASCII text and contains no machine-specific path.
 - Chezmoi: Updated the managed `config.nu` source and applied only that target.
 - Verification: Source and runtime configuration match; Nushell loads the rendered configuration without error.
+
+## 2026-08-29T14:07:18+08:00 - Improve completion selection contrast
+
+- Status: Completed
+- Machine: TC-TSENG
+- Platform: windows/x64
+- Scope: `modules/interface.nu`
+- Summary: Replaced the reversed completion selection style with fixed light text on a dark blue-gray background so selected paths remain readable.
+- Important records:
+  - Reverse video used each completion item's foreground color as its background, which made light-green directory entries difficult to read.
+  - Both `selected_text` and `selected_match_text` use foreground `#eff1f5`, background `#3b4652`, and bold text so the matched prefix and remaining value have one consistent selection style.
+- Portability: The menu style uses Nushell-supported color records and contains no machine-specific values.
+- Chezmoi: Updated the managed source and applied only the interface module and changelog targets.
+- Verification: Nushell loaded the applied module and reported the expected completion selection style without configuration errors.

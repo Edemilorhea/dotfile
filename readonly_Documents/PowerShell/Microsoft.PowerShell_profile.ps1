@@ -51,6 +51,19 @@ oh-my-posh init pwsh --config "$env:POSH_THEMES_PATH\M365Princess.omp.json" | In
 # ================================
 Invoke-Expression (& { (zoxide init powershell) -join "`n" })
 
+# Keep psmux's foreground-command state in sync across nested shells.
+if ($env:TMUX -and $Host.Name -eq 'ConsoleHost') {
+    $currentPrompt = (Get-Item Function:\prompt).ScriptBlock
+    if ($currentPrompt.ToString() -notmatch '__PsmuxPromptBase') {
+        $global:__PsmuxPromptBase = $currentPrompt
+        function global:prompt {
+            $renderedPrompt = & $global:__PsmuxPromptBase
+            [Console]::Out.Write("`e]133;A`a")
+            $renderedPrompt
+        }
+    }
+}
+
 # (已移除您自訂的 function zi {...} 區塊)
 
 # ================================
@@ -191,6 +204,22 @@ Set-PSReadLineKeyHandler -Key RightArrow -Function ForwardWord
 Set-PSReadLineKeyHandler -Key Ctrl+RightArrow -Function AcceptNextSuggestionWord
 Set-PSReadLineKeyHandler -Key Alt+F -Function AcceptSuggestion
 Set-PSReadLineKeyHandler -Key F2 -Function SwitchPredictionView
+
+if ($env:TMUX -and $Host.Name -eq 'ConsoleHost') {
+    Set-PSReadLineKeyHandler -Key Enter -ScriptBlock {
+        $line = $null
+        $cursor = 0
+        [Microsoft.PowerShell.PSConsoleReadLine]::GetBufferState([ref]$line, [ref]$cursor)
+
+        if (-not [string]::IsNullOrWhiteSpace($line)) {
+            $bytes = [Text.Encoding]::UTF8.GetBytes($line)
+            $command = [Convert]::ToBase64String($bytes)
+            [Console]::Out.Write("`e]1337;SetUserVar=WEZTERM_PROG=$command`a")
+        }
+
+        [Microsoft.PowerShell.PSConsoleReadLine]::AcceptLine()
+    }
+}
 
 # 移除 Alt+A 綁定 (讓 Zellij Leader 鍵生效)
 Remove-PSReadLineKeyHandler -Chord "Alt+a"

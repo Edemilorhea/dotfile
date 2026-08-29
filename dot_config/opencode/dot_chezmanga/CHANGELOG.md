@@ -114,3 +114,31 @@
 - Portability: The rule improves cross-platform readability without changing tool-specific path requirements.
 - Chezmoi: Updated the managed global instruction template and applied its exact runtime target.
 - Verification: The rendered global `AGENTS.md` contains the new rule and scoped chezmoi status is clean.
+
+## 2026-08-28T13:46:35+08:00 - Add ASCII explanation guidance
+
+- Status: Completed
+- Machine: TC-TSENG
+- Platform: windows/x64
+- Scope: `AGENTS.md.tmpl`
+- Summary: Added a global instruction to use ASCII diagrams when they improve concept explanations.
+- Important records:
+  - ASCII visualization is expected for useful relationships, flows, and structures rather than as decoration.
+- Portability: The instruction uses plain text and has no platform-specific dependency.
+- Chezmoi: Updated the managed global instruction template and applied its exact runtime target.
+- Verification: The rendered global `AGENTS.md` contains the new rule, scoped status is clean, `git diff --check` passed, and the edited template is LF-only.
+
+## 2026-08-28T13:59:45+08:00 - Add architecture diagram assets
+
+- Status: Completed
+- Machine: TC-TSENG
+- Platform: windows/x64
+- Scope: `config/external-assets.json`, `config/skills-registry.md`
+- Summary: Added Diagram Design and Archify to the optional project-local `design` asset profile.
+- Important records:
+  - Diagram Design is pinned to `cathrynlavery/diagram-design` commit `ac490fd1ac4b4014100f93e729cb4ad198700bd4`.
+  - Archify is pinned to `tt-a1i/archify` commit `49a7821d194a70c531219f48fd0d6a08ba9ba9d7`.
+  - Both assets remain explicit project selections and are not part of the global `core` profile.
+- Portability: Both assets use repository URLs and immutable revisions without machine-specific paths.
+- Chezmoi: Updated two existing managed source files and applied only their exact runtime targets.
+- Verification: Asset catalog `doctor` returned `valid: true` with no errors or drift; rendered catalog and registry contain both pinned assets.

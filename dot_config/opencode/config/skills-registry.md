@@ -91,6 +91,8 @@ These skills are complementary. ISO 24495 governs information design, ASD-STE100
 | --- | --- | --- | --- |
 | `frontend-design` | `design` | `project` | `.agents` manifest: `zencoderai/skills` |
 | `interactive-diagram` | `design` | `explicit` | Optional `design` profile; pinned `LizardLiang/interactive-diagram` source in `external-assets.json` |
+| `diagram-design` | `design` | `explicit` | Optional `design` profile; pinned `cathrynlavery/diagram-design` source in `external-assets.json` |
+| `archify` | `design` | `explicit` | Optional `design` profile; pinned `tt-a1i/archify` source in `external-assets.json` |
 | `find-skills` | `skill-governance` | `global` | Pinned `vercel-labs/skills` source in `external-assets.json` |
 | `skill-creator`, `utility-pm-skill-builder`, `utility-pm-skill-iterate`, `utility-pm-skill-validate`, `utility-pm-skill-auditor`, `utility-pm-workflow-builder`, `utility-pm-workflow-orchestrator`, `utility-update-pm-skills` | `skill-governance` | `explicit` | `skill-creator` is anthropics; PM utilities are Product on Purpose candidates |
 
