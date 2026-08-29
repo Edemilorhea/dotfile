@@ -28,3 +28,16 @@
 - Portability: The integration is confined to the existing Windows PowerShell profile and uses terminal OSC sequences already understood by psmux.
 - Chezmoi: Updated the managed source first and applied only the PowerShell profile target.
 - Verification: The PowerShell parser accepted the profile; an isolated psmux session reported `pwsh` at the prompt, `opencode` while a test command ran, and `pwsh` again after it completed; the user confirmed image paste in `psmux -> pwsh -> opencode`.
+
+## 2026-08-29T15:53:01+08:00 - Manage PowerShell host settings
+
+- Status: Completed
+- Machine: TC-TSENG
+- Platform: windows/x64
+- Scope: `powershell.config.json`
+- Summary: Added the PowerShell host settings that select the `RemoteSigned` execution policy and enable the `PSFeedbackProvider` experimental feature.
+- Important records:
+  - This file contains user-authored PowerShell host behavior and no credentials or machine-specific paths.
+- Portability: Existing ignore rules deploy the file only on Windows when PowerShell synchronization is enabled.
+- Chezmoi: Added the existing target as a readonly managed source file.
+- Verification: The target-to-source mapping resolved after the scoped add; scoped apply and JSON parsing completed successfully.
