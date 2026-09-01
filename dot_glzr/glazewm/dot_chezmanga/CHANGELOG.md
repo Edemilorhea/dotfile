@@ -101,3 +101,18 @@
 - Portability: The config template renders the launcher path from `.chezmoi.homeDir`; Windows Script Host and `taskkill.exe` are standard Windows components.
 - Chezmoi: Added and applied `stop-zebar.vbs`, updated the managed config and restart helper, and kept the change scoped to the GlazeWM management root.
 - Verification: GlazeWM accepted the updated config; PowerShell parsing passed; a hidden launcher run replaced the GlazeWM and both Zebar PIDs, preserved the current 1-to-1 monitor count, and restored a 49px top reservation. Visual absence of a transient window requires user observation.
+
+## 2026-09-01T13:59:28+08:00 - Remove VBScript launchers
+
+- Status: Completed
+- Machine: TC-TSENG
+- Platform: windows/x64
+- Scope: `config.yaml`, `cycle-workspace-window.js`, `restart-glazewm.ps1`, removed `*.vbs` launchers
+- Summary: Replaced all GlazeWM WScript launchers with native `shell-exec --hide-window` commands so normal shutdown, window cycling, and full restart no longer depend on deprecated VBScript.
+- Important records:
+  - GlazeWM 3.10.1 implements `--hide-window` with `ShellExecuteExW` and `SW_HIDE`; PowerShell also keeps `-WindowStyle Hidden` as a second safeguard.
+  - The notification-only `refresh-work-area.ps1` remains managed, but its unused VBS launcher was removed.
+  - A scoped chezmoi destroy dry-run unexpectedly activated the configured Git auto-commit and auto-push behavior, publishing commit `851f42d`; no rollback was attempted because the commit also contained unrelated existing changes.
+- Portability: Script paths continue to render from `.chezmoi.homeDir`; runtime commands require `node.exe`, `pwsh.exe`, and `taskkill.exe` on `PATH`, but no longer require Windows Script Host.
+- Chezmoi: Updated and applied the existing config template, then removed the four obsolete VBS files from both source and target state.
+- Verification: The rendered config has clean scoped status and diff; Node and PowerShell parsing passed; required executables resolve through `PATH`; source and target config use LF without mixed endings. GlazeWM was not running, so live config reload and visual window-hiding behavior were not tested.
