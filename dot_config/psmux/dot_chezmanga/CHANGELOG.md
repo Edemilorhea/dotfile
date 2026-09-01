@@ -73,3 +73,18 @@
 - Portability: The final binding uses psmux-native formats and commands inside the existing Windows-specific psmux scope.
 - Chezmoi: Updated the managed source first, applied only the psmux configuration, and reloaded every existing psmux session without terminating it.
 - Verification: Nushell and PowerShell accepted multiline text once; OpenCode accepted text and images when launched from Nushell and PowerShell; all existing sessions reported `paste-detection on` with the conditional root binding.
+
+## 2026-09-01T11:56:42+08:00 - Enable automatic session saves
+
+- Status: Completed
+- Machine: TC-TSENG
+- Platform: windows/x64
+- Scope: `psmux.conf`
+- Summary: Added psmux-continuum to save psmux-resurrect snapshots automatically every 15 minutes.
+- Important records:
+  - Automatic restore and Windows login boot remain disabled; restoration stays manual with Prefix + `Ctrl-r`.
+  - The latest official plugin uses a named mutex to keep one auto-save loop per user session.
+  - Plugin files under `~/.psmux/plugins` are runtime dependencies installed by PPM and remain outside chezmoi management.
+- Portability: The configuration uses the portable plugin identifier and stays inside the existing Windows-specific psmux scope.
+- Chezmoi: Updated the managed `psmux.conf` source and applied only that target; the runtime plugin directory remains unmanaged.
+- Verification: PPM installed the latest psmux-continuum; reloading psmux registered the `client-attached` 15-minute save hook and the guarded restore hook; `@continuum-save-interval` returned `15`; no restore or boot option was set; the official auto-save loop was running without restarting existing sessions; invoking its resurrect save target created `psmux_resurrect_20260901_115821.json`.

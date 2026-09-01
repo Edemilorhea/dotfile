@@ -6,7 +6,7 @@ general:
 
   # Commands to run just before the WM is shutdown.
   # Example: The below command kills Zebar.
-  shutdown_commands: ['shell-exec wscript.exe //B "{{ .chezmoi.homeDir | replace "/" "\\" }}\.glzr\glazewm\stop-zebar.vbs"']
+  shutdown_commands: ['shell-exec --hide-window taskkill.exe /IM zebar.exe /F']
 
   # Commands to run after the WM config is reloaded.
   config_reload_commands: []
@@ -225,9 +225,9 @@ keybindings:
     bindings: ['alt+j', 'alt+down']
 
   # Cycle through all windows in the current workspace.
-  - commands: ['shell-exec wscript.exe //B "{{ .chezmoi.homeDir | replace "/" "\\" }}\.glzr\glazewm\cycle-workspace-window.vbs" previous']
+  - commands: ['shell-exec --hide-window node.exe "{{ .chezmoi.homeDir | replace "/" "\\" }}\.glzr\glazewm\cycle-workspace-window.js" previous']
     bindings: ['alt+oem_open_brackets']
-  - commands: ['shell-exec wscript.exe //B "{{ .chezmoi.homeDir | replace "/" "\\" }}\.glzr\glazewm\cycle-workspace-window.vbs" next']
+  - commands: ['shell-exec --hide-window node.exe "{{ .chezmoi.homeDir | replace "/" "\\" }}\.glzr\glazewm\cycle-workspace-window.js" next']
     bindings: ['alt+oem_close_brackets']
 
   # Move focused window in a given direction.
@@ -314,7 +314,7 @@ keybindings:
     bindings: ['alt+shift+r']
 
   # Fully restart GlazeWM and Zebar to rebuild docked work areas.
-  - commands: ['shell-exec wscript.exe //B "{{ .chezmoi.homeDir | replace "/" "\\" }}\.glzr\glazewm\restart-glazewm.vbs"']
+  - commands: ['shell-exec --hide-window pwsh.exe -NoLogo -NoProfile -NonInteractive -WindowStyle Hidden -File "{{ .chezmoi.homeDir | replace "/" "\\" }}\.glzr\glazewm\restart-glazewm.ps1"']
     bindings: ['alt+shift+w']
 
   # Focus the workspace that last had focus.
