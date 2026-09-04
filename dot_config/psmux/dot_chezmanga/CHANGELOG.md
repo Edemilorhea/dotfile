@@ -88,3 +88,18 @@
 - Portability: The configuration uses the portable plugin identifier and stays inside the existing Windows-specific psmux scope.
 - Chezmoi: Updated the managed `psmux.conf` source and applied only that target; the runtime plugin directory remains unmanaged.
 - Verification: PPM installed the latest psmux-continuum; reloading psmux registered the `client-attached` 15-minute save hook and the guarded restore hook; `@continuum-save-interval` returned `15`; no restore or boot option was set; the official auto-save loop was running without restarting existing sessions; invoking its resurrect save target created `psmux_resurrect_20260901_115821.json`.
+
+## 2026-09-04T16:48:41+08:00 - Follow moved window
+
+- Status: Completed
+- Machine: TC-TSENG
+- Platform: windows/x64
+- Scope: `psmux.conf`
+- Summary: Made the current selection follow the same window and buffer when moving it left or right with Prefix + `<` or `>`.
+- Important records:
+  - The local bindings override psmux-pain-control after PPM loads and chain `previous-window` or `next-window` after `swap-window`.
+  - psmux 3.3.8 does not resolve relative targets for `select-window`, so `select-window -t -1/+1` cannot provide the follow behavior.
+  - Plugin runtime files remain unchanged so plugin updates cannot discard the customization.
+- Portability: The commands use psmux-native relative window targets inside the existing Windows-specific psmux scope.
+- Chezmoi: Updated the managed `psmux.conf` source and applied only that target.
+- Verification: In an isolated three-window session, window ID `@2` remained active while moving from index 1 to 2 and back to 1; reloaded the running psmux server and confirmed both repeatable bindings.
