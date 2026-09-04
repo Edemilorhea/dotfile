@@ -1,0 +1,23 @@
+# Based on ~/.config/psmux/psmux.conf using TUIOS v0.7-compatible options.
+
+[appearance]
+preferred_shell = "nu"
+theme = "tokyonight"
+dockbar_position = "top"
+scrollback_lines = 50000
+shared_borders = true
+
+[keybindings]
+leader_key = "alt+a"
+
+# Match the psmux pane-navigation keys in Window Management Mode.
+[keybindings.navigation]
+nav_left = ["h", "left"]
+nav_down = ["j", "down"]
+nav_up = ["k", "up"]
+nav_right = ["l", "right"]
+
+# Release h/l from their TUIOS snap defaults to avoid duplicate bindings.
+[keybindings.layout]
+snap_left = []
+snap_right = []
