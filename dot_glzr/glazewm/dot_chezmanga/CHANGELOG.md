@@ -116,3 +116,44 @@
 - Portability: Script paths continue to render from `.chezmoi.homeDir`; runtime commands require `node.exe`, `pwsh.exe`, and `taskkill.exe` on `PATH`, but no longer require Windows Script Host.
 - Chezmoi: Updated and applied the existing config template, then removed the four obsolete VBS files from both source and target state.
 - Verification: The rendered config has clean scoped status and diff; Node and PowerShell parsing passed; required executables resolve through `PATH`; source and target config use LF without mixed endings. GlazeWM was not running, so live config reload and visual window-hiding behavior were not tested.
+
+## 2026-09-03T13:31:52+08:00 - Emphasize the focused window
+
+- Status: Completed
+- Machine: TC-TSENG
+- Platform: windows/x64
+- Scope: `config.yaml`
+- Summary: Changed the focused-window border to bright amber and dimmed non-focused windows to 90% opacity.
+- Important records:
+  - Non-focused custom borders are disabled so the amber focused border has stronger contrast.
+  - The focused window remains fully opaque; only non-focused managed windows receive transparency.
+- Portability: The effects use GlazeWM configuration only; custom border colors require Windows 11.
+- Chezmoi: Updated the existing managed `config.yaml.tmpl` source and applied the rendered target.
+- Verification: GlazeWM 3.10.1 accepted `wm-reload-config`; the rendered values match the source; scoped chezmoi status is clean; the source template uses LF without mixed endings.
+
+## 2026-09-03T13:44:25+08:00 - Reduce inactive-window transparency
+
+- Status: Completed
+- Machine: TC-TSENG
+- Platform: windows/x64
+- Scope: `config.yaml`
+- Summary: Increased non-focused window opacity from 90% to 95% for a subtler dimming effect.
+- Important records:
+  - The bright amber focused-window border and all other visual settings remain unchanged.
+- Portability: The effect uses GlazeWM configuration only and has no machine-specific paths.
+- Chezmoi: Updated the existing managed `config.yaml.tmpl` source and applied the rendered target.
+- Verification: GlazeWM 3.10.1 accepted `wm-reload-config`; the rendered opacity matches the source; scoped chezmoi status is clean; the source template uses LF without mixed endings.
+
+## 2026-09-04T13:39:08+08:00 - Restore opaque inactive windows
+
+- Status: Completed
+- Machine: TC-TSENG
+- Platform: windows/x64
+- Scope: `config.yaml`
+- Summary: Set non-focused windows to an explicit 100% opacity so screen sharing always shows fully opaque content.
+- Important records:
+  - The bright amber focused-window border and all other visual settings remain unchanged.
+  - Disabling the effect did not clear opacity already applied to existing windows, so the effect remains enabled with a 100% value.
+- Portability: The effect uses GlazeWM configuration only and has no machine-specific paths.
+- Chezmoi: Updated the existing managed `config.yaml.tmpl` source and applied the rendered target.
+- Verification: Scoped apply completed; GlazeWM 3.10.1 accepted `wm-reload-config` and `wm-redraw`; source and target values match; scoped chezmoi status is clean; manually edited source files use LF without mixed endings.
