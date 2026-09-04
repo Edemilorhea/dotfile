@@ -51,7 +51,7 @@
   "maxVectorsPerShard": 50000,
   
   // Automatically delete old memories based on retention period
-  "autoCleanupEnabled": true,
+  "autoCleanupEnabled": false,
   
   // Days to keep memories before auto-cleanup (only if autoCleanupEnabled is true)
   "autoCleanupRetentionDays": 30,
@@ -92,22 +92,21 @@
    //   OpenAI (API key):          "opencodeProvider": "openai",          "opencodeModel": "gpt-4o-mini"
    //   GitHub Copilot:            "opencodeProvider": "github-copilot",  "opencodeModel": "gpt-4o-mini"
    //
-   // "opencodeProvider": "anthropic",
-   // "opencodeModel": "claude-haiku-4-5-20251001",
+    "opencodeProvider": "github-copilot",
+    "opencodeModel": "gemini-3.5-flash",
 
    // ============================================
    // Auto-Capture Settings (REQUIRES EXTERNAL API)
    // ============================================
   
-   // Keep this disabled to avoid consuming the active GPT subscription on idle sessions.
-   // Add and search important memories manually with the memory tool.
+   // Capture durable decisions and lessons after an idle session.
    
-   "autoCaptureEnabled": false,
+   "autoCaptureEnabled": true,
   
   // Provider type: "openai-chat" | "openai-responses" | "anthropic"
   // Note: "openai-chat" is a generic OpenAI API-compatible mode.
   // Any service that follows the OpenAI Chat Completions API can use it via custom "memoryApiUrl".
-   // No provider or API key is needed while auto-capture is disabled.
+   // OpenCode supplies the authenticated provider, so no separate API key is needed.
 
   // API Key Formats:
   // Direct value:        "sk-..."
@@ -223,25 +222,29 @@
   // ============================================
   
   // Minimum similarity score (0-1) for memory search results
-  "similarityThreshold": 0.6,
+  "similarityThreshold": 0.65,
 
   // Maximum number of memories to return in search results
-  "maxMemories": 10,
+  "maxMemories": 5,
 
   // ============================================
   // Advanced Settings
   // ============================================
   
-   // Avoid re-injecting memory after DCP compacts a session.
+   // Restore a small amount of project context after DCP compacts a session.
    "compaction": {
-     "enabled": false
+     "enabled": true,
+     "memoryLimit": 5
    },
 
-   // Keep long-term memory explicit: use memory search when it is relevant.
+   // Inject only a small project-scoped context on the first user message.
    "chatMessage": {
-     "enabled": false
+     "enabled": true,
+     "maxMemories": 3,
+     "excludeCurrentSession": true,
+     "injectOn": "first"
    },
 
-   // No automatically learned profile exists when auto-capture is disabled.
+   // Keep user-profile injection explicit even though project capture is enabled.
    "injectProfile": false
 }
