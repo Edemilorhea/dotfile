@@ -55,3 +55,17 @@
 - Portability: The override uses no machine-specific paths and applies across worktrees and supported operating systems.
 - Chezmoi: Added the previously unmanaged runtime file as `dot_config/nvim/lua/plugins/persistence.lua`.
 - Verification: `chezmoi source-path` resolved the target; scoped diff was empty; headless Neovim parsed the Lua file successfully; Git reported LF in the index and worktree.
+
+## 2026-09-04T16:49:11+08:00 - Keep Telescope searches inside cwd
+
+- Status: Completed
+- Machine: TC-TSENG
+- Platform: windows/x64
+- Scope: `lua/plugins/tools.lua`
+- Summary: Changed common Telescope file and text searches to stay below Neovim's current working directory and enabled `Ctrl+V` clipboard paste in Telescope prompts.
+- Important records:
+  - LazyVim's later Telescope extra replaced the existing shortcuts with project-root searches, which could resolve to a parent backend Git repository.
+  - The mappings now resolve `vim.uv.cwd()` when each picker opens, so workspace changes remain effective without changing LSP root detection.
+- Portability: Uses Neovim APIs and the system clipboard register without machine-specific paths.
+- Chezmoi: Updated the existing managed source and applied only the corresponding Neovim target.
+- Verification: Headless Neovim loaded Telescope, confirmed the effective file and grep callbacks received the current working directory, and found the `Ctrl+V` insert mapping; Lua parsing and Git whitespace checks passed; source and target were synchronized with LF line endings.
