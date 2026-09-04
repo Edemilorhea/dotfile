@@ -83,3 +83,30 @@
 - Portability: The menu style uses Nushell-supported color records and contains no machine-specific values.
 - Chezmoi: Updated the managed source and applied only the interface module and changelog targets.
 - Verification: Nushell loaded the applied module and reported the expected completion selection style without configuration errors.
+
+## 2026-09-03T15:38:02+08:00 - Add machine-local Pre connection functions
+
+- Status: Completed
+- Machine: TC-TSENG
+- Platform: windows/x64
+- Scope: `local.nu`
+- Summary: Added machine-local functions for opening the fixed Pre Azure Web App tunnel and connecting to it over SSH.
+- Important records:
+  - `local.nu` remains unmanaged and machine-local; neither it nor its values were added to chezmoi.
+  - The functions use the fixed resource group `Vital-ESG-Pre-Group` and app `esgyun-pre`, default to local port 22022, and contain no password, token, or other secret.
+- Chezmoi: Updated and applied only this managed changelog target; `config.nu` and `local.nu.example` remain unchanged.
+- Verification: Isolated Nushell sourcing confirmed `az-pre-tunnel` and `az-pre-ssh` exist without invoking either external command; scoped chezmoi checks confirmed changelog synchronization and that `local.nu` remains unmanaged.
+
+## 2026-09-04T16:46:03+08:00 - Move command input to a new prompt line
+
+- Status: Completed
+- Machine: TC-TSENG
+- Platform: windows/x64
+- Scope: `modules/prompt.nu`, `themes/M365Princess.omp.json`
+- Summary: Added a managed M365Princess theme variant that starts command input on a second line with a `❯` prompt marker.
+- Important records:
+  - The managed theme is preferred over Scoop's bundled theme so package updates cannot overwrite the customization.
+  - The bundled theme remains the fallback when the managed theme is unavailable.
+- Portability: The prompt resolves the theme relative to Nushell's default configuration directory and contains no machine-specific paths.
+- Chezmoi: Added the theme and updated the already managed prompt module, then applied only those targets and this changelog.
+- Verification: Oh My Posh and an isolated Nushell prompt render both produced the expected newline and second-line `❯` marker; scoped status was clean for the prompt module and theme.
