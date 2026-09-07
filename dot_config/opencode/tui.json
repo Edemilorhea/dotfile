@@ -87,6 +87,14 @@
         "terminal_suspend": "none",
         "terminal_title_toggle": "none",
         "tips_toggle": "<leader>h"
-    }
+    },
+    "plugin": [
+        [
+            "./plugins/openai-usage-tui.ts",
+            {
+                "invert": true
+            }
+        ]
+    ]
     // "mouse": false
 }

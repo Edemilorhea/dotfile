@@ -1,6 +1,6 @@
 {
     "$schema": "https://opencode.ai/config.json",
-    "model": "openai/gpt-5.6-sol-fast",
+    "model": "openai/gpt-6-astra",
     "autoupdate": true, // 1.18.21 is ok
     "instructions": [
         "AGENTS.md"
@@ -18,7 +18,8 @@
         "@tarquinen/opencode-smart-title@0.1.7",
         "opencode-large-image-optimizer@latest",
         "opencode-chrome-devtools",
-        "opencode-openai-codex-auth"
+        "opencode-openai-codex-auth",
+        "./plugins/openai-usage.ts"
     ],
     "default_agent": "plan",
     "disabled_providers": [
@@ -212,37 +213,48 @@
     },
     "agent": {
         "plan": {
-            "model": "openai/gpt-5.6-sol-fast",
+            "model": "openai/gpt-6-astra",
             "permission": {
                 "edit": "deny"
             }
         },
         "general": {
-            "model": "openai/gpt-5.6-terra-fast"
+            "model": "openai/gpt-5.6-sol-fast",
+            "variant": "high"
+        },
+        "explore": {
+            "model": "openai/gpt-5.6-sol-fast",
+            "variant": "high"
         },
         "Navigator": {
-            "model": "openai/gpt-5.6-sol-fast"
+            "model": "openai/gpt-5.6-sol-fast",
+            "variant": "high"
         },
         "Mentor": {
-            "model": "openai/gpt-5.6-sol-fast"
+            "model": "openai/gpt-5.6-sol-fast",
+            "variant": "high"
         },
         "Facilitator": {
-            "model": "openai/gpt-5.6-sol-fast"
+            "model": "openai/gpt-5.6-sol-fast",
+            "variant": "high"
         },
         "Deconstructor": {
-            "model": "openai/gpt-5.6-sol-fast"
+            "model": "openai/gpt-5.6-sol-fast",
+            "variant": "high"
         },
         "ResearchCurator": {
-            "model": "openai/gpt-5.6-sol-fast"
+            "model": "openai/gpt-5.6-sol-fast",
+            "variant": "high"
         },
         "Skeptic": {
-            "model": "openai/gpt-5.6-sol-fast"
+            "model": "openai/gpt-6-astra"
         },
         "RedTeam": {
-            "model": "openai/gpt-5.6-sol-fast"
+            "model": "openai/gpt-6-astra"
         },
         "Simplifier": {
-            "model": "openai/gpt-5.6-sol-fast"
+            "model": "openai/gpt-5.6-sol-fast",
+            "variant": "high"
         },
     }
 }

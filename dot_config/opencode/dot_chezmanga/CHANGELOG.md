@@ -201,3 +201,48 @@
 - Portability: The prompt contains no machine-specific paths or platform assumptions.
 - Chezmoi: Updated the managed command source and applied its exact runtime target.
 - Verification: OpenCode loaded the updated command, scoped chezmoi status was clean, and the command remained LF-only.
+
+## 2026-09-07T10:24:02+08:00 - Set GPT-6 as the default model
+
+- Status: Completed
+- Machine: TC-TSENG
+- Platform: windows/x64
+- Scope: `opencode.json`, `agent/selfmade/fable-agent.md`
+- Summary: Changed the global default and every explicit agent model override to the non-Fast GPT-6 model.
+- Important records:
+  - OpenCode exposes the requested model as `openai/gpt-6-astra`; `openai/gpt-6-astra-fast` remains unused.
+  - Embedding, memory, and fallback model settings serve separate purposes and remain unchanged.
+- Portability: The provider/model ID is machine-neutral; each machine still requires access to the configured OpenAI provider.
+- Chezmoi: Updated the existing managed source files and applied only their exact runtime targets.
+- Verification: `opencode models openai` listed `openai/gpt-6-astra`; runtime configuration matched source after scoped apply; all explicit default agent models used the non-Fast GPT-6 ID; edited files remained LF-only.
+
+## 2026-09-07T10:36:54+08:00 - Add OpenAI subscription usage display
+
+- Status: Completed
+- Machine: TC-TSENG
+- Platform: windows/x64
+- Scope: `opencode.json`, `tui.json`, `package.json`, `package-lock.json`, `plugins/openai-usage.ts`, `plugins/openai-usage-tui.ts`
+- Summary: Added a pinned plugin that fetches ChatGPT subscription usage and displays the remaining quota in the OpenCode TUI sidebar and command palette.
+- Important records:
+  - `@a-r-m-i-n/opencode-openai-usage` is pinned at 0.1.5; it reads the local OpenAI OAuth session and calls the undocumented `https://chatgpt.com/backend-api/wham/usage` endpoint, which can change without notice.
+  - The plugin's cache contains the OpenAI account email and ID and remains unmanaged under OpenCode runtime storage.
+  - Local wrappers correct the plugin's Windows state-directory lookup without changing the process environment permanently.
+  - OpenTUI peer dependencies are pinned. This machine's user-level npm configuration forces `os=linux`, so runtime installation used explicit `--os=win32 --cpu=x64` overrides without modifying `.npmrc`.
+- Portability: The lockfile retains OpenTUI optional binaries for all supported platforms; installations must select the actual host OS and architecture rather than a conflicting npm `os` override.
+- Chezmoi: Added two managed wrapper plugins and updated the existing managed configuration and package files, then applied only their exact runtime targets.
+- Verification: The server wrapper fetched live usage with no error; the TUI wrapper registered its sidebar slot, commands, nine event handlers, and cleanup callbacks; OpenTUI imports succeeded; `opencode debug config` passed; npm audit reported no high or critical findings, with four low findings in the new TUI dependency chain and two unrelated moderate findings in the existing notifier chain.
+
+## 2026-09-07T11:34:59+08:00 - Route subagents by workload
+
+- Status: Completed
+- Machine: TC-TSENG
+- Platform: windows/x64
+- Scope: `opencode.json`, `agent/selfmade/subagents/CodeInvestigator.md`, `agent/selfmade/subagents/Implementer.md`
+- Summary: Assigned different OpenAI models and variants to investigation, learning, general implementation, and plan-execution workloads.
+- Important records:
+  - `plan`, `CodeInvestigator`, `Skeptic`, and `RedTeam` use `openai/gpt-6-astra` with its default variant for difficult diagnosis, planning, and adversarial review.
+  - `general`, `explore`, the learning agents, and `Simplifier` use `openai/gpt-5.6-sol-fast` with `variant: high`.
+  - `Implementer` uses `openai/gpt-5.6-luna` with `variant: xhigh` and is limited by its description to complete, explicit implementation plans.
+- Portability: Agent definitions contain provider model IDs only and no machine-specific paths; each machine still requires access to the configured OpenAI provider.
+- Chezmoi: Updated the managed OpenCode config, added two managed subagent definitions, and applied only their exact runtime targets.
+- Verification: `opencode debug config` parsed the merged configuration and showed the intended model and variant assignments; `opencode agent list` discovered both new agents; scoped chezmoi status was clean after apply; `git diff --check` passed.
