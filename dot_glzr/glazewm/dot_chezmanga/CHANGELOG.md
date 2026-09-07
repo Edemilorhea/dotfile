@@ -157,3 +157,17 @@
 - Portability: The effect uses GlazeWM configuration only and has no machine-specific paths.
 - Chezmoi: Updated the existing managed `config.yaml.tmpl` source and applied the rendered target.
 - Verification: Scoped apply completed; GlazeWM 3.10.1 accepted `wm-reload-config` and `wm-redraw`; source and target values match; scoped chezmoi status is clean; manually edited source files use LF without mixed endings.
+
+## 2026-09-06T18:19:56+08:00 - Restore window switcher focus
+
+- Status: Completed
+- Machine: TC-TSENG
+- Platform: windows/x64
+- Scope: `config.yaml`
+- Summary: Updated the window-switcher rules to match the renamed `overline-TC` Zebar pack so GlazeWM manages and focuses the selector instead of ignoring it.
+- Important records:
+  - The rules still referenced the old `overline-custom` title, causing the selector to fall through to the generic Zebar ignore rule.
+  - Other Zebar windows remain ignored.
+- Portability: The match uses the managed pack name and contains no machine-specific path.
+- Chezmoi: Updated the existing managed `config.yaml.tmpl` source and applied it to the current machine.
+- Verification: GlazeWM 3.10.1 accepted `wm-reload-config`; a live selector query reported `hasFocus: true`, `state: floating`, and `displayState: shown`.

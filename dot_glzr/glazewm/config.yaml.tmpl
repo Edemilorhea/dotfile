@@ -142,13 +142,13 @@ window_rules:
   - commands: ['set-floating --centered']
     match:
       - window_process: { equals: 'zebar' }
-        window_title: { regex: '^Zebar - overline-custom / window-switcher$' }
+        window_title: { regex: '^Zebar - overline-TC / window-switcher$' }
 
   - commands: ['ignore']
     match:
       # Ignore every Zebar window except the keyboard-focused switcher.
       - window_process: { equals: 'zebar' }
-        window_title: { not_regex: '^Zebar - overline-custom / window-switcher$' }
+        window_title: { not_regex: '^Zebar - overline-TC / window-switcher$' }
 
       # Ignores picture-in-picture windows for browsers.
       - window_title: { regex: '[Pp]icture.in.[Pp]icture' }

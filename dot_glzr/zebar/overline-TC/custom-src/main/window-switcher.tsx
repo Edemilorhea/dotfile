@@ -103,7 +103,14 @@ function WindowSwitcher() {
     widget.setZOrder('top_most');
     widget.tauriWindow.setFocus();
 
+    // Refocus after GlazeWM finishes managing and floating the new window.
+    const focusTimeout = window.setTimeout(() => {
+      widget.tauriWindow.setFocus();
+    }, 100);
+
     providers.onOutput(() => setGlazewm(providers.outputMap.glazewm));
+
+    return () => window.clearTimeout(focusTimeout);
   }, []);
 
   useEffect(() => {

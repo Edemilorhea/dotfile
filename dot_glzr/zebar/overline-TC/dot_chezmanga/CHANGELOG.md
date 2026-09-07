@@ -74,3 +74,17 @@
 - Portability: Runtime paths remain pack-relative, and the pack contains no user-profile-specific paths.
 - Chezmoi: Renamed the managed source directory, updated the startup pack, applied the new target, and removed the obsolete target directory.
 - Verification: The full pnpm workspace build passed; the deployed bundle passed `node --check`; all six widget entry points resolved; scoped chezmoi status was clean; LF line endings were confirmed; and Zebar restarted successfully without adding an error log entry.
+
+## 2026-09-06T18:19:56+08:00 - Stabilize window switcher focus
+
+- Status: Completed
+- Machine: TC-TSENG
+- Platform: windows/x64
+- Scope: `custom-src/main/window-switcher.tsx`, `widgets/main/dist/assets/window-switcher-r93y_ofB.js`
+- Summary: Added a delayed focus retry after the selector opens so it retains keyboard focus after GlazeWM finishes managing and floating the new window.
+- Important records:
+  - The existing immediate focus request remains in place; the second request runs once after 100 ms and is cancelled if the component unmounts first.
+  - The deployed bundle was patched in place because this managed pack does not include the upstream monorepo dependencies needed to rebuild it.
+- Portability: The change uses Zebar's existing Tauri window API and has no machine-specific path.
+- Chezmoi: Updated the managed source and deployed runtime bundle, then applied both to the current machine.
+- Verification: The deployed bundle passed `node --check`; a live GlazeWM query reported the selector as shown, floating, and focused.
