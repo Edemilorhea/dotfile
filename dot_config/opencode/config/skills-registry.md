@@ -46,9 +46,18 @@ The Fable pack is the sole orchestration authority. `fable-loop` and `fable-judg
 | `change-understanding-review` | `dev-foundation` | `global` | chezmoi-managed local skill |
 | `init` | `core` | `global` | zencoderai-derived template deployed by `opencode-assets` to `~/.agents/skills/init` |
 | `implementation-understanding-tutor`, `implementation-understanding-report-contract`, `implementation-understanding-code-teach-contract`, `implementation-understanding-mechanism-contract`, `implementation-understanding-quality-contract` | `learning-code` | `global` as one indivisible orchestrator pack | chezmoi-managed templates deployed by `opencode-assets`; contract skills are invoked only by the tutor orchestrator |
-| `understand`, `understand-chat`, `understand-dashboard`, `understand-diff`, `understand-domain`, `understand-explain`, `understand-knowledge`, `understand-onboard` | `repo-understanding` | `project` | external; currently `.agents` only; provenance unrecorded |
 | `vibe-coding-tutor` | `learning-code` | `global` | chezmoi-managed; upstream `tortoiseknightma/vibe-coding-tutor` with pinned provenance recorded locally |
 | `teach` | `learning-code` | `explicit` | Optional `learning` profile; pinned `mattpocock/skills` source in `external-assets.json` |
+
+## Code Understanding Pack
+
+| Asset | Kind | Target exposure | Owner / provenance |
+| --- | --- | --- | --- |
+| `graphify` | Skill | `project` | Optional `understand` profile; pinned `Graphify-Labs/graphify` revision `91f4d12` installed through `skills@1.5.21` |
+| `serena` | MCP, not a skill | `project` | Optional `understand` profile; pinned `oraios/serena` revision `43ae021`; requires `uv` and is merged into project `mcp.serena` by the Asset Manager |
+| `understand`, `understand-chat`, `understand-dashboard`, `understand-diff`, `understand-domain`, `understand-explain`, `understand-knowledge`, `understand-onboard` | Skill and command bundle | `project` | Understand Anything local junction; upstream provenance remains unrecorded |
+
+Use Graphify first to build `GRAPH_REPORT.md` and query repository relationships. Use Serena next for symbol-level definitions, references, implementations, and focused edits. Use Understand Anything for guided explanation, onboarding, and its optional dashboard. Archify remains in the separate `design` profile for producing architecture diagrams; it is not the repository-analysis execution path.
 
 ## External Research Systems
 

@@ -1,6 +1,6 @@
 {
   "schemaVersion": 4,
-  "managerVersion": "1.5.0",
+  "managerVersion": "1.6.0",
   "defaultProfiles": ["core"],
   "installers": {
     "skillsCli": {
@@ -65,7 +65,7 @@
       "defaultScope": "project"
     },
     "understand": {
-      "description": "Project-local Understand Anything skills and command.",
+      "description": "Project-local code understanding: map the repository, inspect symbols, then explain findings.",
       "defaultScope": "project"
     },
     "oh-my-opencode-slim": {
@@ -390,6 +390,48 @@
           "target": ".opencode/commands/understand.md"
         }
       ]
+    },
+    {
+      "id": "graphify",
+      "type": "skill",
+      "channel": "skills-cli",
+      "profiles": ["understand"],
+      "scopes": ["project"],
+      "defaultScope": "project",
+      "repository": "https://github.com/Graphify-Labs/graphify.git",
+      "revision": "91f4d120b630ee35c79bf3c75ccd186870a808f9",
+      "skills": ["graphify"],
+      "description": "陌生專案第一層探索：以 AST 與知識圖建立 GRAPH_REPORT、可查詢關係與稽核標記；先讀報告及 query/path，不要把力導向 HTML 當執行順序。",
+      "recommendation": "陌生專案快速理解的第一優先；最佳成果是 GRAPH_REPORT.md 加上 query/path。",
+      "notes": "The pinned upstream skill assumes Claude Agent/subagent semantics in parts of its pipeline. OpenCode compatibility may need a later overlay; this asset does not promise the full semantic subagent pipeline."
+    },
+    {
+      "id": "serena",
+      "type": "mcp",
+      "channel": "opencode-mcp",
+      "profiles": ["understand"],
+      "scopes": ["project"],
+      "defaultScope": "project",
+      "repository": "https://github.com/oraios/serena.git",
+      "revision": "43ae0211d7f3bba4101cd0552707fa21d37f4c84",
+      "configPath": ".opencode/opencode.json",
+      "mcpKey": "serena",
+      "mcpValue": {
+        "type": "local",
+        "command": [
+          "uvx",
+          "--from",
+          "git+https://github.com/oraios/serena.git@43ae0211d7f3bba4101cd0552707fa21d37f4c84",
+          "serena",
+          "start-mcp-server",
+          "--context",
+          "ide",
+          "--project-from-cwd"
+        ]
+      },
+      "description": "在 Graphify 找到子系統後，以 symbols、references 與 implementations 驗證細節；不是 Dashboard 或架構圖。",
+      "recommendation": "第二階段深入驗證；通常搭配 Graphify。",
+      "prerequisites": ["uv"]
     },
     {
       "id": "tc-oac",

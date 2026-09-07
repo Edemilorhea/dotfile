@@ -20,7 +20,10 @@ if ($env.OPENCODE_SESSION? | is-not-empty) {
         $env.PROMPT_COMMAND = {||
             if ($env.SET_POSHCONTEXT? | is-not-empty) { do --env $env.SET_POSHCONTEXT }
             mut config_arg = []
-            if ($env.POSH_THEMES_PATH? | is-not-empty) {
+            let managed_theme = ($nu.default-config-dir | path join "themes/M365Princess.omp.json")
+            if ($managed_theme | path exists) {
+                $config_arg = [$"--config=($managed_theme)"]
+            } else if ($env.POSH_THEMES_PATH? | is-not-empty) {
                 let t = ($env.POSH_THEMES_PATH | path join "M365Princess.omp.json")
                 if ($t | path exists) { $config_arg = [$"--config=($t)"] }
             }

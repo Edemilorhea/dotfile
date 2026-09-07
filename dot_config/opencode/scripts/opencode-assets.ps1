@@ -17,7 +17,7 @@ param(
 
 $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version Latest
-$script:ManagerVersion = '1.5.0'
+$script:ManagerVersion = '1.6.0'
 $script:TuiExplicitSelection = $false
 $script:AssetSelectionExplicit = $PSBoundParameters.ContainsKey('Assets')
 $script:OverlaySelectionExplicit = $PSBoundParameters.ContainsKey('Overlays')
@@ -57,6 +57,7 @@ function Format-TuiItemList {
 function Get-TuiItemKind {
     param([Parameter(Mandatory = $true)]$Item)
 
+    if ($Item.channel -eq 'opencode-mcp') { return 'MCP' }
     if ($Item.PSObject.Properties['pluginSpec']) { return 'Plugin' }
     switch ([string]$Item.type) {
         'skill' { return 'Skill' }
@@ -73,6 +74,15 @@ function Get-TuiItemDescription {
     param([Parameter(Mandatory = $true)]$Asset)
 
     $details = [Collections.Generic.List[string]]::new()
+    if ($Asset.PSObject.Properties['description'] -and $Asset.description) {
+        $details.Add([string]$Asset.description)
+    }
+    if ($Asset.PSObject.Properties['recommendation'] -and $Asset.recommendation) {
+        $details.Add("推薦：$($Asset.recommendation)")
+    }
+    if ($Asset.PSObject.Properties['prerequisites'] -and @($Asset.prerequisites).Count -gt 0) {
+        $details.Add("需要：$(Format-TuiItemList @($Asset.prerequisites))")
+    }
     if ($Asset.PSObject.Properties['skills'] -and @($Asset.skills).Count -gt 0) {
         $details.Add("Skills：$(Format-TuiItemList @($Asset.skills))")
     }
@@ -86,6 +96,9 @@ function Get-TuiItemDescription {
         $details.Add("套件：$package")
     }
     if ($Asset.PSObject.Properties['marketplace']) { $details.Add("Marketplace：$($Asset.marketplace)") }
+    if ($Asset.channel -eq 'opencode-mcp') {
+        $details.Add("設定：$($Asset.configPath) -> mcp.$($Asset.mcpKey)")
+    }
     if ($details.Count -eq 0) { $details.Add("類型：$($Asset.type)；管道：$($Asset.channel)") }
     return $details -join '；'
 }
@@ -261,7 +274,8 @@ function Start-AssetManagerTui {
                 })
                 if ($profileItems.Count -gt 0) {
                     $profileInstalled = @($profileAssets | Where-Object { $installedIds -notcontains $_.id }).Count -eq 0
-                    New-TuiOption $profileName $profileName "包含：$(Format-TuiItemList $profileItems 10)" $profileInstalled
+                    $profileDescription = "$($_.Value.description)；包含：$(Format-TuiItemList $profileItems 10)"
+                    New-TuiOption $profileName $profileName $profileDescription $profileInstalled
                 }
             })
             $availableProfileNames = @($profileOptions | ForEach-Object { $_.value })
@@ -1110,6 +1124,67 @@ function Install-OpenCodePluginAsset {
     }
 }
 
+function Install-OpenCodeMcpAsset {
+    param(
+        [Parameter(Mandatory = $true)]$Asset,
+        [Parameter(Mandatory = $true)][string]$ResolvedScope,
+        [Parameter(Mandatory = $true)][string]$ResolvedProjectRoot,
+        [Parameter(Mandatory = $true)]$ExistingLock
+    )
+
+    if ($ResolvedScope -ne 'project') {
+        throw "OpenCode MCP asset $($Asset.id) is project-only."
+    }
+    $configPath = Resolve-TargetPath $Asset.configPath $ResolvedScope $ResolvedProjectRoot
+    $managedConfigRoot = [IO.Path]::GetFullPath((Join-Path $ResolvedProjectRoot '.opencode'))
+    if (-not (Test-PathWithinRoot $configPath $managedConfigRoot)) {
+        throw "OpenCode MCP config must be inside the project .opencode directory: $configPath"
+    }
+    $previousEntry = @($ExistingLock.assets | Where-Object { $_.id -eq $Asset.id }) | Select-Object -First 1
+    if ($previousEntry) {
+        $entryMatches = $previousEntry.channel -eq 'opencode-mcp' -and
+            $previousEntry.PSObject.Properties['configPath'] -and
+            $previousEntry.PSObject.Properties['mcpKey'] -and
+            $previousEntry.PSObject.Properties['mcpValue'] -and
+            [string]::Equals([IO.Path]::GetFullPath($previousEntry.configPath), $configPath, [StringComparison]::OrdinalIgnoreCase) -and
+            $previousEntry.mcpKey -eq $Asset.mcpKey
+        if (-not $entryMatches) {
+            throw "Refusing to update MCP $($Asset.mcpKey): lock ownership metadata does not match."
+        }
+    }
+
+    $config = Get-JsonConfig $configPath
+    $mcp = if ($config.PSObject.Properties['mcp']) { $config.mcp } else { $null }
+    if ($null -ne $mcp -and $mcp -isnot [pscustomobject]) {
+        throw "OpenCode MCP config must be a JSON object: $configPath"
+    }
+    $currentProperty = if ($mcp) { $mcp.PSObject.Properties[$Asset.mcpKey] } else { $null }
+    if ($previousEntry) {
+        if (-not $currentProperty -or -not (Test-JsonValueEqual $currentProperty.Value $previousEntry.mcpValue)) {
+            throw "Refusing to update drifted MCP config: mcp.$($Asset.mcpKey)"
+        }
+    }
+    elseif ($currentProperty) {
+        throw "Refusing to overwrite unmanaged MCP config: mcp.$($Asset.mcpKey)"
+    }
+
+    if (-not $mcp) { $mcp = Get-OrAddObjectProperty $config 'mcp' }
+    $mcpValue = $Asset.mcpValue | ConvertTo-Json -Depth 50 | ConvertFrom-Json
+    Set-ObjectProperty $mcp $Asset.mcpKey $mcpValue
+    Save-JsonConfig $configPath $config
+
+    return [pscustomobject]@{
+        id = $Asset.id
+        channel = $Asset.channel
+        revision = $Asset.revision
+        skills = @()
+        installedPaths = @()
+        configPath = $configPath
+        mcpKey = $Asset.mcpKey
+        mcpValue = $mcpValue
+    }
+}
+
 function Install-NpmFrameworkAsset {
     param(
         [Parameter(Mandatory = $true)]$Asset,
@@ -1394,6 +1469,24 @@ function Remove-LockedAsset {
         [Parameter(Mandatory = $true)][string]$ResolvedProjectRoot
     )
 
+    if ($Entry.channel -eq 'opencode-mcp') {
+        $managedConfigRoot = [IO.Path]::GetFullPath((Join-Path $ResolvedProjectRoot '.opencode'))
+        if (-not (Test-PathWithinRoot $Entry.configPath $managedConfigRoot)) {
+            throw "Refusing to remove MCP config outside the project .opencode directory: $($Entry.configPath)"
+        }
+        $config = Get-JsonConfig $Entry.configPath
+        $mcpProperty = if ($config.PSObject.Properties['mcp'] -and $config.mcp -is [pscustomobject]) {
+            $config.mcp.PSObject.Properties[$Entry.mcpKey]
+        }
+        else { $null }
+        if (-not $mcpProperty -or -not (Test-JsonValueEqual $mcpProperty.Value $Entry.mcpValue)) {
+            throw "Refusing to remove drifted MCP config: mcp.$($Entry.mcpKey). Restore the locked value first."
+        }
+        $config.mcp.PSObject.Properties.Remove($Entry.mcpKey)
+        Save-JsonConfig $Entry.configPath $config
+        return
+    }
+
     if ($Entry.channel -eq 'opencode-plugin') {
         $config = Get-JsonConfig $Entry.configPath
         [string[]]$plugins = @()
@@ -1474,7 +1567,7 @@ function Test-Catalog {
                 $errors.Add("Asset $($asset.id) references unknown profile $profile")
             }
         }
-        if ($asset.channel -in @('skills-cli', 'git-allowlist', 'opencode-plugin', 'npm-framework') -and [string]::IsNullOrWhiteSpace($asset.revision)) {
+        if ($asset.channel -in @('skills-cli', 'git-allowlist', 'opencode-plugin', 'opencode-mcp', 'npm-framework') -and [string]::IsNullOrWhiteSpace($asset.revision)) {
             $errors.Add("Network asset $($asset.id) requires a pinned revision.")
         }
         if ($asset.channel -in @('opencode-plugin', 'npm-framework') -and [string]::IsNullOrWhiteSpace($asset.packageVersion)) {
@@ -1485,6 +1578,19 @@ function Test-Catalog {
                 if (-not $asset.PSObject.Properties[$propertyName]) {
                     $errors.Add("NPM framework asset $($asset.id) requires $propertyName.")
                 }
+            }
+        }
+        if ($asset.channel -eq 'opencode-mcp') {
+            foreach ($propertyName in @('configPath', 'mcpKey', 'mcpValue', 'revision')) {
+                if (-not $asset.PSObject.Properties[$propertyName]) {
+                    $errors.Add("OpenCode MCP asset $($asset.id) requires $propertyName.")
+                }
+            }
+            if ([string]::IsNullOrWhiteSpace($asset.configPath) -or [string]::IsNullOrWhiteSpace($asset.mcpKey) -or $null -eq $asset.mcpValue) {
+                $errors.Add("OpenCode MCP asset $($asset.id) requires non-empty configPath, mcpKey, and mcpValue values.")
+            }
+            if (@($asset.scopes).Count -ne 1 -or @($asset.scopes) -notcontains 'project' -or $asset.defaultScope -ne 'project') {
+                $errors.Add("OpenCode MCP asset $($asset.id) must use project scope only.")
             }
         }
         if ($asset.PSObject.Properties['dependsOn']) {
@@ -1558,6 +1664,7 @@ function Get-Status {
         $missing = @($paths | Where-Object { -not (Test-Path -LiteralPath $_) })
         $fingerprintChanged = $false
         $pluginChanged = $false
+        $mcpChanged = $false
         $frameworkConfigChanged = $false
         if ($entry -and $entry.channel -eq 'opencode-plugin') {
             try {
@@ -1570,6 +1677,19 @@ function Get-Status {
             }
             catch {
                 $pluginChanged = $true
+            }
+        }
+        if ($entry -and $entry.channel -eq 'opencode-mcp') {
+            try {
+                $mcpConfig = Get-JsonConfig $entry.configPath
+                $mcpProperty = if ($mcpConfig.PSObject.Properties['mcp'] -and $mcpConfig.mcp -is [pscustomobject]) {
+                    $mcpConfig.mcp.PSObject.Properties[$entry.mcpKey]
+                }
+                else { $null }
+                $mcpChanged = -not $mcpProperty -or -not (Test-JsonValueEqual $mcpProperty.Value $entry.mcpValue)
+            }
+            catch {
+                $mcpChanged = $true
             }
         }
         if ($entry -and $entry.channel -eq 'npm-framework' -and $entry.PSObject.Properties['frameworkConfig']) {
@@ -1608,9 +1728,9 @@ function Get-Status {
             id = $asset.id
             kind = 'asset'
             channel = $asset.channel
-            state = if (-not $entry) { 'not-managed' } elseif ($missing.Count -gt 0 -or $fingerprintChanged -or $pluginChanged -or $frameworkConfigChanged) { 'drifted' } else { 'installed' }
+            state = if (-not $entry) { 'not-managed' } elseif ($missing.Count -gt 0 -or $fingerprintChanged -or $pluginChanged -or $mcpChanged -or $frameworkConfigChanged) { 'drifted' } else { 'installed' }
             missingPaths = $missing
-            contentChanged = $fingerprintChanged -or $pluginChanged -or $frameworkConfigChanged
+            contentChanged = $fingerprintChanged -or $pluginChanged -or $mcpChanged -or $frameworkConfigChanged
         }
     }
     return @($rows)
@@ -1643,7 +1763,7 @@ if ($Action -eq 'profiles') {
 }
 
 if ($Action -eq 'list') {
-    $assetRows = @($catalog.assets | Select-Object id, @{ Name = 'kind'; Expression = { 'asset' } }, type, channel, profiles, scopes, defaultScope, revision)
+    $assetRows = @($catalog.assets | Select-Object id, @{ Name = 'kind'; Expression = { 'asset' } }, type, channel, profiles, scopes, defaultScope, revision, description, recommendation, prerequisites)
     $overlayRows = @($catalog.overlays | Select-Object id, @{ Name = 'kind'; Expression = { 'overlay' } }, targetKind, targetAssetId, targetName, profiles, scopes, priority)
     Write-Result @($assetRows + $overlayRows)
     return
@@ -1669,7 +1789,7 @@ if ($Action -eq 'plan') {
         scope = $Scope
         projectRoot = if ($Scope -eq 'project') { $projectRootResolved } else { $null }
         profiles = $selection.profiles
-        assets = @($selection.assets | Select-Object id, type, channel, revision)
+        assets = @($selection.assets | Select-Object id, type, channel, revision, description, recommendation, prerequisites)
         overlays = @($selection.overlays | ForEach-Object {
             [pscustomobject]@{
                 id = $_.id
@@ -1806,6 +1926,7 @@ foreach ($asset in @($selection.assets)) {
         'junction' { Install-JunctionAsset $asset $projectRootResolved $lock; break }
         'git-allowlist' { Install-GitAllowlistAsset $asset $projectRootResolved $lock; break }
         'opencode-plugin' { Install-OpenCodePluginAsset $asset $Scope $projectRootResolved; break }
+        'opencode-mcp' { Install-OpenCodeMcpAsset $asset $Scope $projectRootResolved $lock; break }
         'npm-framework' { Install-NpmFrameworkAsset $asset $Scope $projectRootResolved $lock; break }
         'claude-marketplace' { Install-MarketplaceAsset $catalog $asset; break }
         'provenance-only' { throw "Asset $($asset.id) is provenance-only and cannot be applied." }

@@ -45,13 +45,14 @@ function M.setup()
     -- Terminal mode 使用 Neovim 原生 <C-\><C-n> 離開，避免 <Esc> 與終端程式衝突
     -- LSP / 診斷：已由 LazyVim 內建，不重複定義
     -- (gd, gy, gi, gr, K, [d, ]d, \ca, \rn 皆由 LazyVim 處理)
-    vim.keymap.set("n", "<leader>xx", vim.diagnostic.open_float, { desc = "Show line diagnostic" })
+    vim.keymap.set("n", "<leader>xx", function()
+        local _, win = vim.diagnostic.open_float({ scope = "line" })
+        if win and vim.api.nvim_win_is_valid(win) then
+            vim.api.nvim_set_current_win(win)
+        end
+    end, { desc = "Show and focus line diagnostic" })
     vim.keymap.set("n", "<leader>xl", "<cmd>Trouble loclist toggle<cr>", { desc = "Location list" })
     vim.keymap.set("n", "<leader>xq", "<cmd>Trouble qflist toggle<cr>", { desc = "Quickfix list" })
-    -- 切換行內診斷多行展開 (tiny-inline-diagnostic)
-    vim.keymap.set("n", "<leader>xm", function()
-        require("tiny-inline-diagnostic").toggle_multilines()
-    end, { desc = "切換診斷多行顯示" })
     -- 摺疊相關：使用 Neovim 原生摺疊 (nvim-ufo 已停用)
 
     -- Inlay Hints 開關（使用 <leader>uh，避免 <C-c> 衝突）

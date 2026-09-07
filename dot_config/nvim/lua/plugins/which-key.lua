@@ -162,13 +162,12 @@ return {
         { "<leader>uw", desc = "切換自動換行" },
 
         -- ── 診斷 / Trouble（neovim.lua + LazyVim）─────
-        { "<leader>xx", desc = "顯示本行診斷（浮動）" },
+        { "<leader>xx", desc = "顯示並進入本行診斷浮窗" },
         { "<leader>xX", desc = "目前 Buffer 診斷（Trouble）" },
         { "<leader>xq", desc = "Quickfix 清單（Trouble）" },
         { "<leader>xl", desc = "Location 清單（Trouble）" },
         { "<leader>xt", desc = "Todo 清單（Trouble）" },
         { "<leader>xT", desc = "Todo / Fix / FIXME（Trouble）" },
-        { "<leader>xm", desc = "切換診斷多行顯示" },
 
         -- ══ 非 Leader 內建鍵中文化 ════════════════════
 

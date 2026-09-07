@@ -6,7 +6,7 @@ general:
 
   # Commands to run just before the WM is shutdown.
   # Example: The below command kills Zebar.
-  shutdown_commands: ['shell-exec wscript.exe //B "{{ .chezmoi.homeDir | replace "/" "\\" }}\.glzr\glazewm\stop-zebar.vbs"']
+  shutdown_commands: ['shell-exec --hide-window taskkill.exe /IM zebar.exe /F']
 
   # Commands to run after the WM config is reloaded.
   config_reload_commands: []
@@ -62,7 +62,7 @@ window_effects:
     # ** Exclusive to Windows 11 due to API limitations.
     border:
       enabled: true
-      color: '#8dbcff'
+      color: '#ffb000'
 
     # Remove the title bar from the window's frame. Note that this can
     # cause rendering issues for some applications.
@@ -86,7 +86,7 @@ window_effects:
   # Visual effects to apply to non-focused windows.
   other_windows:
     border:
-      enabled: true
+      enabled: false
       color: '#a1a1a1'
     hide_title_bar:
       enabled: false
@@ -94,8 +94,8 @@ window_effects:
       enabled: false
       style: 'square'
     transparency:
-      enabled: false
-      opacity: '0%'
+      enabled: true
+      opacity: '100%'
 
 window_behavior:
   # New windows are created in this state whenever possible.
@@ -142,13 +142,13 @@ window_rules:
   - commands: ['set-floating --centered']
     match:
       - window_process: { equals: 'zebar' }
-        window_title: { regex: '^Zebar - overline-custom / window-switcher$' }
+        window_title: { regex: '^Zebar - overline-TC / window-switcher$' }
 
   - commands: ['ignore']
     match:
       # Ignore every Zebar window except the keyboard-focused switcher.
       - window_process: { equals: 'zebar' }
-        window_title: { not_regex: '^Zebar - overline-custom / window-switcher$' }
+        window_title: { not_regex: '^Zebar - overline-TC / window-switcher$' }
 
       # Ignores picture-in-picture windows for browsers.
       - window_title: { regex: '[Pp]icture.in.[Pp]icture' }
@@ -225,9 +225,9 @@ keybindings:
     bindings: ['alt+j', 'alt+down']
 
   # Cycle through all windows in the current workspace.
-  - commands: ['shell-exec wscript.exe //B "{{ .chezmoi.homeDir | replace "/" "\\" }}\.glzr\glazewm\cycle-workspace-window.vbs" previous']
+  - commands: ['shell-exec --hide-window node.exe "{{ .chezmoi.homeDir | replace "/" "\\" }}\.glzr\glazewm\cycle-workspace-window.js" previous']
     bindings: ['alt+oem_open_brackets']
-  - commands: ['shell-exec wscript.exe //B "{{ .chezmoi.homeDir | replace "/" "\\" }}\.glzr\glazewm\cycle-workspace-window.vbs" next']
+  - commands: ['shell-exec --hide-window node.exe "{{ .chezmoi.homeDir | replace "/" "\\" }}\.glzr\glazewm\cycle-workspace-window.js" next']
     bindings: ['alt+oem_close_brackets']
 
   # Move focused window in a given direction.
@@ -314,7 +314,7 @@ keybindings:
     bindings: ['alt+shift+r']
 
   # Fully restart GlazeWM and Zebar to rebuild docked work areas.
-  - commands: ['shell-exec wscript.exe //B "{{ .chezmoi.homeDir | replace "/" "\\" }}\.glzr\glazewm\restart-glazewm.vbs"']
+  - commands: ['shell-exec --hide-window pwsh.exe -NoLogo -NoProfile -NonInteractive -WindowStyle Hidden -File "{{ .chezmoi.homeDir | replace "/" "\\" }}\.glzr\glazewm\restart-glazewm.ps1"']
     bindings: ['alt+shift+w']
 
   # Focus the workspace that last had focus.

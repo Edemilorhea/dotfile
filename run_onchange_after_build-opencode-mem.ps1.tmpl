@@ -1,0 +1,27 @@
+{{- if eq .chezmoi.os "windows" -}}
+# package-hash: {{ include "dot_config/opencode/plugins/opencode-mem/package.json" | sha256sum }}
+# lock-hash: {{ include "dot_config/opencode/plugins/opencode-mem/bun.lock" | sha256sum }}
+# local-patch-revision: 2026-09-04-embedding-loader-1
+$ErrorActionPreference = 'Stop'
+Set-StrictMode -Version Latest
+
+$plugin = Join-Path $env:USERPROFILE '.config\opencode\plugins\opencode-mem'
+if (-not (Test-Path -LiteralPath $plugin -PathType Container)) {
+    throw "OpenCode memory plugin source not found: $plugin"
+}
+
+Push-Location $plugin
+try {
+    & bun install --ignore-scripts --frozen-lockfile
+    if ($LASTEXITCODE -ne 0) {
+        throw "OpenCode memory dependency install failed (exit code $LASTEXITCODE)"
+    }
+
+    & bun run build
+    if ($LASTEXITCODE -ne 0) {
+        throw "OpenCode memory build failed (exit code $LASTEXITCODE)"
+    }
+} finally {
+    Pop-Location
+}
+{{- end -}}

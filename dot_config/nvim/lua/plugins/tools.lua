@@ -21,6 +21,14 @@ return {
                 selection_caret = "> ",
                 path_display = { "smart" },
                 file_ignore_patterns = { "node_modules", ".git/" },
+                mappings = {
+                    i = {
+                        ["<C-v>"] = function()
+                            local keys = vim.api.nvim_replace_termcodes("<C-r>+", true, false, true)
+                            vim.api.nvim_feedkeys(keys, "n", false)
+                        end,
+                    },
+                },
                 layout_config = {
                     horizontal = {
                         preview_width = 0.55,
@@ -43,6 +51,26 @@ return {
                 },
             },
         },
+        config = function(_, opts)
+            require("telescope").setup(opts)
+
+            local function cwd_picker(name, picker_opts)
+                return function()
+                    require("telescope.builtin")[name](vim.tbl_deep_extend("force", {
+                        cwd = vim.uv.cwd(),
+                    }, picker_opts or {}))
+                end
+            end
+
+            -- LazyVim's Telescope extra maps these to the parent project root by default.
+            vim.keymap.set("n", "<leader><space>", cwd_picker("find_files"), { desc = "搜尋檔案（工作目錄）" })
+            vim.keymap.set("n", "<leader>ff", cwd_picker("find_files"), { desc = "搜尋檔案（工作目錄）" })
+            vim.keymap.set("n", "<leader>fg", cwd_picker("live_grep"), { desc = "全文搜尋（工作目錄）" })
+            vim.keymap.set("n", "<leader>/", cwd_picker("live_grep"), { desc = "全文搜尋（工作目錄）" })
+            vim.keymap.set("n", "<leader>sg", cwd_picker("live_grep"), { desc = "全文搜尋（工作目錄）" })
+            vim.keymap.set("n", "<leader>fw", cwd_picker("grep_string"), { desc = "搜尋游標文字（工作目錄）" })
+            vim.keymap.set({ "n", "x" }, "<leader>sw", cwd_picker("grep_string"), { desc = "搜尋文字（工作目錄）" })
+        end,
         keys = {
             { "<leader>ff", "<cmd>Telescope find_files<CR>", desc = "搜尋檔案" },
             { "<leader>fg", "<cmd>Telescope live_grep<CR>", desc = "全文搜尋" },
