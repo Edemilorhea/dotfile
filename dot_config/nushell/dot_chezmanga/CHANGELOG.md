@@ -83,3 +83,68 @@
 - Portability: The menu style uses Nushell-supported color records and contains no machine-specific values.
 - Chezmoi: Updated the managed source and applied only the interface module and changelog targets.
 - Verification: Nushell loaded the applied module and reported the expected completion selection style without configuration errors.
+
+## 2026-09-07T00:48:22+08:00 - Add isolated OpenCode exit tests
+
+- Status: Completed
+- Machine: DESKTOP-3JHKCAP
+- Platform: windows/x64
+- Scope: `diagnostics/launch-opencode-exit-test.ps1`
+- Summary: Added a launcher for fresh Rio and Nushell sessions that isolates configuration components involved in the OpenCode normal-exit crash.
+- Important records:
+  - Every profile starts Nushell with `--no-config-file --no-history`, then explicitly loads only the selected environment, Atuin, prompt, interface, or full configuration components.
+  - The launcher must be started from Windows Run for reliable isolation from an existing Nushell process.
+- Portability: The launcher is Windows-specific, resolves Rio and Nushell from `PATH`, and derives configuration paths from the current home directory.
+- Chezmoi: Added the diagnostic launcher under the existing managed Nushell scope and applied only that directory and this changelog.
+- Verification: PowerShell parsing passed; isolated Atuin, prompt, and full Nushell profiles loaded successfully; Rio CLI options were confirmed with `rio --help`.
+
+## 2026-09-07T10:15:08+08:00 - Fix exit-test command construction
+
+- Status: Completed
+- Machine: DESKTOP-3JHKCAP
+- Platform: windows/x64
+- Scope: `diagnostics/launch-opencode-exit-test.ps1`
+- Summary: Keep source commands in an array so single-component profiles do not concatenate source and print into invalid Nushell syntax.
+- Important records: Added a finite `-Check` mode using the same command text as the interactive launcher, displayed OpenCode resolution, and fixed the working directory to the user home. Earlier manual results require reconfirmation; the conhost crash is not yet fixed.
+- Portability: Uses the current home directory and PATH; launcher remains Windows-specific.
+- Chezmoi: Updated source first and applied only the launcher and changelog.
+- Verification: Reproduced the old extra_positional parser error. All nine corrected profiles passed through the launcher check mode and resolved the same OpenCode executable in the agent environment. Interactive exit verification remains pending.
+
+## 2026-09-07T10:30:01+08:00 - Add separate-console OpenCode workaround
+
+- Status: Partial
+- Machine: DESKTOP-3JHKCAP
+- Platform: windows/x64
+- Scope: `modules/commands.nu`
+- Summary: Added opt-in `oc-window` to start OpenCode in a new Rio window with CMD, keeping the current working directory and leaving `oc` unchanged.
+- Important records: This creates a new ConPTY rather than nesting CMD inside Nushell's existing console. CMD stays open after OpenCode exits. No claim of an upstream crash fix; user exit verification remains pending.
+- Portability: Windows-only command using PATH resolution and the current Nushell working directory; no fixed machine paths.
+- Chezmoi: Updated source first and applied only commands.nu and this changelog.
+- Verification: Nushell successfully loaded the module and found oc-window. The first inspection command used the wrong metadata column (signature); the corrected signatures query passed. Interactive launch and exit remain unverified.
+
+## 2026-09-07T19:37:54+08:00 - Disable OpenTUI alternate screen on Windows
+
+- Status: Completed
+- Machine: DESKTOP-3JHKCAP
+- Platform: windows/x64
+- Scope: `env.nu`, `modules/commands.nu`
+- Summary: Set `OTUI_USE_ALTERNATE_SCREEN=false` for Windows Nushell sessions so OpenCode uses the same-pane exit path that passed interactive testing.
+- Important records:
+  - The environment setting covers direct `opencode`, the `oc` alias, and `ocRider` without replacing their existing definitions.
+  - Removed the rejected `oc-window` workaround because opening another terminal conflicts with pane-based workflows.
+  - No `ocrr` command exists in the managed or deployed Nushell configuration, so no undefined alias was added.
+- Portability: The workaround is restricted to Windows; other platforms retain OpenTUI's default alternate-screen behavior.
+- Chezmoi: Updated the managed source first and applied only `env.nu`, `modules/commands.nu`, and this changelog.
+- Verification: Isolated Nushell loading reported the environment value as `false`, retained `ocRider`, removed `oc-window`, and confirmed `oc` still expands to `opencode`. The user had already observed a successful same-pane `/exit`; the persistent setting requires one final test in a newly started Nushell session.
+
+## 2026-09-07T19:43:07+08:00 - Retire temporary exit-test launcher
+
+- Status: Completed
+- Machine: DESKTOP-3JHKCAP
+- Platform: windows/x64
+- Scope: `diagnostics/launch-opencode-exit-test.ps1`
+- Summary: Removed the temporary profile launcher after direct same-pane testing identified the alternate-screen workaround.
+- Important records: The launcher was diagnostic support only and is not required by the persistent OpenTUI setting.
+- Portability: No diagnostic script remains to deploy on other machines.
+- Chezmoi: Removed the temporary source and deployed target before committing the final fix.
+- Verification: The source repository no longer contains an untracked Nushell diagnostics directory.

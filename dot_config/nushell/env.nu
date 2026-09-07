@@ -46,6 +46,8 @@ if $nu.os-info.name != "windows" {
 # Windows：把使用者設定目錄加入 PATH
 if $nu.os-info.name == "windows" {
     $env.PATH = ($env.PATH | append $"($env.USERPROFILE)\\.config")
+    # Avoid the OpenTUI alternate-screen exit path that crashes Windows ConPTY.
+    $env.OTUI_USE_ALTERNATE_SCREEN = "false"
 }
 
 # Windows：自動偵測 Git 安裝路徑（依常見位置逐一嘗試）
