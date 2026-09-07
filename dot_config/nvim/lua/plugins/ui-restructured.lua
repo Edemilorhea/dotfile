@@ -70,6 +70,14 @@ return {
         priority = 900,
         cond = not vim.g.vscode,
     },
+    {
+        "folke/noice.nvim",
+        opts = {
+            presets = {
+                lsp_doc_border = true,
+            },
+        },
+    },
 
     -- Neo-tree 檔案管理器 (只在 Neovim 中使用)
     {
@@ -261,6 +269,9 @@ return {
             auto_close = true,
             auto_open = false,
             use_diagnostic_signs = true,
+        },
+        keys = {
+            { "<leader>xx", false },
         },
     },
 

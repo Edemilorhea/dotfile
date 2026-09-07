@@ -7,8 +7,8 @@ local wo = vim.wo
 vim.g.mapleader = "\\"
 vim.g.maplocalleader = "\\"
 
--- ESLint LSP 開關 (預設關閉,用 \uE 或 :EslintToggle 即時切換)
-vim.g.eslint_enabled = false
+-- ESLint LSP 預設啟用，但只在專案有 ESLint 設定時啟動 client。
+vim.g.eslint_enabled = true
 
 -- 啟動時即把 mason bin 加入 PATH，避免 mason 延遲載入時
 -- tree-sitter-cli 等工具在 :checkhealth（未開專案時 mason 未載入）找不到
@@ -45,6 +45,7 @@ opt.encoding = "utf-8"
 opt.fileencodings = "utf-8,big5,gbk,gb18030,gb2312,ucs-bom,cp936,euc-jp,euc-kr,shift-jis,latin1"
 opt.langmenu = "zh_TW.UTF-8"
 opt.termguicolors = true
+opt.winborder = "rounded"
 
 if not g.vscode then
     -- fold 顯示改由 nvim-ufo 接管（見 lua/plugins/neovim-only.lua）。

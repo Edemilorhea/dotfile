@@ -123,6 +123,35 @@ end
 vim.api.nvim_create_autocmd("ColorScheme", { pattern = "rose-pine*", callback = set_indent_hl })
 set_indent_hl() -- 啟動時立即套用
 
+local function set_float_hl()
+    local background = "#2A2D34"
+    local border = "#9CCFD8"
+
+    vim.api.nvim_set_hl(0, "NormalFloat", { bg = background })
+    vim.api.nvim_set_hl(0, "FloatBorder", { fg = border, bg = background })
+    vim.api.nvim_set_hl(0, "FloatTitle", { fg = border, bg = background, bold = true })
+    vim.api.nvim_set_hl(0, "FloatFooter", { fg = border, bg = background })
+    vim.api.nvim_set_hl(0, "SnacksNotifierHistory", { link = "NormalFloat" })
+
+    for _, group in ipairs({ "NoicePopup", "NoicePopupmenu", "NoiceCmdlinePopup", "NoiceConfirm" }) do
+        vim.api.nvim_set_hl(0, group, { link = "NormalFloat" })
+        vim.api.nvim_set_hl(0, group .. "Border", { link = "FloatBorder" })
+    end
+
+    for _, level in ipairs({ "Trace", "Debug", "Info", "Warn", "Error" }) do
+        vim.api.nvim_set_hl(0, "SnacksNotifier" .. level, { link = "NormalFloat" })
+        vim.api.nvim_set_hl(0, "SnacksNotifierBorder" .. level, { link = "FloatBorder" })
+    end
+end
+
+vim.api.nvim_create_autocmd("ColorScheme", {
+    pattern = "*",
+    callback = function()
+        vim.schedule(set_float_hl)
+    end,
+})
+vim.schedule(set_float_hl)
+
 local function convert_line_endings(fileformat)
     vim.cmd([[silent! %s/\r$//e]])
     vim.bo.fileformat = fileformat

@@ -22,6 +22,8 @@ require("lazy").setup({
         { import = "plugins.shared" }, -- VSCode + Neovim 共用插件
         { import = "plugins.blink" }, -- blink.cmp 覆寫配置
         { import = "plugins.development" }, -- 開發工具
+        { import = "plugins.eslint" }, -- ESLint 僅在有設定的專案啟動，可手動切換
+        { import = "plugins.diagnostics" }, -- 診斷保留但不在程式碼內顯示
         { import = "plugins.formatting" }, -- 格式化設定 (conform.nvim)
         { import = "plugins.linting" }, -- lint 設定 (nvim-lint)
         { import = "plugins.persistence" }, -- session 儲存設定
