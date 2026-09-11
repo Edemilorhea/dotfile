@@ -1,0 +1,7 @@
+{
+    "RoslynExtensionsOptions": {
+        "EnableAnalyzersSupport": false,
+        "AnalyzeOpenDocumentsOnly": true,
+        "DiagnosticWorkersThreadCount": 2
+    }
+}

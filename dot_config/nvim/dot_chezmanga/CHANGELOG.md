@@ -154,3 +154,67 @@
 - Portability: Uses Noice's documented preset and Neovim highlight APIs without machine-specific paths.
 - Chezmoi: Updated two existing managed source files and applied only their corresponding Neovim targets.
 - Verification: A real `K` mapping with `lua_ls` attached opened a rounded floating window; merged Noice options resolved the hover border to `rounded`; Lua parsing and Git whitespace checks passed.
+
+## 2026-09-09T09:58:17+08:00 - Add C# solution selection
+
+- Status: Completed
+- Machine: tc-tseng
+- Platform: windows/x64
+- Scope: `lua/config/csharp.lua`, `lua/plugins/csharp.lua`, `lua/config/lazy.lua`, `tests/csharp_solution_spec.lua`
+- Summary: Added `:CSharpSolution` and `:CSharpStatus`, gated automatic OmniSharp startup on solution selection, and removed the task-only test file.
+- Important records:
+  - Selection is stored per Git worktree or nearest solution workspace under `stdpath("state")`; only `.sln` and `.slnf` candidates at the nearest solution boundary are offered.
+  - Cancelling does not start or replace an active client; switching waits for the old client in the current selection root to stop before starting OmniSharp with `-s` and the selected absolute solution path.
+  - Status reports the selection root and actual client initialization separately, and reports full analysis readiness as unknown because OmniSharp exposes no reliable readiness signal.
+- Portability: Uses Neovim state storage and normalized discovered paths without hard-coded project or machine paths.
+- Chezmoi: Added the C# configuration and plugin override, updated the explicit plugin import, removed the task-only test from source and runtime, and applied only this Neovim scope.
+- Verification: One headless `loadfile` pass parsed the three Lua files successfully without loading the configuration or starting OmniSharp; no test suite or solution process was run.
+
+## 2026-09-09T16:52:35+08:00 - Limit OmniSharp background diagnostics
+
+- Status: Completed
+- Machine: tc-tseng
+- Platform: windows/x64
+- Scope: `lua/config/csharp.lua`; companion user-level `~/.omnisharp/omnisharp.json`
+- Summary: Disabled extra analyzer support, restricted diagnostics to open documents, and limited diagnostic workers to two to address sustained OmniSharp CPU usage.
+- Important records:
+  - Set both startup arguments and LSP settings in the solution controller so limits are available before project loading and remain consistent after initialization.
+  - Added the existing user-level OmniSharp configuration to source state, removed obsolete VS Code Roslynator paths, and aligned its settings because the global JSON overrides command-line options.
+  - Solution selection and project loading scope are unchanged; the global JSON also affects other OmniSharp clients for this user. The companion file is outside the Neovim marker's ownership scope.
+  - Existing Neovim/OmniSharp processes require a restart; reduced CPU usage and navigation behavior have not yet been measured with the new settings.
+- Portability: Uses portable OmniSharp options without machine-specific extension paths.
+- Chezmoi: Updated the existing Neovim source, added `dot_omnisharp/omnisharp.json`, and applied only the two configuration targets and this changelog.
+- Verification: Inspected the scoped deployment diff and applied the configuration successfully; no functional test or automatic process restart was performed.
+
+## 2026-09-09T17:25:01+08:00 - Switch C# language service to Roslyn
+
+- Status: Completed
+- Machine: tc-tseng
+- Platform: windows/x64
+- Scope: `lua/plugins/csharp.lua`
+- Summary: Replaced the active OmniSharp startup hook with roslyn.nvim and restricted Roslyn background compiler and analyzer diagnostics to open files.
+- Important records:
+  - Existing Roslyn registry settings were in an unimported plugin file; the active C# spec now adds the Crashdummyy Mason registry and ensures the `roslyn` package is installed.
+  - Disabled OmniSharp and the separate nvim-lspconfig `roslyn_ls` startup path so roslyn.nvim owns C# startup. The old OmniSharp controller remains on disk but is no longer initialized.
+  - Solution selection now uses `:Roslyn target`; the installed plugin supports `.sln`, `.slnx`, and `.slnf`. The old controller's persisted selection and commands are not used.
+  - Installed roslyn.nvim and Mason's `roslyn` package version `5.12.0-1.26453.19`; downloaded dependencies remain runtime-only.
+  - Neovim 0.12.5 meets the plugin's minimum 0.12 requirement. Existing Neovim sessions need restarting.
+- Portability: Uses Mason's platform-specific packages and plugin-native discovery without hard-coded machine or project paths.
+- Chezmoi: Updated the existing managed C# plugin source and applied its runtime target.
+- Verification: Inspected deployment diff and the successful Mason installation receipt. No C# project was started, and navigation or CPU behavior has not been tested.
+
+## 2026-09-11T15:09:44+08:00 - Restore diagnostic underlines
+
+- Status: Completed
+- Machine: tc-tseng
+- Platform: windows/x64
+- Scope: `lua/plugins/diagnostics.lua`
+- Summary: Re-enabled diagnostic underlines so errors and warnings are marked at their source range, while inline message text stays hidden.
+- Important records:
+  - The 2026-09-07 change disabled `underline` together with `virtual_text` and `virtual_lines`, which left only the sign-column icon to indicate a problem and gave no in-line position.
+  - Only `underline` was changed to `true`; `virtual_text` and `virtual_lines` remain `false` so the code layout does not shift.
+  - The file header comment was corrected to match the new behavior.
+  - Underline color comes from the colorscheme's `DiagnosticUnderline*` highlight groups and was not modified.
+- Portability: Uses LazyVim and Neovim diagnostic options without machine-specific paths.
+- Chezmoi: Updated the existing managed source and applied only the corresponding Neovim target.
+- Verification: Headless Neovim reported `underline=true`, `virtual_text=false`, `virtual_lines=false`, and signs enabled, and a seeded error diagnostic produced one `DiagnosticUnderline` extmark plus one sign extmark; source and target are synchronized with LF line endings.
