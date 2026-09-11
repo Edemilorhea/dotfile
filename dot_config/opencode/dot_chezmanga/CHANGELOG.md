@@ -342,3 +342,16 @@
 - Portability: Same as before; no machine-specific paths introduced.
 - Chezmoi: Updated `dot_config/opencode/tui.json` and reverted the `opencode.json` addition.
 - Verification: Scoped `chezmoi apply` succeeded and rendered targets match source state.
+## 2026-09-12T03:38:58+08:00 - Remove empty Fable skill directories
+
+- Status: Completed
+- Machine: TC-TSENG
+- Platform: windows/x64
+- Scope: `skills/fable-judge`, `skills/fable-loop`, `skills/fable-method`
+- Summary: Deleted the empty source directories left behind when the Fable payloads moved to `config/assets/fable/`, so chezmoi no longer recreates unused skill folders in the runtime tree.
+- Important records:
+  - Git does not track empty directories, so the earlier rename commit looked complete while `chezmoi status` still reported `DA` for these paths.
+  - The Fable content itself is unchanged and remains command-only under `config/assets/fable/`.
+- Portability: Directory removal only; no machine-specific paths involved.
+- Chezmoi: Removed `dot_config/opencode/skills/fable-judge`, `fable-loop`, and `fable-method` from the source state.
+- Verification: `chezmoi status` no longer lists any `fable-*` entry.
