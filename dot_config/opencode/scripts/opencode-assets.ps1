@@ -232,8 +232,9 @@ function Start-AssetManagerTui {
         if ($chosenAction -in @('list', 'profiles')) { return $true }
 
         :scope while ($true) {
-            $globalItemCount = @($Catalog.assets | Where-Object { @($_.scopes) -contains 'global' }).Count
-            $projectItemCount = @($Catalog.assets | Where-Object { @($_.scopes) -contains 'project' }).Count
+            $selectableAssets = @($Catalog.assets | Where-Object { $_.channel -ne 'provenance-only' })
+            $globalItemCount = @($selectableAssets | Where-Object { @($_.scopes) -contains 'global' }).Count
+            $projectItemCount = @($selectableAssets | Where-Object { @($_.scopes) -contains 'project' }).Count
             $chosenScope = Read-TuiMenu '請選擇管理範圍' @(
                 (New-TuiOption '全域使用者設定' 'global' "共 $globalItemCount 項；可從任何目錄管理使用者層級的安裝。")
                 (New-TuiOption '目前專案' 'project' "共 $projectItemCount 項；固定安裝到目前目錄：$($script:TuiProjectRoot)")
@@ -277,7 +278,7 @@ function Start-AssetManagerTui {
                 elseif (@($tuiLock.profiles).Count -gt 0) { @($tuiLock.profiles) }
                 elseif ($Scope -eq 'global') { @($Catalog.defaultProfiles) }
                 else { @() }
-            $availableItems = @($Catalog.assets | Where-Object { @($_.scopes) -contains $Scope })
+            $availableItems = @($selectableAssets | Where-Object { @($_.scopes) -contains $Scope })
             $profileOptions = @($Catalog.profiles.PSObject.Properties | ForEach-Object {
                 $profileName = $_.Name
                 $profileAssets = @($availableItems | Where-Object { @($_.profiles) -contains $profileName })
@@ -336,12 +337,13 @@ function Start-AssetManagerTui {
                 }
                 $script:TuiExplicitSelection = $true
                 $resolvedSelection = Get-Selections $Catalog $Scope $resolvedRoot
-                $availableOverlays = if ($Scope -eq 'project') {
-                    @($Catalog.overlays | Where-Object {
-                        @($_.scopes) -contains $Scope -and @($resolvedSelection.assets.id) -contains $_.targetAssetId
-                    })
-                }
-                else { @() }
+                $availableOverlays = @(
+                    if ($Scope -eq 'project') {
+                        $Catalog.overlays | Where-Object {
+                            @($_.scopes) -contains $Scope -and @($resolvedSelection.assets.id) -contains $_.targetAssetId
+                        }
+                    }
+                )
                 if ($availableOverlays.Count -gt 0) {
                     $suggestedOverlays = if ($manifest) { @($manifest.overlays) } else { $installedOverlayIds }
                     $overlayOptions = @($availableOverlays | ForEach-Object {
@@ -747,6 +749,49 @@ function Get-InstalledSkillsForSource {
     } | ForEach-Object { $_.Name })
 }
 
+function Add-SkillsCliFrontmatter {
+    param(
+        [Parameter(Mandatory = $true)]$Asset,
+        [Parameter(Mandatory = $true)][string]$RepositoryPath
+    )
+
+    if (-not $Asset.PSObject.Properties['frontmatter']) {
+        return
+    }
+    if (@($Asset.skills) -contains '*') {
+        throw "Skills CLI asset $($Asset.id) cannot combine wildcard skills with managed frontmatter."
+    }
+
+    $frontmatterConfig = $Asset.frontmatter
+    $metadataPath = [IO.Path]::GetFullPath((Resolve-HomePath $frontmatterConfig.sourcePath))
+    if (-not (Test-Path -LiteralPath $metadataPath)) {
+        throw "Skills CLI frontmatter metadata not found: $metadataPath"
+    }
+    $metadata = Get-Content -LiteralPath $metadataPath -Raw | ConvertFrom-Json
+    $skillRoot = [IO.Path]::GetFullPath((Join-Path $RepositoryPath $frontmatterConfig.skillRoot))
+    if (-not (Test-PathWithinRoot $skillRoot $RepositoryPath)) {
+        throw "Skills CLI frontmatter root escapes the repository: $skillRoot"
+    }
+
+    foreach ($skillName in @($Asset.skills)) {
+        $descriptionProperty = $metadata.PSObject.Properties[$skillName]
+        if (-not $descriptionProperty -or [string]::IsNullOrWhiteSpace($descriptionProperty.Value)) {
+            throw "Skills CLI frontmatter metadata is missing a description for $skillName."
+        }
+        $skillPath = [IO.Path]::GetFullPath((Join-Path $skillRoot "$skillName\SKILL.md"))
+        if (-not (Test-PathWithinRoot $skillPath $skillRoot) -or -not (Test-Path -LiteralPath $skillPath -PathType Leaf)) {
+            throw "Skills CLI source file not found for $skillName."
+        }
+        $content = [IO.File]::ReadAllText($skillPath)
+        if ($content.StartsWith('---')) {
+            throw "Skills CLI source already contains frontmatter for $skillName."
+        }
+        $description = ConvertTo-Json ([string]$descriptionProperty.Value) -Compress
+        $adapted = "---`nname: $skillName`ndescription: $description`n---`n`n$content"
+        [IO.File]::WriteAllText($skillPath, $adapted, [Text.UTF8Encoding]::new($false))
+    }
+}
+
 function Install-SkillsCliAsset {
     param(
         [Parameter(Mandatory = $true)]$Catalog,
@@ -765,6 +810,7 @@ function Install-SkillsCliAsset {
         Invoke-CheckedCommand 'git' @('clone', '--filter=blob:none', '--no-checkout', $Asset.repository, $repositoryPath) "Failed to clone $($Asset.repository)"
         Invoke-CheckedCommand 'git' @('-C', $repositoryPath, 'fetch', '--depth', '1', 'origin', $Asset.revision) "Failed to fetch $($Asset.revision)"
         Invoke-CheckedCommand 'git' @('-C', $repositoryPath, 'checkout', '--detach', 'FETCH_HEAD') "Failed to checkout $($Asset.revision)"
+        Add-SkillsCliFrontmatter $Asset $repositoryPath
 
         $installer = $Catalog.installers.skillsCli
         $arguments = @('-y', "$($installer.package)@$($installer.version)", 'add', $repositoryPath)
@@ -2062,6 +2108,19 @@ function Test-Catalog {
             }
             if (@($asset.scopes).Count -ne 1 -or @($asset.scopes) -notcontains 'project' -or $asset.defaultScope -ne 'project') {
                 $errors.Add('Slim8 asset must use project scope only.')
+            }
+        }
+        if ($asset.PSObject.Properties['frontmatter']) {
+            if ($asset.channel -ne 'skills-cli') {
+                $errors.Add("Asset $($asset.id) can use managed frontmatter only with the skills-cli channel.")
+            }
+            if (@($asset.skills) -contains '*') {
+                $errors.Add("Asset $($asset.id) cannot combine wildcard skills with managed frontmatter.")
+            }
+            foreach ($propertyName in @('sourcePath', 'skillRoot')) {
+                if (-not $asset.frontmatter.PSObject.Properties[$propertyName] -or [string]::IsNullOrWhiteSpace($asset.frontmatter.$propertyName)) {
+                    $errors.Add("Asset $($asset.id) frontmatter requires $propertyName.")
+                }
             }
         }
         if ($asset.channel -eq 'npm-framework') {

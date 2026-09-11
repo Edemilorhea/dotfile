@@ -41,7 +41,7 @@
             "command": [
                 "npx",
                 "-y",
-                "notebooklm-mcp@latest"
+                "@charlie.act7/gemini-notebook-mcp@2.3.11"
             ],
             "enabled": true
         },

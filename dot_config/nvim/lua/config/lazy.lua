@@ -18,6 +18,7 @@ require("lazy").setup({
     spec = {
         -- add LazyVim and import its plugins
         { "LazyVim/LazyVim", import = "lazyvim.plugins" },
+        { import = "lazyvim.plugins.extras.lang.vue" },
         -- 結構化插件分類 (init.lua 已處理 VSCode 分支，此處只載入 Neovim 插件)
         { import = "plugins.shared" }, -- VSCode + Neovim 共用插件
         { import = "plugins.blink" }, -- blink.cmp 覆寫配置
@@ -26,7 +27,6 @@ require("lazy").setup({
         { import = "plugins.diagnostics" }, -- 診斷保留但不在程式碼內顯示
         { import = "plugins.formatting" }, -- 格式化設定 (conform.nvim)
         { import = "plugins.linting" }, -- lint 設定 (nvim-lint)
-        { import = "plugins.persistence" }, -- session 儲存設定
         { import = "plugins.tools" }, -- 工具插件 (Telescope、浮動終端等)
         { import = "plugins.neovim-only" }, -- 純 Neovim 插件
         { import = "plugins.ui-restructured" }, -- UI 插件

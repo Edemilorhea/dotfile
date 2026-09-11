@@ -61,7 +61,7 @@
       "defaultScope": "project"
     },
     "education": {
-      "description": "Reserved Human Skill Tree profile pending revision review.",
+      "description": "Optional Human Skill Tree learning and career skills from a reviewed pinned revision.",
       "defaultScope": "project"
     },
     "understand": {
@@ -594,14 +594,53 @@
     {
       "id": "human-skill-tree",
       "type": "skill-bundle",
-      "channel": "provenance-only",
+      "channel": "skills-cli",
       "profiles": ["education"],
       "scopes": ["project"],
       "defaultScope": "project",
       "repository": "https://github.com/24kchengYe/human-skill-tree.git",
-      "revision": null,
-      "desiredState": "absent",
-      "notes": "Upstream confirmed; import revision and local differences still require manual review."
+      "revision": "be589ddd04c945cd64642702ed7f6cfbd2466e03",
+      "skills": [
+        "00-learning-how-to-learn",
+        "00-tutor-persona",
+        "01-k12-exam-systems",
+        "01-k12-humanities",
+        "01-k12-languages",
+        "01-k12-mathematics",
+        "01-k12-sciences",
+        "02-arts-design-tutor",
+        "02-business-economics-tutor",
+        "02-humanities-social-tutor",
+        "02-medical-health-tutor",
+        "02-music-arts",
+        "02-stem-tutor",
+        "02-university-guide",
+        "03-academic-writing",
+        "03-data-analysis-stats",
+        "03-literature-review",
+        "03-research-methodology",
+        "04-career-navigator",
+        "04-civil-service",
+        "04-consulting-career",
+        "04-finance-career",
+        "04-fullstack-webapp",
+        "04-interview-prep",
+        "04-tech-career",
+        "05-communication-skills",
+        "05-cross-cultural",
+        "05-emotional-intelligence",
+        "05-negotiation-persuasion",
+        "05-social-intelligence",
+        "06-creativity-innovation",
+        "06-critical-thinking",
+        "06-financial-literacy",
+        "06-health-wellness"
+      ],
+      "frontmatter": {
+        "sourcePath": "~/.config/opencode/config/assets/skills/human-skill-tree-frontmatter.json",
+        "skillRoot": "skills"
+      },
+      "notes": "The pinned upstream skill bodies are adapted only with managed OpenCode frontmatter. Review caveats remain for deployment commands, Supabase RLS examples, learner-data handling, professional advice, and cross-cultural compliance guidance."
     }
   ]
 }

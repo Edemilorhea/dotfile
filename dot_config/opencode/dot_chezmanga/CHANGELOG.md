@@ -202,6 +202,32 @@
 - Chezmoi: Updated the managed command source and applied its exact runtime target.
 - Verification: OpenCode loaded the updated command, scoped chezmoi status was clean, and the command remained LF-only.
 
+## 2026-09-07T00:17:13+08:00 - Fix empty Overlay selection
+
+- Status: Completed
+- Machine: DESKTOP-3JHKCAP
+- Platform: windows/x64
+- Scope: `scripts/opencode-assets.ps1`
+- Summary: Kept the TUI Overlay candidates as an array when the selected asset has no matching Overlay.
+- Important records:
+  - PowerShell pipeline unrolling previously converted an empty conditional result to `$null`, causing `.Count` to fail under strict mode.
+- Portability: The fix uses standard PowerShell array-subexpression behavior without machine-specific values.
+- Chezmoi: Updated the managed script source and applied only its exact runtime target.
+- Verification: PowerShell syntax parsing passed; asset catalog `doctor` returned `valid: true` with no errors or drift; the `human-skill-tree` zero-Overlay case returned a count of zero; source and runtime scripts remained LF-only.
+
+## 2026-09-07T00:47:56+08:00 - Hide non-applicable assets
+
+- Status: Completed
+- Machine: DESKTOP-3JHKCAP
+- Platform: windows/x64
+- Scope: `scripts/opencode-assets.ps1`
+- Summary: Removed provenance-only assets and their empty Profiles from the TUI installation choices while preserving catalog visibility and execution safeguards.
+- Important records:
+  - `human-skill-tree` remains a provenance record with no pinned revision and cannot be applied.
+- Portability: The filter uses catalog metadata and contains no machine-specific paths.
+- Chezmoi: Updated the existing managed script source and applied only the script and changelog targets.
+- Verification: PowerShell syntax parsing passed; catalog `doctor` remained valid with the provenance warning; a simulated TUI session excluded `human-skill-tree` and the empty `education` Profile.
+
 ## 2026-09-07T10:24:02+08:00 - Set GPT-6 as the default model
 
 - Status: Completed
@@ -246,6 +272,37 @@
 - Portability: Agent definitions contain provider model IDs only and no machine-specific paths; each machine still requires access to the configured OpenAI provider.
 - Chezmoi: Updated the managed OpenCode config, added two managed subagent definitions, and applied only their exact runtime targets.
 - Verification: `opencode debug config` parsed the merged configuration and showed the intended model and variant assignments; `opencode agent list` discovered both new agents; scoped chezmoi status was clean after apply; `git diff --check` passed.
+
+## 2026-09-07T20:05:12+08:00 - Enable reviewed Human Skill Tree installation
+
+- Status: Completed
+- Machine: DESKTOP-3JHKCAP
+- Platform: windows/x64
+- Scope: `config/external-assets.json`, `config/assets/skills/human-skill-tree-frontmatter.json`, `scripts/opencode-assets.ps1`
+- Summary: Made the 34 top-level Human Skill Tree skills installable from a pinned upstream revision by adding the OpenCode frontmatter that upstream omits.
+- Important records:
+  - The bundle is pinned to commit `be589ddd04c945cd64642702ed7f6cfbd2466e03`; skill names are enumerated instead of using wildcard ownership discovery.
+  - Installation adapts only temporary checkout copies. Installed skill bodies remain byte-equivalent to upstream after the managed frontmatter is removed.
+  - Review caveats remain for deployment commands, incomplete Supabase RLS examples, learner-data handling, professional advice, emergency precedence, and cross-cultural compliance guidance.
+  - The upstream root license offers `skills/` under AGPL-3.0 or MIT but omits the full MIT grant text; preserve upstream license provenance before redistribution.
+- Portability: The catalog uses a public repository, immutable revision, home-relative metadata path, and project-relative skill destinations without host-specific paths.
+- Chezmoi: Added the frontmatter metadata file and updated the managed catalog and installer before applying only those runtime targets and this changelog.
+- Verification: PowerShell parsing and catalog `doctor` passed; an isolated project installed and locked all 34 skills, reported no drift, preserved every upstream body, removed all 34 skills cleanly, and all edited configuration files remained LF-only.
+
+## 2026-09-07T21:13:56+08:00 - Replace broken NotebookLM MCP package
+
+- Status: Completed
+- Machine: DESKTOP-3JHKCAP
+- Platform: windows/x64
+- Scope: `opencode.json`
+- Summary: Replaced `notebooklm-mcp@latest` with the maintained Gemini Notebook fork that supports Google's `notebook.google.com` domain.
+- Important records:
+  - The previous `notebooklm-mcp@2.0.0` release only recognized `notebooklm.google.com`, so successful Google sign-in timed out and remained unauthenticated after the July 2026 product rebrand.
+  - `@charlie.act7/gemini-notebook-mcp` preserves the existing browser-driven authentication, notebook library, question, citation, and session workflows.
+  - The package is pinned to `2.3.11` so an unreviewed future release cannot silently change the MCP behavior.
+- Portability: The npm package command and version are machine-neutral; authentication profiles and cookies remain unmanaged runtime state.
+- Chezmoi: Updated the existing managed OpenCode configuration and applied only its runtime target.
+- Verification: Node.js satisfies the package requirement; the rendered OpenCode configuration matches source and keeps the expected MCP command shape.
 
 ## 2026-09-08T16:53:56+08:00 - Add dependency-aware verification scheduling
 
