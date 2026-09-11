@@ -1,5 +1,6 @@
 import { homedir } from "node:os"
 import { join } from "node:path"
+import { loadUsagePlugin } from "../lib/openai-usage-groups.mjs"
 
 export const id = "openai-usage-tui-windows"
 
@@ -13,7 +14,7 @@ export default {
     }
 
     try {
-      const plugin = await import("@a-r-m-i-n/opencode-openai-usage/tui")
+      const plugin = await loadUsagePlugin("tui")
       return await plugin.default.tui(...args)
     } finally {
       if (originalDataHome === undefined) {

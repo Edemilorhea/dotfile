@@ -1,6 +1,6 @@
 {
   "schemaVersion": 4,
-  "managerVersion": "1.6.0",
+  "managerVersion": "1.7.0",
   "defaultProfiles": ["core"],
   "installers": {
     "skillsCli": {
@@ -83,6 +83,18 @@
   },
   "overlays": [
     {
+      "id": "orchestrator-exploration-and-mvp",
+      "name": "探索預算與 MVP 規劃",
+      "description": "保留專案既有的 Explorer 委派預算與 MVP-first 規劃規則。",
+      "targetAssetId": "oh-my-opencode-slim",
+      "targetKind": "agent-prompt",
+      "targetName": "orchestrator",
+      "profiles": ["oh-my-opencode-slim"],
+      "scopes": ["project"],
+      "sourcePath": "~/.config/opencode/config/assets/overlays/oh-my-opencode-slim/orchestrator/exploration-and-mvp.md",
+      "priority": 50
+    },
+    {
       "id": "orchestrator-fast-path",
       "name": "小修改快速處理",
       "description": "讓 Orchestrator 對明確、低風險的局部修改採用精簡工作流程。",
@@ -106,6 +118,18 @@
       "sourcePath": "~/.config/opencode/config/assets/overlays/oh-my-opencode-slim/orchestrator/adversarial-plan-review.md",
       "priority": 200,
       "dependsOn": ["adversarial-review-pack"]
+    },
+    {
+      "id": "orchestrator-dependency-aware-verification",
+      "name": "依賴感知驗證排程",
+      "description": "依驗證會讀取的 writer 範圍與產出物，安全安排局部與整合檢查。",
+      "targetAssetId": "oh-my-opencode-slim",
+      "targetKind": "agent-prompt",
+      "targetName": "orchestrator",
+      "profiles": ["oh-my-opencode-slim"],
+      "scopes": ["project"],
+      "sourcePath": "~/.config/opencode/config/assets/overlays/oh-my-opencode-slim/orchestrator/dependency-aware-verification.md",
+      "priority": 300
     }
   ],
   "assets": [
@@ -482,9 +506,14 @@
         "verification-planning",
         "worktrees"
       ],
+      "bundledSkillsPath": "src/skills",
+      "projectSkillsPath": ".opencode/skills",
+      "globalSkillsPath": "~/.config/opencode/skills",
+      "globalSkillsManifestPath": "~/.config/opencode/.oh-my-opencode-slim/skills-manifest.json",
+      "globalSkillsBackupPath": "~/.local/state/opencode/slim8-skills-isolation-backups",
       "configPath": ".opencode/opencode.json",
       "conflictsWith": ["gsd"],
-      "notes": "The Asset Manager adds only the pinned plugin spec and never runs the upstream installer."
+      "notes": "The Asset Manager installs the pinned bundled skills only in the selected project and writes upstream-supported global deletion tombstones before the plugin can start."
     },
     {
       "id": "adversarial-review-pack",

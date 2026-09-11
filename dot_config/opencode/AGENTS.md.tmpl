@@ -25,12 +25,24 @@ Shared instructions for coding agents.
 - Do not modify secrets, `.env` files, credentials, or generated dependency directories.
 - Confirm before destructive or irreversible operations.
 - Read `~/.config/opencode/docs/tool-command-lifecycle.md` once per OpenCode session before the first shell command. Revisit it only before an unfamiliar command or one that may wait for input, an interrupt, or a persistent process lifecycle.
-- For code or behavior changes, run the smallest relevant validation once after the task's final edit. Do not validate after every individual edit. Documentation, comments, changelogs, marker metadata, and formatting-only changes do not require test commands unless the user requests them or a concrete risk justifies them. Report failures instead of masking them.
+
+## Scope And Verification
+
+- Authorization applies to the requested work, not each command string. Complete necessary reading, edits, and requested deployment within that scope without repeated approval. Auto mode does not authorize expanding the scope.
+- Make the smallest correct change that achieves the requested outcome. Do not add adjacent fixes, abstractions, migration frameworks, or verification infrastructure unless necessary for that outcome. Report unrelated findings without acting on them.
+- Run tests, builds, lint, benchmarks, or other executable validation only when the user requests verification or approves a check. A request to modify code does not itself authorize verification. Necessary file inspection and scoped deployment synchronization are part of the requested edit, not permission for a broader audit.
+- When verification is requested, use the closest relevant checks after the final edit. Do not expand into full suites, E2E, or repeated review unless requested. Report failures; repair and rerun only when covered by the user's requested work.
+- Do not delegate to subagents or add review rounds unless the user explicitly requests delegation or invokes a workflow that includes it. Skill suggestions alone do not authorize delegation.
+- Reuse relevant evidence for the final version; do not repeat another agent's checks merely for reassurance. Stop when the requested outcome and authorized checks are complete, and state any unverified result. These scope limits govern default agent and skill workflows; explicit user-invoked workflows remain limited to their requested scope.
 
 ## Configuration maintenance
 
 - The source of truth is chezmoi. Update `{{ .chezmoi.sourceDir | replace "\\" "/" }}` first, then apply it to runtime.
 - Restart OpenCode after changing its configuration, agents, commands, skills, or this file.
+
+## Command-only Fable payloads
+
+- Do not discover, read, or run `~/.config/opencode/config/assets/fable/` outside an explicit `/selfmade/fable`, `/fable-method`, `/fable-loop`, or `/fable-judge` command. During those commands, follow the command body and use `Read`, never the `skill` tool, for Fable payloads and nested references.
 
 ## Chezmoi-managed scopes
 

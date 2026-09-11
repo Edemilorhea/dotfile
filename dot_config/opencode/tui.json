@@ -94,6 +94,12 @@
             {
                 "invert": true
             }
+        ],
+        [
+            "opencode-claude-usage",
+            {
+                "enabled": true
+            }
         ]
     ]
     // "mouse": false

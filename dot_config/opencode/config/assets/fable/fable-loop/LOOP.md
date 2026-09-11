@@ -1,11 +1,11 @@
 ---
 name: fable-loop
-description: End-to-end orchestrated workflow that runs a task the way Fable ran sessions - parallel evidence subagents, one committed plan, surgical execution with an intent gate, adversarial verification agents, honest outcome-first report. Use for non-trivial multi-step tasks when the user says "/fable-loop", "run the fable loop", or "do this the way Fable would". For the rules alone without orchestration, use fable-method; for large multi-phase projects, prefer the GSD workflow and use this inside phases.
+description: Command-only Fable Loop payload. Read only after explicit `/selfmade/fable` or `/fable-loop` command entry; never auto-discover or load as a skill.
 ---
 
 # The Fable Loop
 
-This skill orchestrates the fable-method: read its SKILL.md first; its rules govern every stage. It is installed alongside this skill (in this plugin's `skills/fable-method/` directory, or `~/.claude/skills/fable-method/` for manual installs). The method says WHAT to check; this loop says WHO does the work: what runs in the main thread, what fans out to subagents, and what gets attacked before delivery.
+This command-only payload orchestrates the fable-method. During an explicit Fable slash command, use `Read` on `~/.config/opencode/config/assets/fable/fable-method/METHOD.md` first; its rules govern every stage. Do not use the `skill` tool. The method says WHAT to check; this loop says WHO does the work: what runs in the main thread, what fans out to subagents, and what gets attacked before delivery.
 
 **Gate first.** Trivial per the method's triviality gate: just do it, verify with the one obvious check, report in two sentences. No stages, no subagents. Everything else runs the four stages below in order.
 

@@ -1,6 +1,6 @@
 param(
     [Parameter(Position = 0)]
-    [ValidateSet('list', 'profiles', 'plan', 'apply', 'status', 'remove', 'doctor')]
+    [ValidateSet('list', 'profiles', 'plan', 'apply', 'status', 'remove', 'doctor', 'slim8-migration')]
     [string]$Action,
 
     [ValidateSet('global', 'project')]
@@ -12,12 +12,25 @@ param(
     [string[]]$Overlays = @(),
     [string]$ProjectRoot = (Get-Location).Path,
     [string]$CatalogPath = (Join-Path $HOME '.config\opencode\config\external-assets.json'),
+    [ValidateSet('plan', 'apply', 'restore')]
+    [string]$MigrationMode = 'plan',
+    [string]$BackupPath,
     [switch]$Json
 )
 
 $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version Latest
-$script:ManagerVersion = '1.6.0'
+$script:ManagerVersion = '1.7.0'
+$script:Slim8SkillNames = @(
+    'simplify',
+    'codemap',
+    'clonedeps',
+    'deepwork',
+    'verification-planning',
+    'reflect',
+    'oh-my-opencode-slim',
+    'worktrees'
+)
 $script:TuiExplicitSelection = $false
 $script:AssetSelectionExplicit = $PSBoundParameters.ContainsKey('Assets')
 $script:OverlaySelectionExplicit = $PSBoundParameters.ContainsKey('Overlays')
@@ -1005,6 +1018,410 @@ function Test-JsonValueEqual {
     return ($Left | ConvertTo-Json -Depth 50 -Compress) -eq ($Right | ConvertTo-Json -Depth 50 -Compress)
 }
 
+function Get-DirectoryContentFingerprint {
+    param([Parameter(Mandatory = $true)][string]$Path)
+
+    $item = Get-Item -LiteralPath $Path -Force
+    if (-not $item.PSIsContainer -or ($item.Attributes -band [IO.FileAttributes]::ReparsePoint)) {
+        throw "Expected a regular directory for fingerprinting: $Path"
+    }
+    $records = [Collections.Generic.List[string]]::new()
+    foreach ($child in @(Get-ChildItem -LiteralPath $Path -Force -Recurse | Sort-Object FullName)) {
+        if ($child.Attributes -band [IO.FileAttributes]::ReparsePoint) {
+            throw "Refusing to fingerprint a directory containing a reparse point: $($child.FullName)"
+        }
+        $relative = [IO.Path]::GetRelativePath($Path, $child.FullName) -replace '\\', '/'
+        if ($child.PSIsContainer) {
+            $records.Add("directory|$relative")
+        }
+        else {
+            $hash = (Get-FileHash -LiteralPath $child.FullName -Algorithm SHA256).Hash.ToLowerInvariant()
+            $records.Add("file|$relative|$hash")
+        }
+    }
+    $bytes = [Text.Encoding]::UTF8.GetBytes(($records -join "`n"))
+    return [Convert]::ToHexString([Security.Cryptography.SHA256]::HashData($bytes)).ToLowerInvariant()
+}
+
+function Get-InstalledPathHashes {
+    param([Parameter(Mandatory = $true)][AllowEmptyCollection()][string[]]$Paths)
+
+    return @($Paths | ForEach-Object {
+        [pscustomobject]@{
+            path = [IO.Path]::GetFullPath($_)
+            contentHash = (Get-PathsFingerprint @([IO.Path]::GetFullPath($_)))
+        }
+    })
+}
+
+function Assert-LockedPathsUnchanged {
+    param([Parameter(Mandatory = $true)]$Entry)
+
+    $paths = @($Entry.installedPaths)
+    if ($paths.Count -eq 0) { return }
+    if (-not $Entry.PSObject.Properties['installedPathHashes']) {
+        throw "Refusing to modify $($Entry.id): the lock does not contain per-path ownership hashes."
+    }
+    $hashes = @($Entry.installedPathHashes)
+    foreach ($path in $paths) {
+        $fullPath = [IO.Path]::GetFullPath($path)
+        $record = @($hashes | Where-Object {
+            [string]::Equals([IO.Path]::GetFullPath($_.path), $fullPath, [StringComparison]::OrdinalIgnoreCase)
+        }) | Select-Object -First 1
+        if (-not $record -or (Get-PathsFingerprint @($fullPath)) -ne $record.contentHash) {
+            throw "Refusing to modify drifted managed path: $fullPath"
+        }
+    }
+}
+
+function Get-Slim8Asset {
+    param([Parameter(Mandatory = $true)]$Catalog)
+
+    $asset = @($Catalog.assets | Where-Object id -eq 'oh-my-opencode-slim') | Select-Object -First 1
+    if (-not $asset) { throw 'The asset catalog does not contain oh-my-opencode-slim.' }
+    return $asset
+}
+
+function Get-Slim8Paths {
+    param(
+        [Parameter(Mandatory = $true)]$Asset,
+        [Parameter(Mandatory = $true)][string]$ResolvedProjectRoot
+    )
+
+    $projectSkillsRoot = Resolve-TargetPath $Asset.projectSkillsPath 'project' $ResolvedProjectRoot
+    $globalSkillsRoot = [IO.Path]::GetFullPath((Resolve-HomePath $Asset.globalSkillsPath))
+    $manifestPath = [IO.Path]::GetFullPath((Resolve-HomePath $Asset.globalSkillsManifestPath))
+    $backupRoot = [IO.Path]::GetFullPath((Resolve-HomePath $Asset.globalSkillsBackupPath))
+    $expectedProjectRoot = [IO.Path]::GetFullPath((Join-Path $ResolvedProjectRoot '.opencode\skills'))
+    $expectedGlobalRoot = [IO.Path]::GetFullPath((Join-Path $HOME '.config\opencode\skills'))
+    $expectedManifest = [IO.Path]::GetFullPath((Join-Path $HOME '.config\opencode\.oh-my-opencode-slim\skills-manifest.json'))
+    $scannedRoots = @(
+        [IO.Path]::GetFullPath((Join-Path $HOME '.config\opencode')),
+        [IO.Path]::GetFullPath((Join-Path $HOME '.agents')),
+        [IO.Path]::GetFullPath((Join-Path $HOME '.claude'))
+    )
+    if (-not [string]::Equals($projectSkillsRoot, $expectedProjectRoot, [StringComparison]::OrdinalIgnoreCase)) {
+        throw "Slim8 project skills must target $expectedProjectRoot"
+    }
+    if (-not [string]::Equals($globalSkillsRoot, $expectedGlobalRoot, [StringComparison]::OrdinalIgnoreCase)) {
+        throw "Slim8 global skills migration must target $expectedGlobalRoot"
+    }
+    if (-not [string]::Equals($manifestPath, $expectedManifest, [StringComparison]::OrdinalIgnoreCase)) {
+        throw "Slim8 tombstones must target $expectedManifest"
+    }
+    if (@($scannedRoots | Where-Object { Test-PathWithinRoot $backupRoot $_ }).Count -gt 0) {
+        throw "Slim8 migration backups must be outside OpenCode skill scan roots: $backupRoot"
+    }
+    return [pscustomobject]@{
+        projectSkillsRoot = $projectSkillsRoot
+        globalSkillsRoot = $globalSkillsRoot
+        manifestPath = $manifestPath
+        backupRoot = $backupRoot
+    }
+}
+
+function Test-Slim8Manifest {
+    param([Parameter(Mandatory = $true)]$Manifest)
+
+    if (-not $Manifest.PSObject.Properties['schemaVersion'] -or $Manifest.schemaVersion -ne 1 -or
+        -not $Manifest.PSObject.Properties['skills'] -or $Manifest.skills -isnot [pscustomobject]) {
+        return $false
+    }
+    $allowedStatuses = @('managed', 'customized', 'deleted', 'conflict')
+    foreach ($property in $Manifest.skills.PSObject.Properties) {
+        $entry = $property.Value
+        if ($entry -isnot [pscustomobject] -or -not $entry.PSObject.Properties['status'] -or
+            $entry.status -notin $allowedStatuses) {
+            return $false
+        }
+        foreach ($name in @('packageVersion', 'sourceHash', 'lastManagedHash', 'lastSeenHash')) {
+            if (-not $entry.PSObject.Properties[$name] -or $entry.PSObject.Properties[$name].Value -isnot [string]) {
+                return $false
+            }
+        }
+        if (-not $entry.PSObject.Properties['updatedAt'] -or
+            ($entry.updatedAt -isnot [string] -and $entry.updatedAt -isnot [DateTime])) {
+            return $false
+        }
+        if ($entry.PSObject.Properties['stagedPath'] -and $entry.stagedPath -isnot [string]) {
+            return $false
+        }
+    }
+    return $true
+}
+
+function Get-Slim8Manifest {
+    param([Parameter(Mandatory = $true)][string]$Path)
+
+    if (-not (Test-Path -LiteralPath $Path)) { return $null }
+    try {
+        $manifest = Get-Content -LiteralPath $Path -Raw | ConvertFrom-Json
+    }
+    catch {
+        throw "Refusing to replace an unreadable Slim8 skills manifest: $Path"
+    }
+    if (-not (Test-Slim8Manifest $manifest)) {
+        throw "Refusing to replace an invalid Slim8 skills manifest: $Path"
+    }
+    return $manifest
+}
+
+function Save-JsonAtomic {
+    param(
+        [Parameter(Mandatory = $true)][string]$Path,
+        [Parameter(Mandatory = $true)]$Value
+    )
+
+    $parent = Split-Path -Parent $Path
+    if (-not (Test-Path -LiteralPath $parent)) { New-Item -ItemType Directory -Path $parent | Out-Null }
+    $temporaryPath = "$Path.$([guid]::NewGuid().ToString('N')).tmp"
+    try {
+        $Value | ConvertTo-Json -Depth 50 | Set-Content -LiteralPath $temporaryPath -Encoding utf8
+        Move-Item -LiteralPath $temporaryPath -Destination $Path -Force
+    }
+    finally {
+        Remove-Item -LiteralPath $temporaryPath -Force -ErrorAction SilentlyContinue
+    }
+}
+
+function New-PinnedRepositoryCheckout {
+    param([Parameter(Mandatory = $true)]$Asset)
+
+    $tempRoot = Join-Path ([IO.Path]::GetTempPath()) "opencode-assets-$([guid]::NewGuid())"
+    $repositoryPath = Join-Path $tempRoot 'source'
+    New-Item -ItemType Directory -Path $tempRoot | Out-Null
+    try {
+        Invoke-CheckedCommand 'git' @('clone', '--filter=blob:none', '--no-checkout', $Asset.repository, $repositoryPath) "Failed to clone $($Asset.repository)"
+        Invoke-CheckedCommand 'git' @('-C', $repositoryPath, 'fetch', '--depth', '1', 'origin', $Asset.revision) "Failed to fetch $($Asset.revision)"
+        Invoke-CheckedCommand 'git' @('-C', $repositoryPath, 'checkout', '--detach', 'FETCH_HEAD') "Failed to checkout $($Asset.revision)"
+    }
+    catch {
+        Remove-Item -LiteralPath $tempRoot -Recurse -Force -ErrorAction SilentlyContinue
+        throw
+    }
+    return [pscustomobject]@{ tempRoot = $tempRoot; repositoryPath = $repositoryPath }
+}
+
+function Get-Slim8GlobalMigrationPlan {
+    param(
+        [Parameter(Mandatory = $true)]$Asset,
+        [Parameter(Mandatory = $true)][string]$RepositoryPath,
+        [Parameter(Mandatory = $true)][string]$ResolvedProjectRoot
+    )
+
+    $paths = Get-Slim8Paths $Asset $ResolvedProjectRoot
+    $manifest = Get-Slim8Manifest $paths.manifestPath
+    $sourceRoot = [IO.Path]::GetFullPath((Join-Path $RepositoryPath $Asset.bundledSkillsPath))
+    $items = foreach ($name in $script:Slim8SkillNames) {
+        $sourcePath = [IO.Path]::GetFullPath((Join-Path $sourceRoot $name))
+        $targetPath = [IO.Path]::GetFullPath((Join-Path $paths.globalSkillsRoot $name))
+        if (-not (Test-Path -LiteralPath (Join-Path $sourcePath 'SKILL.md') -PathType Leaf)) {
+            throw "Pinned Slim8 skill source is missing SKILL.md: $sourcePath"
+        }
+        $entryProperty = if ($manifest) { $manifest.skills.PSObject.Properties[$name] } else { $null }
+        $entry = if ($entryProperty) { $entryProperty.Value } else { $null }
+        $state = 'absent'
+        if (Test-Path -LiteralPath $targetPath) {
+            $target = Get-Item -LiteralPath $targetPath -Force
+            if (-not $target.PSIsContainer -or ($target.Attributes -band [IO.FileAttributes]::ReparsePoint)) {
+                $state = 'conflict'
+            }
+            else {
+                $matchesSource = (Get-DirectoryContentFingerprint $targetPath) -eq (Get-DirectoryContentFingerprint $sourcePath)
+                if ($entry -and $entry.status -eq 'managed' -and $matchesSource) {
+                    $state = 'managed-unchanged'
+                }
+                elseif ($entry) {
+                    $state = 'customized'
+                }
+                else {
+                    $state = 'unowned'
+                }
+            }
+        }
+        [pscustomobject]@{
+            name = $name
+            state = $state
+            sourcePath = $sourcePath
+            targetPath = $targetPath
+        }
+    }
+    $tombstonesReady = $null -ne $manifest
+    foreach ($name in $script:Slim8SkillNames) {
+        $property = if ($manifest) { $manifest.skills.PSObject.Properties[$name] } else { $null }
+        if (-not $property -or $property.Value.status -ne 'deleted') { $tombstonesReady = $false }
+    }
+    return [pscustomobject]@{
+        manifestPath = $paths.manifestPath
+        backupRoot = $paths.backupRoot
+        tombstonesReady = $tombstonesReady
+        items = @($items)
+    }
+}
+
+function Set-Slim8DeletedTombstones {
+    param(
+        [Parameter(Mandatory = $true)]$Asset,
+        [Parameter(Mandatory = $true)][string]$ManifestPath
+    )
+
+    $manifest = Get-Slim8Manifest $ManifestPath
+    if (-not $manifest) {
+        $manifest = [pscustomobject]@{ schemaVersion = 1; updatedAt = ''; skills = [pscustomobject]@{} }
+    }
+    $now = [DateTimeOffset]::UtcNow.ToString('o')
+    foreach ($name in $script:Slim8SkillNames) {
+        $property = $manifest.skills.PSObject.Properties[$name]
+        $entry = if ($property) { $property.Value } else {
+            [pscustomobject]@{
+                status = 'deleted'
+                packageVersion = [string]$Asset.packageVersion
+                sourceHash = ''
+                lastManagedHash = ''
+                lastSeenHash = ''
+                updatedAt = $now
+            }
+        }
+        Set-ObjectProperty $entry 'status' 'deleted'
+        if (-not $entry.PSObject.Properties['packageVersion']) { Set-ObjectProperty $entry 'packageVersion' ([string]$Asset.packageVersion) }
+        foreach ($hashName in @('sourceHash', 'lastManagedHash', 'lastSeenHash')) {
+            if (-not $entry.PSObject.Properties[$hashName]) { Set-ObjectProperty $entry $hashName '' }
+        }
+        Set-ObjectProperty $entry 'updatedAt' $now
+        if ($property) { $property.Value = $entry } else { Set-ObjectProperty $manifest.skills $name $entry }
+    }
+    Set-ObjectProperty $manifest 'updatedAt' $now
+    Save-JsonAtomic $ManifestPath $manifest
+}
+
+function Invoke-Slim8MigrationApply {
+    param(
+        [Parameter(Mandatory = $true)]$Asset,
+        [Parameter(Mandatory = $true)]$Plan,
+        [switch]$RejectUnsafe
+    )
+
+    $existingItems = @($Plan.items | Where-Object state -ne 'absent')
+    $unsafeItems = @($existingItems | Where-Object state -notin @('managed-unchanged'))
+    $conflicts = @($existingItems | Where-Object state -eq 'conflict')
+    if ($conflicts.Count -gt 0) {
+        throw "Refusing to migrate Slim8 file, symlink, or reparse-point conflicts: $(@($conflicts.name) -join ', ')"
+    }
+    if ($RejectUnsafe -and $unsafeItems.Count -gt 0) {
+        throw "Slim8 global skills include customized or unowned copies ($(@($unsafeItems.name) -join ', ')). Run slim8-migration -MigrationMode plan, then slim8-migration -MigrationMode apply before installing the project asset."
+    }
+    if ($existingItems.Count -eq 0 -and $Plan.tombstonesReady) {
+        return [pscustomobject]@{ changed = $false; backupPath = $null; migrated = @() }
+    }
+
+    $backupPath = Join-Path $Plan.backupRoot "$([DateTimeOffset]::UtcNow.ToString('yyyyMMddTHHmmssfffZ'))-$([guid]::NewGuid().ToString('N'))"
+    $backupSkillsRoot = Join-Path $backupPath 'skills'
+    New-Item -ItemType Directory -Path $backupSkillsRoot -Force | Out-Null
+    $manifestExisted = Test-Path -LiteralPath $Plan.manifestPath
+    if ($manifestExisted) {
+        Copy-Item -LiteralPath $Plan.manifestPath -Destination (Join-Path $backupPath 'skills-manifest.json') -Force
+    }
+    $backupItems = [Collections.Generic.List[object]]::new()
+    foreach ($item in $existingItems) {
+        $skillBackup = Join-Path $backupSkillsRoot $item.name
+        Copy-Item -LiteralPath $item.targetPath -Destination $skillBackup -Recurse -Force
+        $sourceHash = Get-DirectoryContentFingerprint $item.targetPath
+        if ((Get-DirectoryContentFingerprint $skillBackup) -ne $sourceHash) {
+            throw "Slim8 migration backup verification failed for $($item.name): $skillBackup"
+        }
+        $backupItems.Add([pscustomobject]@{
+            name = $item.name
+            state = $item.state
+            originalPath = $item.targetPath
+            backupPath = $skillBackup
+            contentHash = $sourceHash
+        })
+    }
+    $metadataPath = Join-Path $backupPath 'backup.json'
+    $metadata = [pscustomobject]@{
+        schemaVersion = 1
+        createdAt = [DateTimeOffset]::UtcNow.ToString('o')
+        manifestPath = $Plan.manifestPath
+        manifestExisted = $manifestExisted
+        manifestAfterHash = ''
+        skills = @($backupItems)
+    }
+    Save-JsonAtomic $metadataPath $metadata
+
+    foreach ($item in $existingItems) {
+        Remove-Item -LiteralPath $item.targetPath -Recurse -Force
+    }
+    Set-Slim8DeletedTombstones $Asset $Plan.manifestPath
+    $metadata.manifestAfterHash = (Get-FileHash -LiteralPath $Plan.manifestPath -Algorithm SHA256).Hash.ToLowerInvariant()
+    Save-JsonAtomic $metadataPath $metadata
+    return [pscustomobject]@{
+        changed = $true
+        backupPath = $backupPath
+        migrated = @($backupItems | Select-Object name, state, originalPath)
+    }
+}
+
+function Invoke-Slim8MigrationRestore {
+    param(
+        [Parameter(Mandatory = $true)]$Asset,
+        [Parameter(Mandatory = $true)][string]$ResolvedProjectRoot,
+        [Parameter(Mandatory = $true)][string]$ResolvedBackupPath
+    )
+
+    $paths = Get-Slim8Paths $Asset $ResolvedProjectRoot
+    $fullBackupPath = [IO.Path]::GetFullPath($ResolvedBackupPath)
+    if (-not (Test-PathWithinRoot $fullBackupPath $paths.backupRoot)) {
+        throw "Slim8 restore path must be inside $($paths.backupRoot)"
+    }
+    $metadataPath = Join-Path $fullBackupPath 'backup.json'
+    if (-not (Test-Path -LiteralPath $metadataPath -PathType Leaf)) {
+        throw "Slim8 migration backup metadata not found: $metadataPath"
+    }
+    $metadata = Get-Content -LiteralPath $metadataPath -Raw | ConvertFrom-Json
+    if ($metadata.schemaVersion -ne 1 -or $metadata.manifestPath -ne $paths.manifestPath) {
+        throw "Invalid Slim8 migration backup metadata: $metadataPath"
+    }
+    if (-not (Test-Path -LiteralPath $paths.manifestPath -PathType Leaf) -or
+        (Get-FileHash -LiteralPath $paths.manifestPath -Algorithm SHA256).Hash.ToLowerInvariant() -ne $metadata.manifestAfterHash) {
+        throw "Refusing to restore over a changed Slim8 skills manifest: $($paths.manifestPath)"
+    }
+    if ($metadata.manifestExisted -and -not (Test-Path -LiteralPath (Join-Path $fullBackupPath 'skills-manifest.json') -PathType Leaf)) {
+        throw "Slim8 migration manifest backup is missing: $fullBackupPath"
+    }
+    foreach ($item in @($metadata.skills)) {
+        $expectedOriginalPath = [IO.Path]::GetFullPath((Join-Path $paths.globalSkillsRoot $item.name))
+        $expectedBackupPath = [IO.Path]::GetFullPath((Join-Path (Join-Path $fullBackupPath 'skills') $item.name))
+        if (@($script:Slim8SkillNames) -notcontains $item.name -or
+            -not [string]::Equals([IO.Path]::GetFullPath($item.originalPath), $expectedOriginalPath, [StringComparison]::OrdinalIgnoreCase) -or
+            -not [string]::Equals([IO.Path]::GetFullPath($item.backupPath), $expectedBackupPath, [StringComparison]::OrdinalIgnoreCase)) {
+            throw "Invalid skill path in Slim8 migration backup: $($item.originalPath)"
+        }
+        if (Test-Path -LiteralPath $item.originalPath) {
+            throw "Refusing to restore over an existing global skill: $($item.originalPath)"
+        }
+        if (-not (Test-Path -LiteralPath $item.backupPath -PathType Container) -or
+            (Get-DirectoryContentFingerprint $item.backupPath) -ne $item.contentHash) {
+            throw "Slim8 migration backup is missing or changed: $($item.backupPath)"
+        }
+    }
+    foreach ($item in @($metadata.skills)) {
+        $parent = Split-Path -Parent $item.originalPath
+        if (-not (Test-Path -LiteralPath $parent)) { New-Item -ItemType Directory -Path $parent | Out-Null }
+        Copy-Item -LiteralPath $item.backupPath -Destination $item.originalPath -Recurse -Force
+    }
+    if ($metadata.manifestExisted) {
+        Copy-Item -LiteralPath (Join-Path $fullBackupPath 'skills-manifest.json') -Destination $paths.manifestPath -Force
+    }
+    else {
+        Remove-Item -LiteralPath $paths.manifestPath -Force
+    }
+    return [pscustomobject]@{
+        restored = @($metadata.skills | ForEach-Object { $_.name })
+        backupPath = $fullBackupPath
+        manifestPath = $paths.manifestPath
+    }
+}
+
 function Install-NpmFrameworkConfig {
     param(
         [Parameter(Mandatory = $true)]$Asset,
@@ -1089,38 +1506,84 @@ function Install-OpenCodePluginAsset {
     param(
         [Parameter(Mandatory = $true)]$Asset,
         [Parameter(Mandatory = $true)][string]$ResolvedScope,
-        [Parameter(Mandatory = $true)][string]$ResolvedProjectRoot
+        [Parameter(Mandatory = $true)][string]$ResolvedProjectRoot,
+        [Parameter(Mandatory = $true)]$ExistingLock
     )
 
     if ($ResolvedScope -ne 'project') {
         throw "OpenCode plugin asset $($Asset.id) is project-only."
     }
-    $configPath = Resolve-TargetPath $Asset.configPath $ResolvedScope $ResolvedProjectRoot
-    $config = Get-JsonConfig $configPath
-    [string[]]$plugins = @()
-    if ($config.PSObject.Properties['plugin']) {
-        $plugins = @($config.plugin)
+    if ($Asset.id -ne 'oh-my-opencode-slim') {
+        $configPath = Resolve-TargetPath $Asset.configPath $ResolvedScope $ResolvedProjectRoot
+        $config = Get-JsonConfig $configPath
+        [string[]]$plugins = if ($config.PSObject.Properties['plugin']) { @($config.plugin) } else { @() }
+        if ($plugins -notcontains $Asset.pluginSpec) { $plugins += $Asset.pluginSpec }
+        Set-ObjectProperty $config 'plugin' @($plugins)
+        Save-JsonConfig $configPath $config
+        return [pscustomobject]@{
+            id = $Asset.id
+            channel = $Asset.channel
+            revision = $Asset.revision
+            packageVersion = $Asset.packageVersion
+            skills = @()
+            installedPaths = @()
+            installedPathHashes = @()
+            configPath = $configPath
+            pluginSpecs = @($Asset.pluginSpec)
+        }
     }
-    if ($plugins -notcontains $Asset.pluginSpec) {
-        $plugins += $Asset.pluginSpec
-    }
-    if ($config.PSObject.Properties['plugin']) {
-        $config.plugin = @($plugins)
-    }
-    else {
-        $config | Add-Member -NotePropertyName plugin -NotePropertyValue @($plugins)
-    }
-    Save-JsonConfig $configPath $config
 
-    return [pscustomobject]@{
-        id = $Asset.id
-        channel = $Asset.channel
-        revision = $Asset.revision
-        packageVersion = $Asset.packageVersion
-        skills = @()
-        installedPaths = @()
-        configPath = $configPath
-        pluginSpecs = @($Asset.pluginSpec)
+    $checkout = New-PinnedRepositoryCheckout $Asset
+    try {
+        $paths = Get-Slim8Paths $Asset $ResolvedProjectRoot
+        $sourceRoot = [IO.Path]::GetFullPath((Join-Path $checkout.repositoryPath $Asset.bundledSkillsPath))
+        $previousEntry = @($ExistingLock.assets | Where-Object id -eq $Asset.id) | Select-Object -First 1
+        $ownedPaths = if ($previousEntry) { @($previousEntry.installedPaths) } else { @() }
+        if ($previousEntry) { Assert-LockedPathsUnchanged $previousEntry }
+        $mappings = [Collections.Generic.List[object]]::new()
+        foreach ($name in $script:Slim8SkillNames) {
+            $source = [IO.Path]::GetFullPath((Join-Path $sourceRoot $name))
+            $target = [IO.Path]::GetFullPath((Join-Path $paths.projectSkillsRoot $name))
+            if (-not (Test-Path -LiteralPath (Join-Path $source 'SKILL.md') -PathType Leaf)) {
+                throw "Pinned Slim8 skill source is missing SKILL.md: $source"
+            }
+            if (Test-Path -LiteralPath $target) {
+                if ($ownedPaths -notcontains $target) {
+                    throw "Refusing to overwrite an unmanaged project skill: $target"
+                }
+            }
+            $mappings.Add([pscustomobject]@{ name = $name; source = $source; target = $target })
+        }
+
+        $migrationPlan = Get-Slim8GlobalMigrationPlan $Asset $checkout.repositoryPath $ResolvedProjectRoot
+        $migration = Invoke-Slim8MigrationApply $Asset $migrationPlan -RejectUnsafe
+        foreach ($mapping in @($mappings)) {
+            Copy-ManagedPath $mapping.source $mapping.target ($ownedPaths -contains $mapping.target)
+        }
+
+        $configPath = Resolve-TargetPath $Asset.configPath $ResolvedScope $ResolvedProjectRoot
+        $config = Get-JsonConfig $configPath
+        [string[]]$plugins = if ($config.PSObject.Properties['plugin']) { @($config.plugin) } else { @() }
+        if ($plugins -notcontains $Asset.pluginSpec) { $plugins += $Asset.pluginSpec }
+        Set-ObjectProperty $config 'plugin' @($plugins)
+        Save-JsonConfig $configPath $config
+        $installedPaths = @($mappings | ForEach-Object { $_.target })
+
+        return [pscustomobject]@{
+            id = $Asset.id
+            channel = $Asset.channel
+            revision = $Asset.revision
+            packageVersion = $Asset.packageVersion
+            skills = @($script:Slim8SkillNames)
+            installedPaths = $installedPaths
+            installedPathHashes = (Get-InstalledPathHashes $installedPaths)
+            configPath = $configPath
+            pluginSpecs = @($Asset.pluginSpec)
+            globalMigrationBackupPath = $migration.backupPath
+        }
+    }
+    finally {
+        Remove-Item -LiteralPath $checkout.tempRoot -Recurse -Force -ErrorAction SilentlyContinue
     }
 }
 
@@ -1488,6 +1951,13 @@ function Remove-LockedAsset {
     }
 
     if ($Entry.channel -eq 'opencode-plugin') {
+        Assert-LockedPathsUnchanged $Entry
+        $managedRoot = [IO.Path]::GetFullPath((Join-Path $ResolvedProjectRoot '.opencode'))
+        foreach ($path in @($Entry.installedPaths)) {
+            if (-not (Test-PathWithinRoot $path $managedRoot)) {
+                throw "Refusing to remove plugin path outside the project .opencode directory: $path"
+            }
+        }
         $config = Get-JsonConfig $Entry.configPath
         [string[]]$plugins = @()
         if ($config.PSObject.Properties['plugin']) {
@@ -1495,6 +1965,11 @@ function Remove-LockedAsset {
         }
         $config.plugin = @($plugins | Where-Object { @($Entry.pluginSpecs) -notcontains $_ })
         Save-JsonConfig $Entry.configPath $config
+        foreach ($path in @($Entry.installedPaths)) {
+            if (Test-Path -LiteralPath $path) {
+                Remove-Item -LiteralPath $path -Recurse -Force
+            }
+        }
         return
     }
 
@@ -1572,6 +2047,22 @@ function Test-Catalog {
         }
         if ($asset.channel -in @('opencode-plugin', 'npm-framework') -and [string]::IsNullOrWhiteSpace($asset.packageVersion)) {
             $errors.Add("Package asset $($asset.id) requires a pinned packageVersion.")
+        }
+        if ($asset.id -eq 'oh-my-opencode-slim') {
+            foreach ($propertyName in @('bundledSkillsPath', 'projectSkillsPath', 'globalSkillsPath', 'globalSkillsManifestPath', 'globalSkillsBackupPath')) {
+                if (-not $asset.PSObject.Properties[$propertyName] -or [string]::IsNullOrWhiteSpace($asset.PSObject.Properties[$propertyName].Value)) {
+                    $errors.Add("Slim8 asset requires $propertyName.")
+                }
+            }
+            $configuredSkills = @($asset.skills | Sort-Object)
+            $expectedSkills = @($script:Slim8SkillNames | Sort-Object)
+            if ($configuredSkills.Count -ne $expectedSkills.Count -or
+                @(Compare-Object $configuredSkills $expectedSkills).Count -gt 0) {
+                $errors.Add("Slim8 asset must contain exactly these bundled skills: $($script:Slim8SkillNames -join ', ')")
+            }
+            if (@($asset.scopes).Count -ne 1 -or @($asset.scopes) -notcontains 'project' -or $asset.defaultScope -ne 'project') {
+                $errors.Add('Slim8 asset must use project scope only.')
+            }
         }
         if ($asset.channel -eq 'npm-framework') {
             foreach ($propertyName in @('installArguments', 'manifestFile', 'versionFile', 'expectedVersion')) {
@@ -1666,6 +2157,7 @@ function Get-Status {
         $pluginChanged = $false
         $mcpChanged = $false
         $frameworkConfigChanged = $false
+        $isolationChanged = $false
         if ($entry -and $entry.channel -eq 'opencode-plugin') {
             try {
                 $pluginConfig = Get-JsonConfig $entry.configPath
@@ -1721,6 +2213,23 @@ function Get-Status {
                 $frameworkConfigChanged = $true
             }
         }
+        if ($entry -and $asset.id -eq 'oh-my-opencode-slim') {
+            try {
+                $slim8Paths = Get-Slim8Paths $asset ([IO.Path]::GetFullPath($ProjectRoot))
+                $slim8Manifest = Get-Slim8Manifest $slim8Paths.manifestPath
+                $isolationChanged = $null -eq $slim8Manifest -or
+                    @($script:Slim8SkillNames | Where-Object {
+                        Test-Path -LiteralPath (Join-Path $slim8Paths.globalSkillsRoot $_)
+                    }).Count -gt 0
+                foreach ($name in $script:Slim8SkillNames) {
+                    $property = if ($slim8Manifest) { $slim8Manifest.skills.PSObject.Properties[$name] } else { $null }
+                    if (-not $property -or $property.Value.status -ne 'deleted') { $isolationChanged = $true }
+                }
+            }
+            catch {
+                $isolationChanged = $true
+            }
+        }
         if ($entry -and $missing.Count -eq 0 -and $entry.PSObject.Properties['contentHash'] -and $entry.contentHash) {
             $fingerprintChanged = (Get-PathsFingerprint $paths) -ne $entry.contentHash
         }
@@ -1728,9 +2237,10 @@ function Get-Status {
             id = $asset.id
             kind = 'asset'
             channel = $asset.channel
-            state = if (-not $entry) { 'not-managed' } elseif ($missing.Count -gt 0 -or $fingerprintChanged -or $pluginChanged -or $mcpChanged -or $frameworkConfigChanged) { 'drifted' } else { 'installed' }
+            state = if (-not $entry) { 'not-managed' } elseif ($missing.Count -gt 0 -or $fingerprintChanged -or $pluginChanged -or $mcpChanged -or $frameworkConfigChanged -or $isolationChanged) { 'drifted' } else { 'installed' }
             missingPaths = $missing
-            contentChanged = $fingerprintChanged -or $pluginChanged -or $mcpChanged -or $frameworkConfigChanged
+            contentChanged = $fingerprintChanged -or $pluginChanged -or $mcpChanged -or $frameworkConfigChanged -or $isolationChanged
+            isolationChanged = $isolationChanged
         }
     }
     return @($rows)
@@ -1771,6 +2281,31 @@ if ($Action -eq 'list') {
 
 if ($catalogCheck.errors.Count -gt 0) {
     throw "Invalid asset catalog:`n$($catalogCheck.errors -join "`n")"
+}
+
+if ($Action -eq 'slim8-migration') {
+    $slim8Asset = Get-Slim8Asset $catalog
+    if ($MigrationMode -eq 'restore') {
+        if ([string]::IsNullOrWhiteSpace($BackupPath)) {
+            throw 'slim8-migration restore requires -BackupPath.'
+        }
+        Write-Result (Invoke-Slim8MigrationRestore $slim8Asset $projectRootResolved $BackupPath)
+        return
+    }
+    $checkout = New-PinnedRepositoryCheckout $slim8Asset
+    try {
+        $migrationPlan = Get-Slim8GlobalMigrationPlan $slim8Asset $checkout.repositoryPath $projectRootResolved
+        if ($MigrationMode -eq 'plan') {
+            Write-Result $migrationPlan
+        }
+        else {
+            Write-Result (Invoke-Slim8MigrationApply $slim8Asset $migrationPlan)
+        }
+    }
+    finally {
+        Remove-Item -LiteralPath $checkout.tempRoot -Recurse -Force -ErrorAction SilentlyContinue
+    }
+    return
 }
 
 $selection = Get-Selections $catalog $Scope $projectRootResolved
@@ -1925,7 +2460,7 @@ foreach ($asset in @($selection.assets)) {
         'copy-template' { Install-CopyTemplateAsset $asset $Scope $projectRootResolved $lock; break }
         'junction' { Install-JunctionAsset $asset $projectRootResolved $lock; break }
         'git-allowlist' { Install-GitAllowlistAsset $asset $projectRootResolved $lock; break }
-        'opencode-plugin' { Install-OpenCodePluginAsset $asset $Scope $projectRootResolved; break }
+        'opencode-plugin' { Install-OpenCodePluginAsset $asset $Scope $projectRootResolved $lock; break }
         'opencode-mcp' { Install-OpenCodeMcpAsset $asset $Scope $projectRootResolved $lock; break }
         'npm-framework' { Install-NpmFrameworkAsset $asset $Scope $projectRootResolved $lock; break }
         'claude-marketplace' { Install-MarketplaceAsset $catalog $asset; break }

@@ -21,6 +21,7 @@ This is a self-managed OpenCode configuration. `chezmoi` is the source of truth 
 ## External Asset Policy
 
 - `config/external-assets.json` declares reproducible third-party skills, marketplaces, and project-scoped assets.
+- `config/assets/fable` stores the chezmoi-managed, command-only Fable payload. Root Fable commands and the hidden `FableAgent` are its only supported entry path; it is not an external asset or skill auto-scan root.
 - `run_onchange_after_install-opencode-external-assets.ps1.tmpl` is the only managed dispatcher for that inventory.
 - Installer payloads, compatibility junctions, lock files, and credentials remain runtime-only.
 - Locally authored or materially modified assets stay in chezmoi; unmodified external payloads stay with their installer.

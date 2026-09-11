@@ -54,9 +54,9 @@ For the routine fast path:
    it reports a difference, inspect scoped `chezmoi diff <target>` before
    deciding which version is authoritative.
 3. Edit the source-state file, then apply only that target.
-4. After the task's final edit, run one smallest relevant check for code or
-   behavior changes. Documentation, changelog, marker, comment, and
-   formatting-only changes need no test command by default.
+4. Follow the shared Scope And Verification rules. Run executable validation
+   only when the user requested verification or approved a check; otherwise
+   inspect the intended edit and report functional behavior as unverified.
 5. Append one changelog entry for the user-visible task, not one per file or
    intermediate edit, and apply that changelog target.
 6. Run scoped `chezmoi status` for the target and changelog to confirm they are
@@ -206,8 +206,9 @@ For every touched scope:
    machine paths.
 3. Apply only the scoped targets with `chezmoi apply <target>` when application
    to the current machine is part of the request.
-4. Read or run the rendered target and perform the closest relevant functional
-   check.
+4. Inspect the rendered target. Run a functional check only when the user
+   requested verification or approved it; deployment does not authorize extra
+   tests, builds, lint, or review rounds.
 5. Verify touched text files use the selected line ending without mixed CRLF
    and LF.
 6. Re-check Git status in the chezmoi source and separate this work from

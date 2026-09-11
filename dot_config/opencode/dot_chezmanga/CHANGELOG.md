@@ -246,3 +246,99 @@
 - Portability: Agent definitions contain provider model IDs only and no machine-specific paths; each machine still requires access to the configured OpenAI provider.
 - Chezmoi: Updated the managed OpenCode config, added two managed subagent definitions, and applied only their exact runtime targets.
 - Verification: `opencode debug config` parsed the merged configuration and showed the intended model and variant assignments; `opencode agent list` discovered both new agents; scoped chezmoi status was clean after apply; `git diff --check` passed.
+
+## 2026-09-08T16:53:56+08:00 - Add dependency-aware verification scheduling
+
+- Status: Completed
+- Machine: TC-TSENG
+- Platform: windows/x64
+- Scope: `config/external-assets.json`, `config/assets/overlays/oh-my-opencode-slim/orchestrator/*.md`, external project `.opencode/assets*.json` and `orchestrator_append.md`
+- Summary: Added and deployed an OMOS Orchestrator append that schedules validation from actual writer and artifact dependencies instead of file ownership alone.
+- Important records:
+  - Disjoint writers may still feed the same validation; checks wait for every writer or artifact producer whose output they consume unless the check is proven isolated.
+  - Local success is reported only for its completed scope and does not become an integrated pass without the required combined-output check.
+  - The existing generic Overlay generator emits the selected source as `.opencode/oh-my-opencode-slim/orchestrator_append.md`; no deployment script change was necessary.
+  - The GSS project append moved from unowned legacy content to hash-protected Overlay output while preserving its Explorer, MVP-first, and Fast Path instructions.
+- Portability: The prompt and catalog use home-relative source paths and project-relative output paths with no machine-specific assumptions.
+- Chezmoi: Added the managed Overlay sources and updated the managed asset catalog, then applied only those exact user-config targets; external project deployment metadata remains outside chezmoi.
+- Verification: Catalog JSON parsing and asset `doctor` passed; overlay-only apply returned `applied: []`, generated all three selected sections with source hashes, and preserved the existing plugin configuration; subsequent project status reported the pre-existing plugin and all three Overlays as installed without drift.
+
+## 2026-09-09T10:05:23+08:00 - Show separate OpenAI quota groups
+
+- Status: Completed
+- Machine: TC-TSENG
+- Platform: windows/x64
+- Scope: `lib/openai-usage-groups.mjs`, `plugins/openai-usage.ts`, `plugins/openai-usage-tui.ts`, `tests/openai-usage-groups.test.mjs`
+- Summary: Display general and additional model quotas as separate groups in the upstream sidebar and usage dialog.
+- Important records:
+  - A live response contained only a weekly general window; Spark had independent five-hour and weekly windows, and gpt-reserve had its own weekly window. Missing general five-hour data is not evidence of unlimited usage.
+  - The upstream 0.1.5 package remains unchanged. A version- and anchor-checked in-memory adapter extends its parsing, cache normalization, summary, and sidebar without extra requests or a copied plugin implementation.
+  - The existing Windows state-path wrappers and upstream refresh lifecycle remain in use. Malformed optional windows are omitted; failed refreshes retain cached groups and show a stale warning in the sidebar.
+  - Upgrading the pinned upstream package requires reviewing the adapter. No credentials, raw responses, or generated dependency files were added to source control.
+- Portability: Module URLs resolve from the installed package; the existing home-relative Windows correction is preserved. Edited source files use LF.
+- Chezmoi: Added the adapter and focused tests, updated both managed wrappers, and applied only the exact targets under the existing opencode marker.
+- Verification: Three `node --test tests/openai-usage-groups.test.mjs` tests passed, covering group separation, cache round trips, legacy caches, absent/malformed windows, errors, sidebar rendering with stubs, and patch drift. Bun loaded the adapted TUI module. A live read-only request through the adapted parser returned general 7d, Spark 5h/7d, and gpt-reserve 7d. Actual terminal layout remains to be checked after restarting OpenCode.
+
+## 2026-09-09T11:43:05+08:00 - Isolate Slim skills and Fable commands
+
+- Status: Completed
+- Machine: TC-TSENG
+- Platform: windows/x64
+- Scope: Fable command payloads, agent and commands, `AGENTS.md`, ownership and registry documentation, `config/external-assets.json`, `scripts/opencode-assets.ps1`, `tests/opencode-assets-slim8.fixture.ps1`
+- Summary: Moved Fable out of skill discovery and made the eight Slim bundled skills project-local through Asset Manager installation.
+- Important records: Fable payloads now live under `config/assets/fable/` without `SKILL.md` entrypoints. Only explicit `/selfmade/fable`, `/fable-method`, `/fable-loop`, or `/fable-judge` commands authorize reading them; native skill grants were removed.
+- Important records: Slim installation records project skill paths and hashes, refuses drift on update/removal, and establishes upstream `deleted` tombstones before adding the plugin. Existing global copies were backed up and removed; the upstream manifest must remain to prevent global recreation.
+- Important records: Runtime backups are outside discovery roots at `~/.local/state/opencode/slim8-skills-isolation-backups/20260909T034251880Z-cd9cdbcb8fc248f0bc9655cbb3c9adc5` and `~/.local/state/opencode/fable-command-only-backup-20260909`. Existing application projects were not scanned or reinstalled; they need a scoped asset reapply to receive local skills.
+- Portability: Project-relative skill destinations and home-relative payload/state paths; Slim upstream remains pinned to 2.2.10. Manually edited code/configuration files use LF.
+- Chezmoi: Updated source first and applied exact runtime targets with run scripts excluded. Backups and upstream runtime manifest remain local state, not managed source.
+- Verification: One isolated Slim fixture passed for migration, backup, tombstones, project installation, hashes, drift, removal and restore. Static Fable routing checks and edited-file line-ending checks passed. Actual global migration completed for all eight unchanged managed copies. No full suite, build, Fable workflow or application-project installation was run. Live discovery requires restarting OpenCode and has not been observed in this running session.
+
+## 2026-09-09T15:48:27+08:00 - Bound autonomous work by user scope
+
+- Status: Completed
+- Machine: TC-TSENG
+- Platform: windows/x64
+- Scope: `AGENTS.md`, `agent/selfmade/subagents/Implementer.md`, `skills/chezmoi-management/SKILL.md`
+- Summary: Replaced automatic validation with user-authorized verification and scope-based autonomy. Necessary edits and deployment proceed without per-command approval; extra checks, delegation and review require the corresponding user request.
+- Important records: Removed conflicting unconditional verification instructions from Implementer and the chezmoi workflow. Retained existing auto-mode permissions and explicit command workflows. These are prompt constraints, not a new enforcement mechanism.
+- Portability: Prompt-only changes; retained the existing source-directory template.
+- Chezmoi: Updated managed source and applied only the three runtime prompt targets with scripts excluded; changelog included in scoped synchronization.
+- Verification: No tests, builds, installations or review agents were run. Runtime behavior under the revised prompts remains unverified and requires restarting OpenCode.
+
+## 2026-09-09T16:21:11+08:00 - Preserve host runtime for OpenAI usage sidebar
+
+- Status: Completed
+- Machine: TC-TSENG
+- Platform: windows/x64
+- Scope: `lib/openai-usage-groups.mjs`
+- Summary: Resolve TUI imports of OpenTUI and Solid to host runtime module IDs instead of local package file URLs, so the adapted sidebar can share the host renderer and reactive context.
+- Important records: Data URL imports bypass host source rewriting. Use `runtimeModuleIdForSpecifier` for the four supported TUI runtime specifiers; retain absolute resolution for other imports and the server entry. Preserve additional quota groups.
+- Portability: Uses runtime module IDs without machine-specific paths; requires OpenCode's OpenTUI runtime support.
+- Chezmoi: Updated the existing managed source and applied the exact runtime target with scripts excluded.
+- Verification: Pre-fix isolated diagnosis showed normal file imports use the host module, the previous adapter bypasses it, and explicit runtime IDs use it. No post-edit functional tests were run. Actual sidebar display requires restarting OpenCode and remains unverified.
+
+## 2026-09-11T14:45:48+08:00 - Enable opencode-claude-usage plugin
+
+- Status: Completed
+- Machine: TC-TSENG
+- Platform: windows/x64
+- Scope: `opencode.json`
+- Summary: Added the `opencode-claude-usage` npm plugin so the OpenCode TUI sidebar can display Claude account usage statistics.
+- Important records:
+  - Plugin spec pinned without a version tag; Bun installs the latest published version at startup.
+- Portability: The plugin is resolved through npm and contains no machine-specific paths.
+- Chezmoi: Updated `dot_config/opencode/opencode.json` scoped to this change.
+- Verification: Scoped `chezmoi status` and `chezmoi diff` confirmed only this plugin entry changed; rendered target inspected after apply.
+
+## 2026-09-11T14:58:30+08:00 - Move opencode-claude-usage to TUI config
+
+- Status: Completed
+- Machine: TC-TSENG
+- Platform: windows/x64
+- Scope: `tui.json`, `opencode.json`
+- Summary: opencode-claude-usage is a TUI sidebar plugin and belongs in `tui.json` `plugin` array pairs; removed the mistakenly added entry from `opencode.json`.
+- Important records:
+  - On Windows, the plugin only supports OAuth-based fetch (env `CLAUDE_CODE_OAUTH_TOKEN` or `~/.claude/.credentials.json` or OpenCode `auth.json`); CLI probe and browser cookies are macOS/Linux only per upstream README.
+- Portability: Same as before; no machine-specific paths introduced.
+- Chezmoi: Updated `dot_config/opencode/tui.json` and reverted the `opencode.json` addition.
+- Verification: Scoped `chezmoi apply` succeeded and rendered targets match source state.

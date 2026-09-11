@@ -1,5 +1,6 @@
 import { homedir } from "node:os"
 import { join } from "node:path"
+import { loadUsagePlugin } from "../lib/openai-usage-groups.mjs"
 
 export const id = "openai-usage-windows"
 
@@ -13,7 +14,7 @@ export default {
     }
 
     try {
-      const plugin = await import("@a-r-m-i-n/opencode-openai-usage")
+      const plugin = await loadUsagePlugin("server")
       return await plugin.default.server(...args)
     } finally {
       if (originalDataHome === undefined) {

@@ -2,13 +2,14 @@
 
 ## Purpose
 
-This registry is the source of the skill-pack decision. It separates where a skill is installed from whether OpenCode should expose it by default. No skill is moved, disabled, or deleted by this document.
+This registry records where workflow assets are installed and whether OpenCode exposes them through skill scanning, profiles, or explicit commands.
 
 ## Inventory Status
 
 | Root | Current role | Ownership status |
 | --- | --- | --- |
 | `~/.config/opencode/skills` | OpenCode global auto-scan | chezmoi-managed local skills |
+| `~/.config/opencode/config/assets/fable` | Command-only Fable payloads; not skill-scanned | chezmoi-managed local package |
 | `~/.agents/skills` | Cross-agent external auto-scan | mixed installer payloads; reproducible entries are declared in `external-assets.json` |
 | `~/.claude/skills` | Claude compatibility auto-scan | installer-created junctions that mirror selected `.agents` skills |
 
@@ -30,12 +31,12 @@ Only self-maintained assets that are OpenCode-specific and must be directly glob
 
 ## Core Workflow Pack
 
-| Skills | Pack | Target exposure | Owner |
+| Assets | Pack | Target exposure | Owner |
 | --- | --- | --- | --- |
-| `fable-method`, `fable-loop`, `fable-judge` | `fable` | `global` as one indivisible pack | chezmoi-managed local package |
+| `fable-method`, `fable-loop`, `fable-judge` command payloads | `fable` | `explicit` through `/selfmade/fable`, `/fable-method`, `/fable-loop`, or `/fable-judge`; never skill-scanned | chezmoi-managed local package |
 | `feature-flow-explainer`, `linear-workflow` | `core-workflow` | `global` | chezmoi-managed local skills |
 
-The Fable pack is the sole orchestration authority. `fable-loop` and `fable-judge` need not trigger for ordinary work, but must always be available with `fable-method`.
+After explicit command entry, the Fable pack is the sole orchestration authority. The hidden `FableAgent` reads the command-only payloads from `config/assets/fable`; it does not load them with the `skill` tool. All three payloads remain installed together, while each command reads only the method, loop, judge, and nested references required by that invocation.
 
 ## Development and Repository Packs
 
@@ -82,7 +83,7 @@ These skills are complementary. ISO 24495 governs information design, ASD-STE100
 | --- | --- | --- | --- |
 | `cross-review` | `review` | `explicit` | `.agents` manifest: `zencoderai/skills` |
 
-`fable-judge` is intentionally excluded: it belongs only to the Core Fable pack.
+`fable-judge` is intentionally excluded: it is a command-only payload in the Core Fable pack, not a review skill.
 
 ## Browser, Documents, and Productivity Packs
 

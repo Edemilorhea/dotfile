@@ -1,6 +1,6 @@
 # The workflow, drawn
 
-The same method as decision flowcharts. Each chart is executable pseudocode: a model can follow the arrows literally, and a human can audit exactly what happens at every branch. Nothing here adds rules; every box traces to a numbered rule in SKILL.md or a skill in the family.
+The same method as decision flowcharts. Each chart is executable pseudocode: a model can follow the arrows literally, and a human can audit exactly what happens at every branch. Nothing here adds rules; every box traces to a numbered rule in `~/.config/opencode/config/assets/fable/fable-method/METHOD.md` or a command-only payload in the family. Read those payloads only during the active explicit Fable command.
 
 ## 1. The master router: any problem, start to finish
 
