@@ -1,0 +1,60 @@
+{
+    "$schema": "https://raw.githubusercontent.com/HyeokjaeLee/opencode-auto-fallback/main/docs/fallback.schema.json",
+    "enabled": true,
+    "autoUpdate": false,
+    "defaultFallback": [],
+    "defaultLargeContextModel": false,
+    "agents": {
+        "build": {
+            "fallback": ["anthropic/claude-fable-5-1", "openai/gpt-6-astra"]
+        },
+        "plan": {
+            "fallback": ["anthropic/claude-fable-5-1", "openai/gpt-6-astra"]
+        },
+        "CodeInvestigator": {
+            "fallback": ["anthropic/claude-fable-5-1", "openai/gpt-6-astra"]
+        },
+        "Skeptic": {
+            "fallback": ["anthropic/claude-fable-5-1", "openai/gpt-6-astra"]
+        },
+        "RedTeam": {
+            "fallback": ["anthropic/claude-fable-5-1", "openai/gpt-6-astra"]
+        },
+        "FableAgent": {
+            "fallback": ["anthropic/claude-fable-5-1", "openai/gpt-6-astra"]
+        },
+        "LearningAgent": {
+            "fallback": ["anthropic/claude-fable-5-1", "openai/gpt-6-astra"]
+        },
+        "general": {
+            "fallback": ["anthropic/claude-opus-5", "openai/gpt-5.6-sol-fast"]
+        },
+        "explore": {
+            "fallback": ["anthropic/claude-opus-5", "openai/gpt-5.6-sol-fast"]
+        },
+        "Navigator": {
+            "fallback": ["anthropic/claude-opus-5", "openai/gpt-5.6-sol-fast"]
+        },
+        "Mentor": {
+            "fallback": ["anthropic/claude-opus-5", "openai/gpt-5.6-sol-fast"]
+        },
+        "Facilitator": {
+            "fallback": ["anthropic/claude-opus-5", "openai/gpt-5.6-sol-fast"]
+        },
+        "Deconstructor": {
+            "fallback": ["anthropic/claude-opus-5", "openai/gpt-5.6-sol-fast"]
+        },
+        "ResearchCurator": {
+            "fallback": ["anthropic/claude-opus-5", "openai/gpt-5.6-sol-fast"]
+        },
+        "Simplifier": {
+            "fallback": ["anthropic/claude-opus-5", "openai/gpt-5.6-sol-fast"]
+        },
+        "Implementer": {
+            "fallback": ["anthropic/claude-sonnet-5", "openai/gpt-5.6-luna"]
+        }
+    },
+    "cooldownMs": 60000,
+    "maxRetries": 2,
+    "logging": true
+}

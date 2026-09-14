@@ -412,3 +412,20 @@
 - Portability: Directory removal only; no machine-specific paths involved.
 - Chezmoi: Removed `dot_config/opencode/skills/fable-judge`, `fable-loop`, and `fable-method` from the source state.
 - Verification: `chezmoi status` no longer lists any `fable-*` entry.
+
+## 2026-09-14T14:25:34+08:00 - Configure tiered automatic model fallback
+
+- Status: Completed
+- Machine: TC-TSENG
+- Platform: windows/x64
+- Scope: `opencode.json`, `fallback.json`
+- Summary: Registered `opencode-auto-fallback@0.4.59` and configured cross-provider fallback pairs for T1 heavy reasoning, T2 light reasoning, and T3 implementation.
+- Important records:
+  - Removed the commented legacy fallback plugin registration; its old configuration and installed package are retained but inactive.
+  - Explicit agent chains and an empty default fallback pool prevent T2/T3 failures from escalating into T1. New agents require an explicit chain.
+  - T1 pairs gpt-6-astra with claude-fable-5-1; T2 pairs gpt-5.6-sol-fast with claude-opus-5; T3 pairs gpt-5.6-luna with claude-sonnet-5.
+  - Removed eight T2 high variants. Implementer xhigh remains pending a separate decision.
+  - Automatic updates and large-context switching are disabled; cooldown is 60 seconds, maxRetries is 2, and logging is enabled.
+- Portability: Provider/model IDs and configuration are machine-neutral; no new absolute paths or credentials.
+- Chezmoi: Updated configuration source, added managed fallback.json, and applied only the intended targets with scripts excluded.
+- Verification: Scoped apply succeeded and configuration status is clean. Both edited JSON files use LF. Plugin loading and live subscription-error recovery have not been tested; restart OpenCode to load the plugin.
