@@ -444,3 +444,19 @@
 - Portability: Provider/model IDs and configuration are machine-neutral; no new absolute paths or credentials.
 - Chezmoi: Updated configuration source, added managed fallback.json, and applied only the intended targets with scripts excluded.
 - Verification: Scoped apply succeeded and configuration status is clean. Both edited JSON files use LF. Plugin loading and live subscription-error recovery have not been tested; restart OpenCode to load the plugin.
+
+## 2026-09-15T18:09:43+08:00 - Enable built-in LSP servers
+
+- Status: Completed
+- Machine: TC-TSENG
+- Platform: windows/x64
+- Scope: `opencode.json`
+- Summary: Added the top-level `"lsp": true` option so OpenCode starts its built-in language servers on demand.
+- Important records:
+  - OpenCode disables LSP when the top-level `lsp` option is omitted. The existing `permission.lsp: "allow"` only authorizes the LSP tool and does not start any server.
+  - Servers start only when a matching file extension is opened and the language requirement is met, for example a project `typescript` dependency, a `pyright` dependency, or an available `go` command.
+  - Some servers download automatically. `OPENCODE_DISABLE_LSP_DOWNLOAD=true` disables that download.
+  - The apply also delivered the previously unapplied NotebookLM MCP change to the runtime, replacing `notebooklm-mcp@latest` with `@charlie.act7/gemini-notebook-mcp@2.3.11`. The user chose the chezmoi source as authoritative.
+- Portability: The boolean option is machine-neutral and adds no absolute paths.
+- Chezmoi: Updated the existing managed OpenCode configuration and applied only its runtime target.
+- Verification: Scoped `chezmoi diff` showed the intended change, `chezmoi apply` succeeded, scoped `chezmoi status` was clean, and both source and runtime files remained LF-only. Language-server startup was not tested; restart OpenCode to load the new configuration.

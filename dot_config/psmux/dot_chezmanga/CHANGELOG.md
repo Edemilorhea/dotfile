@@ -103,3 +103,21 @@
 - Portability: The commands use psmux-native relative window targets inside the existing Windows-specific psmux scope.
 - Chezmoi: Updated the managed `psmux.conf` source and applied only that target.
 - Verification: In an isolated three-window session, window ID `@2` remained active while moving from index 1 to 2 and back to 1; reloaded the running psmux server and confirmed both repeatable bindings.
+
+## 2026-09-15T09:55:00+08:00 - Silence auto-save message on attach
+
+- Status: Completed
+- Machine: TC-TSENG
+- Platform: windows/x64
+- Scope: `psmux.conf`
+- Summary: Overrode the psmux-continuum `client-attached` hook so the 15-minute auto-save loop starts in the background without printing `running: pwsh ... auto_save.ps1` on every attach or session switch.
+- Important records:
+  - The plugin's own `plugin.conf` uses a foreground `run-shell`, which reports its command in the status message area.
+  - `set-hook -g` replaces the handler list, so the local override must load after PPM initializes the plugin.
+  - `run-shell -b` discards command output but still reports a startup failure.
+  - The auto-save script keeps its named mutex, so repeated attaches still start only one loop.
+  - Sessions created before the override kept a session-scoped copy of the old foreground hook, which takes precedence over the global one. Existing sessions needed `set-hook -u -t <session> client-attached` once; a full server restart would have had the same effect.
+  - A foreground `run-shell` keeps its `running: <command>` status message visible for the whole lifetime of the command. Because the auto-save loop never exits, the message stayed permanently in the session that first started it. The already running loop had to be stopped once and restarted through `run-shell -b`.
+- Portability: The override uses psmux-native hook syntax and a `~`-relative plugin path inside the existing Windows-specific psmux scope.
+- Chezmoi: Updated the managed `psmux.conf` source and applied only that target.
+- Verification: Scoped diff showed only the hook override; scoped apply succeeded; reloading the running server without ending sessions reported `client-attached -> run-shell -b "pwsh -NoProfile -File \"~/.psmux/plugins/psmux-continuum/scripts/auto_save.ps1\" -IntervalMinutes 15"`.
