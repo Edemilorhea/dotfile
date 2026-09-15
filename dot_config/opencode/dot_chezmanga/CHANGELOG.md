@@ -1,5 +1,20 @@
 # OpenCode Chezmoi Changelog
 
+## 2026-09-15T10:02:54+08:00 - Package Love Tutor skill profile
+
+- Status: Completed
+- Machine: DESKTOP-3JHKCAP
+- Platform: windows/x64
+- Scope: `config/external-assets.json`, `config/assets/skills/`, `config/assets/love-tutor.md`
+- Summary: Added the project-scoped `love-tutor` profile and a seven-skill copy-template bundle for one-command installation.
+- Important records:
+  - Preserved skill payloads, references, tools, licenses and example profiles; excluded Git metadata, caches and platform metadata.
+  - Existing project skill folders remain independent; the installer retains its unmanaged-path overwrite protection.
+  - The source summaries library, project AGENTS.md and Python dependency installation are outside this bundle.
+- Portability: Catalog sources use home-relative paths; installation targets use project-relative paths.
+- Chezmoi: Added asset snapshots and documentation in source state; updated the managed catalog for scoped deployment.
+- Verification: Inspected existing copy-template installation behavior and source changes; catalog uses consistent LF. Functional installation testing was not requested.
+
 ## 2026-08-21T21:26:29+08:00 - Initialize management scope
 
 - Status: Completed

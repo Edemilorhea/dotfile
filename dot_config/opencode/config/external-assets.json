@@ -12,6 +12,10 @@
     }
   },
   "profiles": {
+    "love-tutor": {
+      "description": "戀愛與關係工具組：聊天分析、溝通練習、相容性、伴侶資料及交友檔案，共七個 Skills。",
+      "defaultScope": "project"
+    },
     "core": {
       "description": "Global baseline rebuilt on every managed machine.",
       "defaultScope": "global"
@@ -133,6 +137,24 @@
     }
   ],
   "assets": [
+    {
+      "id": "love-tutor-skills",
+      "description": "Love Tutor 七個專案 Skills，包含參考資料、提示詞、工具與範例。",
+      "type": "skill-bundle",
+      "channel": "copy-template",
+      "profiles": ["love-tutor"],
+      "scopes": ["project"],
+      "defaultScope": "project",
+      "files": [
+        {"source": "~/.config/opencode/config/assets/skills/dating-master-skill", "target": ".opencode/skills/dating-master-skill"},
+        {"source": "~/.config/opencode/config/assets/skills/hinge-profile-optimizer", "target": ".opencode/skills/hinge-profile-optimizer"},
+        {"source": "~/.config/opencode/config/assets/skills/love-advise-skill", "target": ".opencode/skills/love-advise-skill"},
+        {"source": "~/.config/opencode/config/assets/skills/love-skill", "target": ".opencode/skills/love-skill"},
+        {"source": "~/.config/opencode/config/assets/skills/partner-skill", "target": ".opencode/skills/partner-skill"},
+        {"source": "~/.config/opencode/config/assets/skills/relationship-training-skill", "target": ".opencode/skills/relationship-training-skill"},
+        {"source": "~/.config/opencode/config/assets/skills/simp-skill", "target": ".opencode/skills/simp-skill"}
+      ]
+    },
     {
       "id": "to-spec",
       "type": "skill",
