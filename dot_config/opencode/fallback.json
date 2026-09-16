@@ -6,52 +6,52 @@
     "defaultLargeContextModel": false,
     "agents": {
         "build": {
-            "fallback": ["anthropic/claude-fable-5-1", "openai/gpt-6-astra"]
+            "fallback": ["openai/gpt-6-astra", "anthropic/claude-fable-5-1"]
         },
         "plan": {
-            "fallback": ["anthropic/claude-fable-5-1", "openai/gpt-6-astra"]
+            "fallback": ["openai/gpt-6-astra", "anthropic/claude-fable-5-1"]
         },
         "CodeInvestigator": {
-            "fallback": ["anthropic/claude-fable-5-1", "openai/gpt-6-astra"]
+            "fallback": ["openai/gpt-6-astra", "anthropic/claude-fable-5-1"]
         },
         "Skeptic": {
-            "fallback": ["anthropic/claude-fable-5-1", "openai/gpt-6-astra"]
+            "fallback": ["openai/gpt-6-astra", "anthropic/claude-fable-5-1"]
         },
         "RedTeam": {
-            "fallback": ["anthropic/claude-fable-5-1", "openai/gpt-6-astra"]
+            "fallback": ["openai/gpt-6-astra", "anthropic/claude-fable-5-1"]
         },
         "FableAgent": {
-            "fallback": ["anthropic/claude-fable-5-1", "openai/gpt-6-astra"]
+            "fallback": ["openai/gpt-6-astra", "anthropic/claude-fable-5-1"]
         },
         "LearningAgent": {
-            "fallback": ["anthropic/claude-fable-5-1", "openai/gpt-6-astra"]
+            "fallback": ["openai/gpt-6-astra", "anthropic/claude-fable-5-1"]
         },
         "general": {
-            "fallback": ["anthropic/claude-opus-5", "openai/gpt-5.6-sol-fast"]
+            "fallback": ["openai/gpt-5.6-sol-fast", "anthropic/claude-opus-5"]
         },
         "explore": {
-            "fallback": ["anthropic/claude-opus-5", "openai/gpt-5.6-sol-fast"]
+            "fallback": ["openai/gpt-5.6-sol-fast", "anthropic/claude-opus-5"]
         },
         "Navigator": {
-            "fallback": ["anthropic/claude-opus-5", "openai/gpt-5.6-sol-fast"]
+            "fallback": ["openai/gpt-5.6-sol-fast", "anthropic/claude-opus-5"]
         },
         "Mentor": {
-            "fallback": ["anthropic/claude-opus-5", "openai/gpt-5.6-sol-fast"]
+            "fallback": ["openai/gpt-5.6-sol-fast", "anthropic/claude-opus-5"]
         },
         "Facilitator": {
-            "fallback": ["anthropic/claude-opus-5", "openai/gpt-5.6-sol-fast"]
+            "fallback": ["openai/gpt-5.6-sol-fast", "anthropic/claude-opus-5"]
         },
         "Deconstructor": {
-            "fallback": ["anthropic/claude-opus-5", "openai/gpt-5.6-sol-fast"]
+            "fallback": ["openai/gpt-5.6-sol-fast", "anthropic/claude-opus-5"]
         },
         "ResearchCurator": {
-            "fallback": ["anthropic/claude-opus-5", "openai/gpt-5.6-sol-fast"]
+            "fallback": ["openai/gpt-5.6-sol-fast", "anthropic/claude-opus-5"]
         },
         "Simplifier": {
-            "fallback": ["anthropic/claude-opus-5", "openai/gpt-5.6-sol-fast"]
+            "fallback": ["openai/gpt-5.6-sol-fast", "anthropic/claude-opus-5"]
         },
         "Implementer": {
-            "fallback": ["anthropic/claude-sonnet-5", "openai/gpt-5.6-luna"]
+            "fallback": ["openai/gpt-5.6-luna", "anthropic/claude-sonnet-5"]
         }
     },
     "cooldownMs": 60000,

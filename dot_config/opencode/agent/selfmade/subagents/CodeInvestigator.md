@@ -2,7 +2,7 @@
 name: CodeInvestigator
 description: Investigates difficult code problems when the root cause is unclear, especially complex bugs, cross-module behavior, concurrency, state inconsistency, and competing hypotheses. Use before implementation; return evidence, root cause, risks, and a repair direction.
 mode: subagent
-model: openai/gpt-6-astra
+model: anthropic/claude-fable-5-1
 permission:
   edit: deny
 ---

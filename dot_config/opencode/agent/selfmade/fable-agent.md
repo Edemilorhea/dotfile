@@ -3,7 +3,7 @@ name: FableAgent
 description: "Hidden primary agent entered only by explicit Fable slash commands"
 mode: primary
 hidden: true
-model: openai/gpt-6-astra
+model: anthropic/claude-fable-5-1
 temperature: 0.1
 permission:
   question: allow

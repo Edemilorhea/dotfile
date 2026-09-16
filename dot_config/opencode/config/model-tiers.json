@@ -1,0 +1,58 @@
+{
+    "_comment": "Model tier registry used by scripts/oc-model.ps1. Records which agent belongs to which tier, which model each provider uses for that tier, and which provider is currently active per tier. Edit this file when an agent changes tier or a provider renames a model.",
+    "providers": [
+        "openai",
+        "anthropic"
+    ],
+    "tiers": {
+        "T1": {
+            "label": "deep reasoning / planning / adversarial review",
+            "active": "anthropic",
+            "globalDefault": true,
+            "models": {
+                "openai": "openai/gpt-6-astra",
+                "anthropic": "anthropic/claude-fable-5-1"
+            },
+            "agents": [
+                "build",
+                "plan",
+                "CodeInvestigator",
+                "Skeptic",
+                "RedTeam",
+                "FableAgent",
+                "LearningAgent"
+            ]
+        },
+        "T2": {
+            "label": "general work / exploration / tutoring",
+            "active": "anthropic",
+            "globalDefault": false,
+            "models": {
+                "openai": "openai/gpt-5.6-sol-fast",
+                "anthropic": "anthropic/claude-opus-5"
+            },
+            "agents": [
+                "general",
+                "explore",
+                "Navigator",
+                "Mentor",
+                "Facilitator",
+                "Deconstructor",
+                "ResearchCurator",
+                "Simplifier"
+            ]
+        },
+        "T3": {
+            "label": "plan execution / implementation",
+            "active": "anthropic",
+            "globalDefault": false,
+            "models": {
+                "openai": "openai/gpt-5.6-luna",
+                "anthropic": "anthropic/claude-sonnet-5"
+            },
+            "agents": [
+                "Implementer"
+            ]
+        }
+    }
+}

@@ -1,5 +1,84 @@
 # OpenCode Chezmoi Changelog
 
+## 2026-09-16T15:26:24+08:00 - Make communication guidance always-on
+
+- Status: Completed
+- Machine: tc-tseng
+- Platform: windows/x64
+- Scope: AGENTS.md.tmpl communication contract
+- Summary: Added a compact always-on communication contract to global `AGENTS.md` so response quality does not depend on the model remembering to load a communication skill.
+- Important records:
+  - The contract applies the core `iso-24495-plain-language` and `asd-ste100` behaviors directly: answer first, clear structure, direct sentences, explicit procedure conditions and results, stable terminology, and preserved technical constraints.
+  - `eli5-explainer` and `wait-what` remain conditional because forcing them on every response can add unnecessary analogies, headings, or recovery behavior.
+  - The skills remain available as deeper references when their full method is needed; the configuration does not claim that a skill was loaded when it was not.
+- Portability: The rule is rendered into the global `AGENTS.md` from the existing portable chezmoi template and uses skill names that are discovered from the user's global skills directories.
+- Chezmoi: Updated the existing managed `dot_config/opencode/AGENTS.md.tmpl` and this managed changelog.
+- Verification: Inspected the four communication skills, replaced the load-dependent routing with an always-on contract, and preserved LF line endings in the edited template.
+
+## 2026-09-16T15:21:15+08:00 - Bridge Windows OpenCode auth path for Claude usage
+
+- Status: Completed
+- Machine: tc-tseng
+- Platform: windows/x64
+- Scope: run_once_before_windows_config_junctions.ps1.tmpl and Windows OpenCode auth path
+- Summary: Added a Windows junction from `%APPDATA%/opencode` to `~/.local/share/opencode` so `opencode-claude-usage` can read OpenCode's auto-refreshing Anthropic OAuth credentials.
+- Important records:
+  - The existing real `%APPDATA%/opencode` directory was backed up as `opencode_backup_20260916_141424` before the junction was created.
+  - Removed the User-level `CLAUDE_CODE_OAUTH_TOKEN` environment variable so the plugin uses the OpenCode OAuth credential instead of short-lived or manually managed token data.
+  - The token value was not written to chezmoi or this changelog.
+- Portability: The junction is created only by the Windows-specific chezmoi run-once script and uses `$env:USERPROFILE`, `$env:APPDATA`, and the existing `.local/share/opencode` layout.
+- Chezmoi: Updated the existing managed junction script and this managed changelog.
+- Verification: `chezmoi apply --verbose "$env:USERPROFILE/windows_config_junctions.ps1"` completed; `%APPDATA%/opencode` is a junction targeting `~/.local/share/opencode`, and `auth.json` is reachable through the junction. User-level `CLAUDE_CODE_OAUTH_TOKEN` is unset.
+
+## 2026-09-15T20:49:04+08:00 - Update DCP, retune auto-compression, add model tier switcher
+
+- Status: Completed
+- Machine: DESKTOP-3JHKCAP
+- Platform: windows/x64
+- Scope: opencode.json, dcp.jsonc, config/model-tiers.json, scripts/oc-model.ps1
+- Summary: Bumped the pinned DCP plugin from 3.1.14 to 3.1.15, retuned DCP
+  auto-compression so turn nudges start much later and user messages are
+  preserved, and added a one-command switcher that moves every agent tier
+  between the OpenAI and Anthropic subscriptions.
+- Important records:
+  - DCP is pinned by version in the plugin list, so `autoUpdate` never upgraded
+    it. 3.1.15 fixes Windows `protectedFilePatterns`, the stuck-mode bug after
+    manual compression, installation on recent OpenCode 1 builds, and the
+    injected `mXXXX</parameter>` message suffix.
+  - Frequent compression came from the turn-nudge path in DCP's nudge injector:
+    once context passes `minContextLimit`, every user turn schedules a nudge and
+    that path ignores `nudgeFrequency`. Absolute 50000/100000 thresholds were
+    only 25%/50% of a 200K window, so the nudges began very early.
+  - Thresholds are now percentages (`minContextLimit` 60%, `maxContextLimit`
+    80%) so they scale per model. `turnProtection` is enabled (4 turns) and
+    `protectUserMessages` is true, keeping recent turns and user intent intact.
+    Automatic compression stays on; manual mode was deliberately not used.
+  - `config/model-tiers.json` is the single tier registry: T1 deep reasoning and
+    global default, T2 general work, T3 implementation. Each tier lists the
+    OpenAI model, the Anthropic model, and the agents that belong to it. The
+    tier membership matches the existing `fallback.json` grouping.
+  - `scripts/oc-model.ps1` rewrites `opencode.json` (global default plus agent
+    block), the `model:` frontmatter in `agent/**/*.md`, each agent entry in
+    `fallback.json`, and the `active` field in the registry. Switching also
+    flips the failover order so the inactive provider is tried first on error.
+  - The switcher replaces any known model of a tier, not only the recorded
+    active one, so repeated or interrupted runs converge to the same result.
+    `-Tier` allows mixed setups; `-NoApply` skips deployment.
+- Portability: The script resolves the source root through
+  `chezmoi source-path ~/.config/opencode` instead of hard-coded paths, uses
+  forward slashes, and writes LF without BOM to match the repository
+  `* text=auto eol=lf` rule. It requires PowerShell 7 and chezmoi on PATH.
+- Chezmoi: opencode.json and dcp.jsonc updated in source; model-tiers.json and
+  oc-model.ps1 added; all four applied with scoped `chezmoi apply`.
+- Verification: `oc-model.ps1 status` reports `Active provider: openai`; a
+  full `anthropic` then `openai` round trip with `-NoApply` returned all six
+  affected files to their original SHA256 values; a `-Tier T3` switch produced
+  the `mixed (anthropic + openai)` status and reverted cleanly. Scoped
+  `chezmoi status` for the four targets is clean after apply, and the applied
+  `dcp.jsonc` and `opencode.json` show the new values. OpenCode was not
+  restarted, so the new plugin version and settings are not yet exercised at
+  runtime.
+
 ## 2026-09-15T10:02:54+08:00 - Package Love Tutor skill profile
 
 - Status: Completed

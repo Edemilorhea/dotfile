@@ -2,7 +2,7 @@
 name: Implementer
 description: Executes an already complete implementation plan when requirements, affected scope, steps, and verification are explicit. Do not use for root-cause investigation, architecture decisions, or underspecified work.
 mode: subagent
-model: openai/gpt-5.6-luna
+model: anthropic/claude-sonnet-5
 variant: xhigh
 ---
 

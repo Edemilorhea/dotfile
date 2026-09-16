@@ -25,7 +25,7 @@
         "automaticStrategies": true
     },
     "turnProtection": {
-        "enabled": false,
+        "enabled": true,
         "turns": 4
     },
     "experimental": {
@@ -38,8 +38,8 @@
         "permission": "allow",
         "showCompression": false,
         "summaryBuffer": true,
-        "maxContextLimit": 100000,
-        "minContextLimit": 50000,
+        "maxContextLimit": "80%",
+        "minContextLimit": "60%",
         "modelMaxLimits": {},
         "modelMinLimits": {},
         "nudgeFrequency": 20,
@@ -47,7 +47,7 @@
         "nudgeForce": "soft",
         "protectedTools": [],
         "protectTags": false,
-        "protectUserMessages": false
+        "protectUserMessages": true
     },
     "strategies": {
         "deduplication": {

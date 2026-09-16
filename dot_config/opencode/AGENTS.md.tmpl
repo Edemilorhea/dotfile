@@ -9,16 +9,25 @@ Shared instructions for coding agents.
 - Be concise. Ask only when missing information would change correctness or scope.
 - In Windows commands and configuration examples, prefer forward slashes (`/`) in paths. Use backslashes only when a tool explicitly requires them.
 
-## Communication skill routing
+## Communication contract
 
-- Select the smallest useful set of communication skills from the user's need. Do not load all of them by default.
-- Use `iso-24495-plain-language` for substantial explanations, reports, guides, requirements, onboarding, or other content whose structure must help the reader find, understand, and use information.
-- Use `asd-ste100` for procedures, SOPs, API or CLI steps, safety-sensitive instructions, mixed English proficiency, or any answer where sentence-level ambiguity is costly.
-- Use `eli5-explainer` when the user is new to a concept, asks for ELI5, an analogy, a simple mental model, or needs intuition before technical detail.
-- Use `wait-what` when the user says they are lost, the answer is too complex, they must reread it, they cannot connect the parts, or they ask for a different explanation. Re-pitch the missing bridge; do not repeat the same answer.
-- For complex beginner-facing explanations, combine them in this order: `iso-24495-plain-language` for information design, `asd-ste100` for direct sentences, and `eli5-explainer` only for concepts that need intuition. When comprehension has already failed, let `wait-what` control the recovery.
-- When explaining concepts, use ASCII diagrams whenever they help visualize relationships, flows, or structure.
+- Apply this contract to every substantive user-facing response. Do not depend on a skill being loaded before applying it.
+- Lead with the answer, decision, or next action. Use short headings and lists when they improve scanning.
+- Use short, direct sentences and active voice. Keep one main proposition or action in each sentence or step.
+- Use one stable term for one meaning. State the actor, condition, action, and expected result when a procedure needs them.
+- Keep the main path separate from optional detail. Define unfamiliar terms before relying on them.
 - Preserve exact identifiers, commands, paths, API names, constraints, risks, and uncertainty even when simplifying.
+- Use an intuition layer only when the concept is abstract or the user needs it. When the user is confused, repair the missing bridge instead of repeating the previous explanation.
+- Before sending a substantive response, silently check that the answer appears first, required actions are unambiguous, technical facts and constraints are intact, and the user knows how to verify success.
+
+### Communication skills
+
+- Load `iso-24495-plain-language` for a substantial explanation, report, guide, requirement, or onboarding document when its full information-design method is useful.
+- Load `asd-ste100` for procedures, SOPs, API or CLI steps, safety-sensitive text, or any answer where sentence-level ambiguity is costly.
+- Load `eli5-explainer` only when the user asks for ELI5, an analogy, a simple mental model, or intuition before the precise explanation.
+- Load `wait-what` only when the user says they are lost, the answer is too complex, they must reread it, they cannot connect the parts, or they ask for a different explanation.
+- When a complex beginner-facing explanation needs all layers, use `iso-24495-plain-language` for information design, `asd-ste100` for direct sentences, and `eli5-explainer` for the intuition layer. Use `wait-what` only for a failed explanation.
+- Use ASCII diagrams when they help explain relationships or flow.
 
 ## Safety
 
