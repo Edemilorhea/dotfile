@@ -93,3 +93,49 @@ runtime state are deliberately excluded and are recreated by the setup script.
 - Verification: every declared keybind ID was checked against the 239 IDs in
   `https://opencode.ai/v2/cli.json`; all 18 are valid and the top-level keys
   are valid. `chezmoi status` for `~/.opencode-v2` is clean.
+
+## 2026-09-17T15:27:02+08:00 - Port the locu custom tool to a v2 plugin
+
+- Status: Completed
+- Machine: TC-TSENG
+- Platform: Microsoft Windows 10.0.26200 / X64
+- Scope: `xdg/config/opencode/plugins/locu/index.ts`, plus `.chezmoiignore` and
+  `run_onchange_after_setup-opencode-v2.ps1.tmpl` in the chezmoi source root
+- Summary: `locu_tasks`, `locu_sessions`, and `locu_timer` are available in v2 again.
+  V2 removed file-based custom tools, so the registration layer was rewritten as a
+  plugin while the HTTP client stays shared with the v1 tool.
+- Important records:
+  - V1 discovers `~/.config/opencode/tools/*.ts` and derives tool names from
+    `<file>_<export>`. V2 has no such path: `/v2/docs/custom-tools` is absent, no
+    tool endpoint exists among the 111 API routes, and the tools guide lists only
+    MCP servers and skills as extensions. Tools must come from
+    `ctx.tool.transform()` inside a plugin.
+  - `core/` is a junction to `~/.config/opencode/tools/locu`, so `client.ts`,
+    `config.ts`, and `types.ts` exist once and cannot drift between runtimes. The
+    server's watcher subscribes to those files through the junction, so edits still
+    hot-reload. Those three files import nothing from OpenCode.
+  - The default export is a plain object, not `Plugin.define(...)`. A first attempt
+    using `import { Plugin } from "@opencode/plugin"` failed to load with
+    `Cannot find package '@opencode/plugin'`: OpenCode does not resolve its SDK for
+    a local plugin directory. `define` is only `(plugin) => plugin` and OpenCode
+    validates the exported shape, so dropping the import keeps the plugin free of
+    any installed dependency and of a `node_modules` tree.
+  - Two v1 tool-context fields are gone in v2. `context.directory` became
+    `ctx.location.directory`, read once during setup. `context.abort` became a
+    plugin-lifetime `AbortController` that the cleanup function aborts; the client
+    keeps its own 10s per-request timeout regardless.
+  - Arguments moved from Zod to JSON Schema, which `Tool.ValueSchema` accepts
+    directly and which avoids depending on a resolvable `zod`.
+- Portability: The plugin uses no absolute paths. The setup script creates the
+  `core` junction from `$HOME`.
+- Chezmoi: Added `plugins/locu/index.ts`, excluded `plugins/locu/core/**`, and
+  extended the setup script with the junction. Also re-added `cli.json` to capture
+  the `session.sidebar`, `session.thinking`, and `tabs` values changed in the v2 TUI.
+- Verification: `opencode2 plugin list` reports `selfmade.locu` with a resolved ID,
+  and the server log shows no load error. Running `setup` against a stub context
+  registers namespace `locu` and exactly three tools whose effective names and
+  argument shapes match v1: `locu_tasks` with `done`, `limit`, `projectId`,
+  `section`; `locu_sessions` with `startAfter` and `startBefore` required; and
+  `locu_timer` with no arguments. The cleanup function is returned. V1's
+  `tools/locu.ts` is untouched and its scoped `chezmoi status` is clean. Live tool
+  invocation is unverified because the v2 provider is not authenticated yet.
