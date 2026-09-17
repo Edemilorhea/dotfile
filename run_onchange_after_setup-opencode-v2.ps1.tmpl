@@ -1,0 +1,133 @@
+{{- if eq .chezmoi.os "windows" -}}
+$ErrorActionPreference = 'Stop'
+
+# OpenCode v2 sandbox. Runs beside the v1 install that owns ~/.config/opencode
+# and ~/.local/share/opencode. Bump $version to reinstall the binary: chezmoi
+# reruns this script whenever its rendered content changes.
+$version = '2.0.5'
+
+$root = Join-Path $HOME '.opencode-v2'
+$binDir = Join-Path $root 'bin'
+$exe = Join-Path $binDir 'opencode.exe'
+$stamp = Join-Path $binDir '.version'
+$v1Config = Join-Path $HOME '.config/opencode'
+
+function Get-Target {
+    $arch = if ([System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture -eq 'Arm64') { 'arm64' } else { 'x64' }
+    if ($arch -ne 'x64') { return "windows-$arch" }
+
+    # Bun's x64 build needs AVX2; fall back to the baseline build without it.
+    Add-Type -MemberDefinition '[DllImport("kernel32.dll")] public static extern bool IsProcessorFeaturePresent(int ProcessorFeature);' -Name K32 -Namespace OcV2 -ErrorAction SilentlyContinue
+    $avx2 = try { [OcV2.K32]::IsProcessorFeaturePresent(40) } catch { $false }
+    if ($avx2) { 'windows-x64' } else { 'windows-x64-baseline' }
+}
+
+function Install-Binary {
+    # npm install -g @opencode/cli fails on Windows: its postinstall cannot pick
+    # the platform package and npm then empties the package directory. Fetch the
+    # platform tarball directly, which is what opencode.ai/v2/install also does.
+    $target = Get-Target
+    $package = "@opencode/cli-$target"
+    $url = "https://registry.npmjs.org/$package/-/cli-$target-$version.tgz"
+    $work = Join-Path ([System.IO.Path]::GetTempPath()) "opencode-v2-setup-$PID"
+
+    Write-Host "[OpenCode v2] Downloading $package@$version"
+    New-Item -ItemType Directory -Path $work -Force | Out-Null
+    try {
+        Invoke-WebRequest -Uri $url -OutFile (Join-Path $work 'cli.tgz')
+        & tar -xzf (Join-Path $work 'cli.tgz') -C $work
+        if ($LASTEXITCODE -ne 0) { throw "tar failed with exit code $LASTEXITCODE" }
+
+        New-Item -ItemType Directory -Path $binDir -Force | Out-Null
+        Move-Item (Join-Path $work 'package/bin/opencode.exe') $exe -Force
+        Set-Content -LiteralPath $stamp -Value $version -NoNewline
+        Write-Host "[OpenCode v2] Installed $version to $exe"
+    }
+    finally {
+        Remove-Item -Recurse -Force $work -ErrorAction SilentlyContinue
+    }
+}
+
+function Add-UserPath {
+    param([Parameter(Mandatory = $true)][string]$Entry)
+
+    $current = [Environment]::GetEnvironmentVariable('PATH', 'User')
+    $items = @($current -split ';' | Where-Object { $_ -ne '' })
+    if ($items -contains $Entry) {
+        Write-Host "[OpenCode v2] PATH already contains $Entry"
+        return
+    }
+
+    [Environment]::SetEnvironmentVariable('PATH', (($items + $Entry) -join ';'), 'User')
+    Write-Host "[OpenCode v2] Added $Entry to the user PATH"
+}
+
+function Set-Junction {
+    param(
+        [Parameter(Mandatory = $true)][string]$Source,
+        [Parameter(Mandatory = $true)][string]$Target
+    )
+
+    if (-not (Test-Path -LiteralPath $Source)) {
+        Write-Host "[OpenCode v2] Skipping $Target, source is missing: $Source"
+        return
+    }
+
+    if (Test-Path -LiteralPath $Target) {
+        $item = Get-Item -LiteralPath $Target -Force
+        if ($item.LinkType -eq 'Junction') { return }
+        Rename-Item -LiteralPath $Target -NewName "$(Split-Path -Leaf $Target)_backup_$(Get-Date -Format 'yyyyMMdd_HHmmss')"
+    }
+
+    New-Item -ItemType Junction -Path $Target -Target $Source | Out-Null
+    Write-Host "[OpenCode v2] Junction: $Target -> $Source"
+}
+
+function Set-FileLink {
+    param(
+        [Parameter(Mandatory = $true)][string]$Source,
+        [Parameter(Mandatory = $true)][string]$Target
+    )
+
+    if (-not (Test-Path -LiteralPath $Source)) {
+        Write-Host "[OpenCode v2] Skipping $Target, source is missing: $Source"
+        return
+    }
+
+    if (Test-Path -LiteralPath $Target) {
+        $item = Get-Item -LiteralPath $Target -Force
+        if ($item.LinkType -eq 'SymbolicLink') { return }
+        Remove-Item -LiteralPath $Target -Force
+    }
+
+    New-Item -ItemType SymbolicLink -Path $Target -Target $Source | Out-Null
+    Write-Host "[OpenCode v2] Symlink: $Target -> $Source"
+}
+
+Write-Host '[OpenCode v2] Starting sandbox setup...'
+
+# Runtime directories. Only xdg/config is managed by chezmoi; the rest holds the
+# database, credentials, and cache, and is excluded in .chezmoiignore.
+foreach ($name in 'xdg/config/opencode', 'xdg/data', 'xdg/state', 'xdg/cache') {
+    New-Item -ItemType Directory -Path (Join-Path $root $name) -Force | Out-Null
+}
+
+$installed = if (Test-Path -LiteralPath $stamp) { (Get-Content -LiteralPath $stamp -Raw).Trim() } else { '' }
+if (-not (Test-Path -LiteralPath $exe) -or $installed -ne $version) {
+    Install-Binary
+} else {
+    Write-Host "[OpenCode v2] Binary $version already installed"
+}
+
+Add-UserPath -Entry $root
+
+# agent, commands, and skills stay single-sourced in the v1 config tree so
+# chezmoi manages exactly one copy of each markdown file.
+$v2Config = Join-Path $root 'xdg/config/opencode'
+foreach ($name in 'agent', 'commands', 'skills') {
+    Set-Junction -Source (Join-Path $v1Config $name) -Target (Join-Path $v2Config $name)
+}
+Set-FileLink -Source (Join-Path $v1Config 'AGENTS.md') -Target (Join-Path $v2Config 'AGENTS.md')
+
+Write-Host '[OpenCode v2] Complete. Run "opencode2 auth login anthropic --method claude-max" in a new terminal.'
+{{- end }}

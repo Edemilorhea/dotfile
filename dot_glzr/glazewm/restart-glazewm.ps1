@@ -48,31 +48,81 @@ function Wait-Until {
   return $false
 }
 
-function Test-RestartReady {
+function Get-MonitorState {
   param(
     [string]$GlazeWmPath,
     [int]$ExpectedMonitorCount
   )
 
   if (-not (Get-Process -Name 'zebar' -ErrorAction SilentlyContinue)) {
-    return $false
+    return $null
   }
 
   try {
     $json = (& $GlazeWmPath query monitors 2>$null | Out-String)
     if ($LASTEXITCODE -ne 0) {
-      return $false
+      return $null
     }
 
     $monitors = ($json | ConvertFrom-Json).data.monitors
     if (-not $monitors -or $monitors.Count -ne $ExpectedMonitorCount) {
-      return $false
+      return $null
     }
 
-    return -not ($monitors | Where-Object { $_.workingRect.top -le $_.y })
+    return $monitors
   } catch {
+    return $null
+  }
+}
+
+function Test-MonitorsReady {
+  param(
+    [string]$GlazeWmPath,
+    [int]$ExpectedMonitorCount
+  )
+
+  $monitors = Get-MonitorState -GlazeWmPath $GlazeWmPath -ExpectedMonitorCount $ExpectedMonitorCount
+  return $null -ne $monitors
+}
+
+function Test-WorkAreaReserved {
+  param(
+    [string]$GlazeWmPath,
+    [int]$ExpectedMonitorCount
+  )
+
+  $monitors = Get-MonitorState -GlazeWmPath $GlazeWmPath -ExpectedMonitorCount $ExpectedMonitorCount
+  if ($null -eq $monitors) {
     return $false
   }
+
+  return -not ($monitors | Where-Object { $_.workingRect.top -le $_.y })
+}
+
+# Zebar registers each monitor's AppBar reservation once while the widget is
+# created and never verifies the result, so the reservation is occasionally
+# dropped on one monitor even though `SHAppBarMessage` reported success.
+# Restarting Zebar alone re-runs the registration without touching GlazeWM.
+function Restart-Zebar {
+  $zebarPath = (Get-Command zebar -CommandType Application -ErrorAction SilentlyContinue).Source
+  if (-not $zebarPath) {
+    return $false
+  }
+
+  $zebarProcesses = @(Get-ProcessRecords -Names 'zebar')
+  foreach ($record in $zebarProcesses) {
+    Stop-Process -Id $record.Id -Force -ErrorAction SilentlyContinue
+  }
+
+  $zebarStopped = Wait-Until -TimeoutSeconds 5 -Condition {
+    -not ($zebarProcesses | Where-Object { Test-ProcessRecord $_ })
+  }
+  if (-not $zebarStopped) {
+    return $false
+  }
+
+  [void](Start-Process -FilePath $zebarPath -WindowStyle Hidden)
+  return $true
 }
 
 try {
@@ -120,10 +170,28 @@ try {
 
   [void](Start-Process -FilePath $glazeWmPath -ArgumentList 'start' -PassThru)
   $restartReady = Wait-Until -TimeoutSeconds 30 -Condition {
-    Test-RestartReady -GlazeWmPath $glazeWmPath -ExpectedMonitorCount $expectedMonitorCount
+    Test-MonitorsReady -GlazeWmPath $glazeWmPath -ExpectedMonitorCount $expectedMonitorCount
   }
   if (-not $restartReady) {
-    throw 'The restarted GlazeWM did not report a Zebar top work-area reservation on every monitor.'
+    throw 'The restarted GlazeWM did not report the expected monitor count with Zebar running.'
+  }
+
+  $workAreaReserved = Wait-Until -TimeoutSeconds 15 -Condition {
+    Test-WorkAreaReserved -GlazeWmPath $glazeWmPath -ExpectedMonitorCount $expectedMonitorCount
+  }
+
+  for ($attempt = 1; -not $workAreaReserved -and $attempt -le 3; $attempt++) {
+    if (-not (Restart-Zebar)) {
+      break
+    }
+
+    $workAreaReserved = Wait-Until -TimeoutSeconds 20 -Condition {
+      Test-WorkAreaReserved -GlazeWmPath $glazeWmPath -ExpectedMonitorCount $expectedMonitorCount
+    }
+  }
+
+  if (-not $workAreaReserved) {
+    throw 'Zebar did not reserve a top work area on every monitor after 3 retries.'
   }
 } catch {
   [void](New-Item -ItemType Directory -Path $logDirectory -Force)

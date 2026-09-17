@@ -171,3 +171,21 @@
 - Portability: The match uses the managed pack name and contains no machine-specific path.
 - Chezmoi: Updated the existing managed `config.yaml.tmpl` source and applied it to the current machine.
 - Verification: GlazeWM 3.10.1 accepted `wm-reload-config`; a live selector query reported `hasFocus: true`, `state: floating`, and `displayState: shown`.
+
+## 2026-09-17T10:30:50+08:00 - Retry the Zebar dock reservation
+
+- Status: Completed
+- Machine: TC-TSENG
+- Platform: windows/x64
+- Scope: `restart-glazewm.ps1`
+- Summary: Split the restart readiness check into monitor presence and work-area reservation, and retry a Zebar-only restart up to three times when a monitor reports no top reservation.
+- Important records:
+  - Zebar 3.3.1 `create_app_bar` registers each widget's AppBar once with `uCallbackMessage: 0`, never answers `ABN_POSCHANGED`, and never confirms the reservation; its own source carries a TODO for this, blocked by tauri#11650.
+  - Diagnosis showed Zebar logging `Successfully registered appbar with rect: RECT { left: 1923, top: -503, right: 3843, bottom: -463 }` while `GetMonitorInfoW` reported zero reservation on that monitor, so the API result cannot be trusted.
+  - A standalone AppBar test on the same monitor reserved and released 40px in four call variants, which rules out Windows, the negative monitor origin, and GlazeWM.
+  - The failure is a race that hits the last widget created, so it targets one monitor consistently; `restart.log` had already recorded it on 2026-09-11 and twice on 2026-09-17.
+  - The previous helper only logged the failure, which is why repeated `Alt+Shift+W` presses never recovered the reservation.
+  - Retries restart Zebar alone; GlazeWM keeps running and picks up the rebuilt work area on its own.
+- Portability: The helper resolves `zebar` through `PATH` in the same way it already resolves `glazewm`, and derives the expected monitor count from live state instead of a fixed number.
+- Chezmoi: Updated the existing managed `restart-glazewm.ps1` source and applied the rendered target.
+- Verification: PowerShell AST parsing passed; scoped `chezmoi diff` matched the intended change; scoped apply completed and scoped `chezmoi status` is clean; source and target SHA256 match with LF-only line endings. A live `Alt+Shift+W` restart was not executed, so the retry path is not yet observed end to end.
