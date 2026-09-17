@@ -1,0 +1,292 @@
+{
+    "$schema": "https://opencode.ai/config.json",
+    "model": "anthropic/claude-fable-5-1",
+    "autoupdate": true, // 1.18.21 is ok
+    "instructions": [
+        "AGENTS.md"
+    ],
+    "default_agent": "plan",
+    "disabled_providers": [
+        "google",
+        "nvidia"
+    ],
+    "provider": {
+        "openai": {
+            "options": {
+                "headerTimeout": 60000,
+                "timeout": 600000,
+                "chunkTimeout": 60000
+            }
+        }
+    },
+    "mcp": {
+        "notebooklm": {
+            "type": "local",
+            "command": [
+                "npx",
+                "-y",
+                "@charlie.act7/gemini-notebook-mcp@2.3.11"
+            ],
+            "enabled": true
+        },
+        "linear": {
+            "type": "remote",
+            "url": "https://mcp.linear.app/mcp",
+            "enabled": true,
+            "timeout": 5000
+        },
+        "markitdown": {
+            "type": "local",
+            "command": [
+                "markitdown-mcp"
+            ],
+            "enabled": true
+        },
+        "office-mcp": {
+            "type": "local",
+            "command": [
+                "C:\\Users\\tc_tseng\\.local\\share\\opencode\\office-mcp\\.venv\\Scripts\\python.exe",
+                "C:\\Users\\tc_tseng\\.local\\share\\opencode\\office-mcp\\server.py"
+            ],
+            "enabled": true,
+            "environment": {
+                "PYTHONUTF8": "1",
+                "PYTHONIOENCODING": "utf-8",
+                "OFFICE_MCP_DEFAULT_FOLDER": "C:\\Users\\tc_tseng\\Documents"
+            }
+        }
+    },
+    "lsp": true,
+    "permission": {
+        "read": "allow",
+        "list": "allow",
+        "glob": "allow",
+        "grep": "allow",
+        "lsp": "allow",
+        "question": "allow",
+        "skill": {
+            "change-understanding-review": "allow"
+        },
+        "edit": "ask",
+        "bash": {
+            "*": "ask",
+            "ls": "allow",
+            "ls *": "allow",
+            "pwd": "allow",
+            "cat *": "allow",
+            "head *": "allow",
+            "tail *": "allow",
+            "find *": "ask",
+            "which *": "allow",
+            "wc *": "allow",
+            "du *": "allow",
+            "df *": "allow",
+            "stat *": "allow",
+            "file *": "allow",
+            "tree *": "allow",
+            "diff *": "allow",
+            "grep *": "allow",
+            "rg *": "allow",
+            "ag *": "allow",
+            "Select-String *": "allow",
+            "whoami": "allow",
+            "hostname": "allow",
+            "uname *": "allow",
+            "uptime": "allow",
+            "date": "allow",
+            "env": "allow",
+            "printenv": "allow",
+            "echo *": "allow",
+            "ps *": "allow",
+            "curl *": "ask",
+            "wget *": "ask",
+            "jq *": "allow",
+            "yq *": "allow",
+            "git status*": "allow",
+            "git diff*": "allow",
+            "git log*": "allow",
+            "git show*": "allow",
+            "git branch": "allow",
+            "git branch --list": "allow",
+            "git branch --show-current": "allow",
+            "git branch -a": "allow",
+            "git branch -r": "allow",
+            "git branch -v": "allow",
+            "git branch -vv": "allow",
+            "git remote": "allow",
+            "git remote -v": "allow",
+            "git config --get*": "allow",
+            "git config --list": "allow",
+            "dotnet --version": "allow",
+            "dotnet --info*": "allow",
+            "dotnet --list-*": "allow",
+            "dotnet list *": "allow",
+            "dotnet sln list": "allow",
+            "node --version": "allow",
+            "npm --version": "allow",
+            "npm list*": "allow",
+            "pnpm --version": "allow",
+            "pnpm list*": "allow",
+            "yarn --version": "allow",
+            "bun --version": "allow",
+            "python --version": "allow",
+            "python3 --version": "allow",
+            "pip list": "allow",
+            "pip show *": "allow",
+            "go version": "allow",
+            "cargo --version": "allow",
+            "rustc --version": "allow",
+            "docker ps*": "allow",
+            "docker images*": "allow",
+            "docker inspect *": "allow",
+            "dotnet build*": "allow",
+            "dotnet test*": "allow",
+            "npm run *": "ask",
+            "npm run test*": "allow",
+            "npm run lint*": "allow",
+            "npm run check*": "allow",
+            "npm run typecheck*": "allow",
+            "npm test*": "allow",
+            "pnpm run *": "ask",
+            "pnpm run test*": "allow",
+            "pnpm run lint*": "allow",
+            "pnpm run check*": "allow",
+            "pnpm run typecheck*": "allow",
+            "pnpm test*": "allow",
+            "yarn *": "ask",
+            "yarn run *": "ask",
+            "yarn run test*": "allow",
+            "yarn run lint*": "allow",
+            "yarn run check*": "allow",
+            "yarn run typecheck*": "allow",
+            "yarn test*": "allow",
+            "git add *": "ask",
+            "git commit*": "ask",
+            "git push*": "ask",
+            "git merge*": "ask",
+            "git rebase*": "ask",
+            "npm install*": "ask",
+            "pnpm install*": "ask",
+            "mv *": "ask",
+            "cp *": "ask",
+            "rm *": "ask",
+            "rm -rf *": "ask",
+            "rm -rf /*": "deny",
+            "sudo rm*": "deny",
+            "sudo *": "deny",
+            "su *": "deny",
+            "> /dev/*": "deny",
+            "dd *": "deny",
+            "mkfs*": "deny",
+            "fdisk*": "deny",
+            "shutdown*": "deny",
+            "reboot*": "deny",
+            "halt*": "deny",
+            "poweroff*": "deny",
+            "kill -9 *": "deny",
+            "killall *": "deny",
+            "pkill *": "deny"
+        },
+        "task": "allow",
+        "todoread": "allow",
+        "todowrite": "ask",
+        "webfetch": "allow",
+        "websearch": "allow",
+        "codesearch": "allow",
+        "external_directory": "ask",
+        "doom_loop": "ask"
+    },
+    "agent": {
+        "plan": {
+            "model": "anthropic/claude-fable-5-1",
+            "permission": {
+                "edit": "deny"
+            }
+        },
+        "general": {
+            "model": "anthropic/claude-opus-5"
+        },
+        "explore": {
+            "model": "anthropic/claude-opus-5"
+        },
+        // v2 derives file-based agent IDs from the path under agent/, not the
+        // frontmatter "name". v1 keys such as "Mentor" match nothing here and
+        // would silently create empty agents instead of overriding the real ones.
+        "selfmade/subagents/learning/Navigator": {
+            "model": "anthropic/claude-opus-5"
+        },
+        "selfmade/subagents/learning/Mentor": {
+            "model": "anthropic/claude-opus-5"
+        },
+        "selfmade/subagents/learning/Facilitator": {
+            "model": "anthropic/claude-opus-5"
+        },
+        "selfmade/subagents/learning/Deconstructor": {
+            "model": "anthropic/claude-opus-5"
+        },
+        "selfmade/subagents/learning/ResearchCurator": {
+            "model": "anthropic/claude-opus-5"
+        },
+        "selfmade/subagents/adversarial/skeptic": {
+            "model": "anthropic/claude-fable-5-1"
+        },
+        "selfmade/subagents/adversarial/red-team": {
+            "model": "anthropic/claude-fable-5-1"
+        },
+        "selfmade/subagents/adversarial/simplifier": {
+            "model": "anthropic/claude-opus-5"
+        },
+    },
+    // v2 uses a different plugin SDK (@opencode/plugin) than v1
+    // (@opencode-ai/plugin), so v1 plugins load with no ID and do nothing.
+    // Status of every plugin carried over from the v1 config:
+    //
+    //   replaced by a v2 builtin, do not reinstall:
+    //     opencode-chrome-devtools          -> opencode.browser
+    //     opencode-large-image-optimizer    -> opencode.config.image + "media"
+    //     opencode-openai-codex-auth        -> openai "ChatGPT Pro/Plus" oauth
+    //     @tarquinen/opencode-smart-title   -> builtin "title" agent
+    //     ./plugins/selfmade/mandatory-format.ts -> "formatter" below
+    //
+    //   dropped on purpose:
+    //     opencode-auto-fallback            upstream stale, not ported
+    //     ./plugins/opencode-mem/...        not needed for now
+    //     ./plugins/openai-usage.ts         monkey-patches a v1 build, use "stats"
+    //
+    //   waiting for upstream to publish a v2 build:
+    //     @tarquinen/opencode-dcp           active "v2" branch upstream
+    //     opencode-handoff
+    //     opencode-command-inject
+    //     @franlol/opencode-md-table-formatter
+    "plugins": [
+        "@ex-machina/opencode-anthropic-auth@next"
+    ],
+    // Replaces the v1 mandatory-format.ts plugin. The builtins already detect a
+    // project-local prettier dependency and a biome.json; dprint is not a v2
+    // builtin, so it is declared here with mandatory-format.ts's extension list.
+    "formatter": {
+        "dprint": {
+            "command": [
+                "dprint",
+                "fmt",
+                "$FILE"
+            ],
+            "extensions": [
+                ".cjs",
+                ".css",
+                ".html",
+                ".js",
+                ".json",
+                ".jsx",
+                ".md",
+                ".mjs",
+                ".scss",
+                ".toml",
+                ".ts",
+                ".tsx",
+                ".yaml",
+                ".yml"
+            ]
+        }
+    }
+}
