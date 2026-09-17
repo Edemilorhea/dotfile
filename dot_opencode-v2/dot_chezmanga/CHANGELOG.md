@@ -59,3 +59,37 @@ runtime state are deliberately excluded and are recreated by the setup script.
   agents` lists 19 agents with the overrides bound; `opencode2 plugin list`
   shows `ex-machina.anthropic-auth 2.0.0-next.1`; the v1 9.75 GB
   `opencode.db` was never opened by v2.
+
+## 2026-09-17T14:21:05+08:00 - Restore the alt+m leader and the v1 keybinds in cli.json
+
+- Status: Completed
+- Machine: TC-TSENG
+- Platform: Microsoft Windows 10.0.26200 / X64
+- Scope: `xdg/config/opencode/cli.json`, `.chezmoiignore` in the chezmoi source root
+- Summary: v2 was using its default `ctrl+x` leader because terminal settings
+  moved from `tui.json` to `cli.json` and the command IDs were renamed, so
+  nothing carried over. `cli.json` now sets the `alt+m` leader and every v1
+  binding that differs from a v2 default.
+- Important records:
+  - v1 `tui.json` uses snake_case IDs such as `app_exit` and `session_new`.
+    v2 `cli.json` uses dotted IDs such as `app.exit` and `session.new`, and
+    rejects unknown IDs, so the old file cannot be copied across.
+  - Only the 18 bindings that differ from a v2 default are declared. Entries
+    such as `<leader>e`, `<leader>m`, and `<leader>c` already match.
+  - `session.permissions` is `autoaccept`, which approves every permission
+    request without prompting. It was already present and is preserved here
+    rather than silently changed.
+  - The two TUI plugins in `tui.json`, `./plugins/openai-usage-tui.ts` and
+    `opencode-claude-usage`, are not carried over because they target the v1
+    plugin SDK.
+  - `oh-my-opencode-slim` fails to load under v2 when a project deploys its
+    pinned spec into `.opencode/opencode.json`. Even `3.0.0-beta.13` still
+    depends on `@opencode-ai/plugin@1.18.23`, so no v2 build exists yet. The
+    failure is reported per plugin and does not stop the session.
+- Portability: `cli.json` holds only key names and has no machine-specific
+  paths.
+- Chezmoi: added `xdg/config/opencode/cli.json` and removed its
+  `.chezmoiignore` exclusion, which was written before the file had content.
+- Verification: every declared keybind ID was checked against the 239 IDs in
+  `https://opencode.ai/v2/cli.json`; all 18 are valid and the top-level keys
+  are valid. `chezmoi status` for `~/.opencode-v2` is clean.
