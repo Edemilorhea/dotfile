@@ -1,7 +1,9 @@
 {
   "$schema": "https://opencode.ai/v2/cli.json",
   "session": {
-    "permissions": "autoaccept"
+    "permissions": "autoaccept",
+    "sidebar": "auto",
+    "thinking": "hide"
   },
   "keybinds": {
     "leader": "alt+m",
@@ -28,5 +30,10 @@
     "input.buffer.end": "end",
 
     "terminal.suspend": "none"
+  },
+  "tabs": {
+    "scope": "cwd",
+    "indicators": "numbers",
+    "layout": "horizontal"
   }
 }
