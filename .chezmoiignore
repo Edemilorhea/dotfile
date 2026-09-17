@@ -93,6 +93,7 @@
 .opencode-v2/xdg/config/opencode/commands/**
 .opencode-v2/xdg/config/opencode/skills/**
 .opencode-v2/xdg/config/opencode/AGENTS.md
+.opencode-v2/xdg/config/opencode/plugins/locu/core/**
 
 # Backups / temporary / test-only files
 .config/psmux/backups/**

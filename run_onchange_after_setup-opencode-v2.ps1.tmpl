@@ -129,5 +129,10 @@ foreach ($name in 'agent', 'commands', 'skills') {
 }
 Set-FileLink -Source (Join-Path $v1Config 'AGENTS.md') -Target (Join-Path $v2Config 'AGENTS.md')
 
+# The locu plugin is the v2 port of the v1 custom tool. V2 removed file-based
+# custom tools, so only the registration layer lives here; the client is shared
+# with tools/locu through this junction.
+Set-Junction -Source (Join-Path $v1Config 'tools/locu') -Target (Join-Path $v2Config 'plugins/locu/core')
+
 Write-Host '[OpenCode v2] Complete. Run "opencode2 auth login anthropic --method claude-max" in a new terminal.'
 {{- end }}
