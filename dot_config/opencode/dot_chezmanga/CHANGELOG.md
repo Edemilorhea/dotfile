@@ -539,3 +539,31 @@
 - Portability: The boolean option is machine-neutral and adds no absolute paths.
 - Chezmoi: Updated the existing managed OpenCode configuration and applied only its runtime target.
 - Verification: Scoped `chezmoi diff` showed the intended change, `chezmoi apply` succeeded, scoped `chezmoi status` was clean, and both source and runtime files remained LF-only. Language-server startup was not tested; restart OpenCode to load the new configuration.
+
+## 2026-09-17T15:12:00+08:00 - Remove the undocumented remove-tag.js plugin
+
+- Status: Completed
+- Machine: TC-TSENG
+- Platform: windows/x64
+- Scope: `plugins/remove-tag.js`, `.chezmoiremove` in the chezmoi source root
+- Summary: Deleted a 27-line plugin that rewrote the assistant identity line in the
+  system prompt. It is no longer loaded by OpenCode v1 and will not be carried into v2.
+- Important records:
+  - The file was created 2026-02-04, entered chezmoi on 2026-07-14, and had no
+    changelog entry, so its origin could not be established. Its content matches a
+    community snippet that strips "the best coding agent on the planet" from the
+    system prompt.
+  - It was never listed in `opencode.json` or `tui.json`. `opencode debug config`
+    showed OpenCode v1 loading it through directory discovery of top-level files in
+    `plugins/`, alongside `notify.ts` and `openai-usage-tui.ts`, for 16 resolved
+    plugins in total.
+  - It used `experimental.chat.system.transform`, a v1 hook marked experimental. The
+    v2 equivalent is `ctx.session.hook("context")`, so a port would have to be
+    rewritten rather than copied.
+  - `.chezmoiremove` now carries the target so other machines drop it on the next apply.
+- Portability: The removal is machine-neutral and adds no absolute paths.
+- Chezmoi: Ran `chezmoi forget` on the target, deleted the runtime file, and recorded
+  the target in `.chezmoiremove`.
+- Verification: `chezmoi source-path` reports the target as not managed, the runtime
+  file is gone, and `plugins/` now holds only `notify.ts`, `openai-usage.ts`, and
+  `openai-usage-tui.ts`. Restart OpenCode to drop the plugin from the running server.

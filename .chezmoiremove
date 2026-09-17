@@ -1,1 +1,6 @@
 dot_AppData_Local_nvim_blink.lua
+
+# Removed 2026-09-17: undocumented Feb-2026 snippet that rewrote the system
+# prompt through v1's experimental.chat.system.transform hook. It was loaded by
+# directory discovery rather than by any config entry.
+.config/opencode/plugins/remove-tag.js
