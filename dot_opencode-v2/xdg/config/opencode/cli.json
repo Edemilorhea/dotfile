@@ -1,0 +1,32 @@
+{
+  "$schema": "https://opencode.ai/v2/cli.json",
+  "session": {
+    "permissions": "autoaccept"
+  },
+  "keybinds": {
+    "leader": "alt+m",
+
+    "app.exit": "ctrl+d,<leader>q",
+
+    "session.rename": "none",
+    "session.child.next": "<leader>right",
+    "session.child.previous": "<leader>left",
+    "session.parent": "<leader>up",
+    "session.half.page.up": "alt+pageup",
+    "session.half.page.down": "alt+pagedown",
+    "session.messages_last_user": "none",
+    "messages.copy": "ctrl+shift+c,<leader>y",
+
+    "agent.cycle": "tab",
+    "agent.cycle.reverse": "shift+tab",
+
+    "prompt.clear": "<leader>d",
+
+    "input.undo": "ctrl+-,ctrl+z",
+    "input.redo": "ctrl+.,alt+z",
+    "input.buffer.home": "home",
+    "input.buffer.end": "end",
+
+    "terminal.suspend": "none"
+  }
+}

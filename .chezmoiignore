@@ -85,7 +85,6 @@
 .opencode-v2/xdg/state/**
 .opencode-v2/xdg/cache/**
 .opencode-v2/xdg/config/opencode/service.json
-.opencode-v2/xdg/config/opencode/cli.json
 .opencode-v2/PATH-user-backup.txt
 .opencode-v2/removed-dead-shims/**
 
