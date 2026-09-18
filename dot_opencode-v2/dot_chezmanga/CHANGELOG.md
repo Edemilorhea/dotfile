@@ -182,3 +182,26 @@ runtime state are deliberately excluded and are recreated by the setup script.
   scoped `chezmoi status` is clean after `chezmoi apply`. The applied
   `cli.json` parses as JSON, reports the three new bindings, and remains LF-only.
   The bindings are not yet exercised in a live TUI session.
+
+## 2026-09-18T23:39:13+08:00 - Capture the disabled session tab bar
+
+- Status: Completed
+- Machine: TC-TSENG
+- Platform: Microsoft Windows 10.0.26200 / X64
+- Scope: `xdg/config/opencode/cli.json`
+- Summary: `tabs.enabled` is now `false`, so the v2 session tab bar is off. The
+  tab keybindings added earlier today remain declared and take effect again if
+  tabs are re-enabled.
+- Important records:
+  - The value was written by the v2 TUI itself at 2026-09-18 15:54, after the
+    14:00 source commit, so it existed only on this machine. The live file was
+    declared authoritative and the source was updated from it.
+  - `tabs.scope` and `tabs.indicators` are unchanged. Turning the tab bar off
+    does not remove `session.tab.next`, `session.tab.previous`, or
+    `session.tab.reopen` from `keybinds`; the CLI still accepts those IDs.
+- Portability: The change is a single boolean and contains no machine-specific
+  path.
+- Chezmoi: Scoped `chezmoi re-add` of `cli.json`; chezmoi's autocommit and
+  autopush published it.
+- Verification: The scoped `chezmoi status` is clean, the file parses as JSON,
+  and it remains LF-only. No TUI restart was performed to observe the tab bar.

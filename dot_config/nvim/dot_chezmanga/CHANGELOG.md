@@ -218,3 +218,20 @@
 - Portability: Uses LazyVim and Neovim diagnostic options without machine-specific paths.
 - Chezmoi: Updated the existing managed source and applied only the corresponding Neovim target.
 - Verification: Headless Neovim reported `underline=true`, `virtual_text=false`, `virtual_lines=false`, and signs enabled, and a seeded error diagnostic produced one `DiagnosticUnderline` extmark plus one sign extmark; source and target are synchronized with LF line endings.
+
+## 2026-09-18T23:39:13+08:00 - Capture cwd-scoped pickers, the explorer sidebar, and Vue support
+
+- Status: Completed
+- Machine: tc-tseng
+- Platform: windows/x64
+- Scope: `lua/config/lazy.lua`, `lua/config/options.lua`, `lua/plugins/tools.lua`, `lua/plugins/ui-restructured.lua`
+- Summary: Brought four Neovim files that had drifted on this machine back into chezmoi and added the Vue language extra. Root-directory resolution is now the current working directory, Telescope keymaps are declared once, Snacks Explorer runs as a resizable sidebar with a main-window preview, and LazyVim's Vue extra is loaded.
+- Important records:
+  - `vim.g.root_spec = { "cwd" }` replaces LazyVim's default `{ "lsp", { ".git", "lua" }, "cwd" }`. Dashboard Find File, `\ff`, and `\e` previously escaped to a parent project root.
+  - Because `root_spec` now settles the scope, `tools.lua` dropped its `config` function and the seven manual `vim.keymap.set` wrappers that forced `cwd` on each Telescope picker. Keymaps exist only in the `keys` table.
+  - The Snacks Explorer contribution sets `preset = "sidebar"` with `preview = "main"`, binds `<C-Left>` / `<C-Right>` to resize by five columns and `=` to reset, clamps the width between 20 columns and `vim.o.columns - 20`, and restores the last width through `on_show`. The custom `<leader>e` / `<leader>E` maps were removed in favour of LazyVim's `\fe` and `\fE`.
+  - `lazy.lua` gained `lazyvim.plugins.extras.lang.vue`. The chezmoi source had also dropped `{ import = "plugins.persistence" }`; that import is deliberately kept. `plugins/persistence.lua` only supplies `branch = false` to the persistence.nvim instance that LazyVim already declares in `lazyvim/plugins/util.lua`, so losing the import would not disable sessions, only re-enable the slow per-exit Git branch lookup that worktrees make pointless.
+  - These four targets had been edited on this machine on 2026-09-16 and never re-added, while the chezmoi source still held 2026-09-04 to 2026-09-07 versions. The machine state was declared authoritative, so the source was updated from the target rather than the reverse.
+- Portability: All four files use LazyVim, Snacks, and Telescope APIs with no machine-specific paths. The explorer width is a runtime value, not a stored path.
+- Chezmoi: Re-added the four existing managed sources from their targets after editing `lazy.lua` in place; chezmoi's autocommit and autopush published each one.
+- Verification: Scoped `chezmoi status` is clean for all four targets and every source file is LF-only. Neovim was not restarted, so the Vue extra, the explorer sidebar bindings, and the picker scope remain unverified at runtime.

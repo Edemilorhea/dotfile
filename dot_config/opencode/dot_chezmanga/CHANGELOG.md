@@ -663,3 +663,37 @@
   ~/.agents/skills/implementation-understanding-tutor/SKILL.md hash matches
   the source. Agent behaviour in live sessions is not yet exercised; restart
   OpenCode to load the new definitions.
+
+## 2026-09-18T23:39:13+08:00 - Deploy the pending asset manager script and frontmatter metadata
+
+- Status: Completed
+- Machine: tc-tseng
+- Platform: Microsoft Windows 10.0.26200 / X64
+- Scope: `scripts/opencode-assets.ps1`, `config/assets/skills/human-skill-tree-frontmatter.json`
+- Summary: Applied two managed targets that had been committed on 2026-09-12 but
+  never written to this machine. The asset manager can now inject managed
+  frontmatter into skills-cli assets, and its TUI hides `provenance-only`
+  entries that cannot be installed.
+- Important records:
+  - Earlier today the new `content` profile was applied, which also carried the
+    pending `external-assets.json` revision. That file declares a `frontmatter`
+    block for `human-skill-tree` pointing at
+    `~/.config/opencode/config/assets/skills/human-skill-tree-frontmatter.json`,
+    but the deployed script had no `Add-SkillsCliFrontmatter` function and the
+    metadata file was absent. Installing or refreshing that asset would have
+    produced skills without frontmatter. Applying both targets removes the
+    mismatch.
+  - The script gains `Add-SkillsCliFrontmatter`, a `Test-Catalog` rule that
+    restricts `frontmatter` to the `skills-cli` channel and rejects wildcard
+    skill lists, a `selectableAssets` filter that keeps `provenance-only` assets
+    out of the TUI counts and pickers, and an overlay array-construction fix.
+  - The deployed copy held no local edits; every difference was an older version
+    of a line the 2026-09-12 commit replaced, so applying lost nothing.
+- Portability: Both files were already managed and machine-neutral. The
+  frontmatter source path is expressed with `~` in `external-assets.json`.
+- Chezmoi: Applied the two existing managed targets only. No source file was
+  modified and no `run_` script was triggered.
+- Verification: Scoped `chezmoi status` is clean for both targets, the deployed
+  script now resolves `Add-SkillsCliFrontmatter` at line 752, and the metadata
+  file exists. The asset manager was not executed, so frontmatter injection is
+  unverified at runtime.
