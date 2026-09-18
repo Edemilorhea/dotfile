@@ -1,5 +1,47 @@
 # OpenCode Chezmoi Changelog
 
+## 2026-09-18T10:57:11+08:00 - Add knowledge scaffolding and bounded gap handling to Mentor
+
+- Status: Completed
+- Machine: DESKTOP-3JHKCAP
+- Platform: windows/x64
+- Scope: agent/selfmade/subagents/learning/Mentor.md
+- Summary: Full-guidance mode now emits conditional prerequisite knowledge and a
+  minimal teaching example, and a new bounded rule lets Mentor flag a
+  comprehension gap once at a work boundary instead of interrupting active
+  implementation.
+- Important records:
+  - Mentor referenced only LearningAgent and had no link to Facilitator or
+    Deconstructor, so a user who never typed `/socratic` or `/feynman` never
+    reached them. The gap was closed inside Mentor rather than by merging or
+    auto-invoking those subagents.
+  - Knowledge gaps and wrong mental models are handled separately. Saying "I do
+    not know how" stays a knowledge gap and routes to full-guidance mode; only
+    verified contradictions qualify as a comprehension gap.
+  - TODO mode already produced prerequisite knowledge and a minimal teaching
+    example, but full-guidance mode did not, so the user who needed the most
+    explanation received the least. The new section reuses the TODO-mode
+    condition and skips output when the concept was already explained or an
+    in-project reference exists.
+  - Comprehension-gap evidence is limited to two verifiable signals: stated
+    intent contradicting workspace code, and the same wrong concept recurring
+    within a ticket. Speculation must report `unknown` and stay at Level 0.
+  - Detection is automatic but escalation requires consent. Level 1 is a single
+    sentence plus a choice at a boundary, capped at once per
+    `current_main_task`. Level 2 is at most two questions and never alters the
+    task map. Nothing may interrupt active writing, running, or debugging.
+  - Level 2 stays inline instead of delegating to Facilitator or Deconstructor,
+    because Mentor is `mode: all` and is itself a subagent when routed by
+    LearningAgent, where nested delegation is unreliable. Full verification is
+    still handed back to the user through `/feynman` or `/socratic`.
+- Portability: Prose-only agent instructions with no machine-specific paths.
+- Chezmoi: Already managed; source updated and applied with scoped
+  `chezmoi apply`.
+- Verification: `git diff --stat` reports 46 insertions and 0 deletions, so no
+  existing rule was modified or removed; the file remains pure LF with 169 line
+  endings. Scoped `chezmoi status` for the target is clean after apply. The new
+  instructions were not exercised in a live Mentor session.
+
 ## 2026-09-16T15:26:24+08:00 - Make communication guidance always-on
 
 - Status: Completed

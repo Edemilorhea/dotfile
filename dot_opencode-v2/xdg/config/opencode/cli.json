@@ -3,7 +3,8 @@
   "session": {
     "permissions": "autoaccept",
     "sidebar": "auto",
-    "thinking": "hide"
+    "thinking": "hide",
+    "new_location": "launch"
   },
   "keybinds": {
     "leader": "alt+m",
@@ -33,7 +34,21 @@
   },
   "tabs": {
     "scope": "cwd",
-    "indicators": "numbers",
+    "indicators": "status",
     "layout": "horizontal"
+  },
+  "theme": {
+    "mode": "dark",
+    "name": "ayu"
+  },
+  "animations": false,
+  "diffs": {
+    "view": "auto"
+  },
+  "attention": {
+    "notifications": false
+  },
+  "terminal": {
+    "title": true
   }
 }
