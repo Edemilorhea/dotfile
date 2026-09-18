@@ -10,6 +10,12 @@ vim.g.maplocalleader = "\\"
 -- ESLint LSP 預設啟用，但只在專案有 ESLint 設定時啟動 client。
 vim.g.eslint_enabled = true
 
+-- LazyVim.root() 只認「開啟 Neovim 時的工作目錄」。
+-- 預設值是 { "lsp", { ".git", "lua" }, "cwd" }，會往上找 .git/lua 而跳到父層專案根目錄，
+-- 導致 Dashboard 的 Find File、\ff、\e 等 root 導向功能搜到目前資料夾以外的檔案。
+-- 改成純 cwd 後，所有走 LazyVim.pick / LazyVim.root 的入口語意一致。
+vim.g.root_spec = { "cwd" }
+
 -- 啟動時即把 mason bin 加入 PATH，避免 mason 延遲載入時
 -- tree-sitter-cli 等工具在 :checkhealth（未開專案時 mason 未載入）找不到
 if not g.vscode then
