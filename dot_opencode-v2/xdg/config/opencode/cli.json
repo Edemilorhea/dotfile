@@ -39,7 +39,8 @@
   "tabs": {
     "scope": "cwd",
     "indicators": "status",
-    "layout": "horizontal"
+    "layout": "horizontal",
+    "enabled": false
   },
   "theme": {
     "mode": "dark",
