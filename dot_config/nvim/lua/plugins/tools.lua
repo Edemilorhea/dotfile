@@ -51,34 +51,17 @@ return {
                 },
             },
         },
-        config = function(_, opts)
-            require("telescope").setup(opts)
-
-            local function cwd_picker(name, picker_opts)
-                return function()
-                    require("telescope.builtin")[name](vim.tbl_deep_extend("force", {
-                        cwd = vim.uv.cwd(),
-                    }, picker_opts or {}))
-                end
-            end
-
-            -- LazyVim's Telescope extra maps these to the parent project root by default.
-            vim.keymap.set("n", "<leader><space>", cwd_picker("find_files"), { desc = "搜尋檔案（工作目錄）" })
-            vim.keymap.set("n", "<leader>ff", cwd_picker("find_files"), { desc = "搜尋檔案（工作目錄）" })
-            vim.keymap.set("n", "<leader>fg", cwd_picker("live_grep"), { desc = "全文搜尋（工作目錄）" })
-            vim.keymap.set("n", "<leader>/", cwd_picker("live_grep"), { desc = "全文搜尋（工作目錄）" })
-            vim.keymap.set("n", "<leader>sg", cwd_picker("live_grep"), { desc = "全文搜尋（工作目錄）" })
-            vim.keymap.set("n", "<leader>fw", cwd_picker("grep_string"), { desc = "搜尋游標文字（工作目錄）" })
-            vim.keymap.set({ "n", "x" }, "<leader>sw", cwd_picker("grep_string"), { desc = "搜尋文字（工作目錄）" })
-        end,
+        -- 快捷鍵只在這裡定義一次。
+        -- Telescope 的 builtin picker 預設就用 cwd，搭配 vim.g.root_spec = { "cwd" }
+        -- （見 lua/config/options.lua）即可保證不會搜到父層專案根目錄。
         keys = {
-            { "<leader>ff", "<cmd>Telescope find_files<CR>", desc = "搜尋檔案" },
-            { "<leader>fg", "<cmd>Telescope live_grep<CR>", desc = "全文搜尋" },
+            { "<leader>ff", "<cmd>Telescope find_files<CR>", desc = "搜尋檔案（工作目錄）" },
+            { "<leader>fg", "<cmd>Telescope live_grep<CR>", desc = "全文搜尋（工作目錄）" },
             { "<leader>fb", "<cmd>Telescope buffers<CR>", desc = "搜尋 Buffer" },
             { "<leader>fh", "<cmd>Telescope help_tags<CR>", desc = "搜尋說明文件" },
-            { "<leader>fr", "<cmd>Telescope oldfiles cwd_only=true<CR>", desc = "最近開啟檔案（專案內）" },
+            { "<leader>fr", "<cmd>Telescope oldfiles cwd_only=true<CR>", desc = "最近開啟檔案（工作目錄）" },
             { "<leader>fR", "<cmd>Telescope oldfiles<CR>", desc = "最近開啟檔案（全域）" },
-            { "<leader>fw", "<cmd>Telescope grep_string<CR>", desc = "搜尋游標文字" },
+            { "<leader>fw", "<cmd>Telescope grep_string<CR>", desc = "搜尋游標文字（工作目錄）" },
             { "<leader>fp", "<cmd>Telescope projects<CR>", desc = "切換專案" },
         },
     },
