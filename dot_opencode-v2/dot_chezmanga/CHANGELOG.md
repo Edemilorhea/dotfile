@@ -139,3 +139,46 @@ runtime state are deliberately excluded and are recreated by the setup script.
   `locu_timer` with no arguments. The cleanup function is returned. V1's
   `tools/locu.ts` is untouched and its scoped `chezmoi status` is clean. Live tool
   invocation is unverified because the v2 provider is not authenticated yet.
+
+## 2026-09-18T14:01:18+08:00 - Rebind tab navigation around Rio, psmux, and GlazeWM
+
+- Status: Completed
+- Machine: TC-TSENG
+- Platform: Microsoft Windows 10.0.26200 / X64
+- Scope: `xdg/config/opencode/cli.json`
+- Summary: `session.tab.next`, `session.tab.previous`, and `session.tab.reopen`
+  now use bindings that survive the Rio to psmux to OpenCode key path and do not
+  collide with the window manager. The remaining tab bindings keep their
+  defaults.
+- Important records:
+  - The defaults `ctrl+tab`, `ctrl+shift+tab`, and `ctrl+shift+t` cannot be
+    transmitted. Rio runs with `TERM=xterm-256color` and its `[keyboard]` table
+    only sets `ime-cursor-positioning`, so legacy encoding sends `0x09` for both
+    `Tab` and `Ctrl+Tab`. OpenCode therefore receives `tab`, which this config
+    binds to `agent.cycle`.
+  - The fallback defaults `alt+down` and `alt+up` are consumed by GlazeWM
+    (`alt+j, alt+down` and `alt+k, alt+up`). `alt+shift+down` and `alt+shift+up`,
+    used by `session.tab.next_unread`, are consumed for the same reason.
+  - `ctrl+pageup` and `ctrl+pagedown` are encodable in legacy mode as
+    `CSI 5;5~` and `CSI 6;5~`. GlazeWM defines no Ctrl binding at all, and
+    `psmux.conf` only unbinds bare `PageUp`, so the pair is free end to end.
+  - `]`, `[`, and `z` are unused as leader keys by both the v2 defaults and this
+    file. The leader `alt+m` is safe: GlazeWM binds `alt+shift+m` but not
+    `alt+m`, and the psmux prefix is `alt+a`.
+  - `session.tab.close` (`<leader>w`) and `session.tab.select.1` through `.10`
+    (`<leader>1` to `<leader>0`) already work, because a leader sequence sends
+    the modifier and the plain key in separate strokes.
+  - `tabs.scope` stays `cwd` by explicit request, so each working directory keeps
+    its own tab set.
+- Portability: The bindings name keys only and contain no machine-specific path.
+  They assume a terminal without the Kitty keyboard protocol; a terminal that
+  negotiates it would also accept the upstream defaults.
+- Chezmoi: Updated `cli.json`. A scoped `chezmoi re-add` ran first because the
+  source was stale relative to the live file, which had gained `new_location`,
+  `theme`, `animations`, `diffs`, `attention`, and `terminal`, and had changed
+  `tabs.indicators` from `numbers` to `status`. The live file was authoritative:
+  its mtime was 2026-09-18 and the source tree had been clean since 2026-09-17.
+- Verification: Scoped `chezmoi diff` showed only the three added lines, and
+  scoped `chezmoi status` is clean after `chezmoi apply`. The applied
+  `cli.json` parses as JSON, reports the three new bindings, and remains LF-only.
+  The bindings are not yet exercised in a live TUI session.

@@ -20,6 +20,10 @@
     "session.messages_last_user": "none",
     "messages.copy": "ctrl+shift+c,<leader>y",
 
+    "session.tab.next": "ctrl+pagedown,<leader>]",
+    "session.tab.previous": "ctrl+pageup,<leader>[",
+    "session.tab.reopen": "<leader>z",
+
     "agent.cycle": "tab",
     "agent.cycle.reverse": "shift+tab",
 
