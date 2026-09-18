@@ -93,7 +93,7 @@ These skills are complementary. ISO 24495 governs information design, ASD-STE100
 | `playwright` | `browser` | `project` | Runtime-only payload; exact-phrase and GitHub code searches found no verifiable public upstream as of 2026-08-09 |
 | `document-processing` | `documents` | `project` | chezmoi-managed template deployed by `opencode-assets`; no longer globally scanned |
 | `office-documents` | `documents` | `global` | chezmoi-managed thin integration for the global Office MCP |
-| `copy-editing`, `copywriting` | `content` | `explicit` | chezmoi-managed; record upstream provenance before refresh |
+| `copy-editing`, `copywriting` | `content` | `project` | chezmoi-managed template under `config/assets/skills`, deployed by `opencode-assets` profile `content`; no longer globally scanned (moved 2026-09-18 after zero global use in three months) |
 
 ## Design and Skill-Authoring Packs
 

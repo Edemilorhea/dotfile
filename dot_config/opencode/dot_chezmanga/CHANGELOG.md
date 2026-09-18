@@ -609,3 +609,57 @@
 - Verification: `chezmoi source-path` reports the target as not managed, the runtime
   file is gone, and `plugins/` now holds only `notify.ts`, `openai-usage.ts`, and
   `openai-usage-tui.ts`. Restart OpenCode to drop the plugin from the running server.
+
+## 2026-09-18T14:58:44+08:00 - Realign agents, commands, and skills with three months of session evidence
+
+- Status: Completed
+- Machine: tc-tseng
+- Platform: Windows x64
+- Scope: gent/selfmade/**, commands/selfmade/**, skills/change-verification,
+  config/assets/skills/implementation-understanding-tutor,
+  config/assets/skills/copywriting, config/assets/skills/copy-editing,
+  config/external-assets.json, config/skills-registry.md, .chezmoiremove
+- Summary: Reviewed 581 OpenCode sessions (2026-06-18 to 2026-09-18) for user
+  corrections and rewrote the definitions whose defaults contradicted them.
+  Mentor now delivers complete guidance by default (TODO scaffolding is opt-in),
+  uses the agreed 要做什麼/為什麼做/怎麼做 bundle with [新增]/[修改]/[刪除],
+  line ranges, and paste-ready code, and no longer runs the understanding-gap
+  questioning. Navigator, Facilitator, and Deconstructor lost their theory
+  sections and keep only operational rules. Skeptic, RedTeam, and Simplifier
+  must classify requirements outside the contract as OUT_OF_SCOPE and may not
+  propose new mechanisms. LearningAgent may run read-only git so it can read
+  diffs itself. /adv-review caps its report at three expanded blockers.
+  /mr ignores uncommitted files. /linear-plan and /linear-review treat
+  project-level deliver-*/develop-* skills as optional. /worklog writes Jira
+  output to ~/Documents/jira/<range>.md with values only.
+  implementation-understanding-tutor no longer exposes parameters; users
+  choose scope, one of four views, and one of three delivery modes in natural
+  language. change-verification reports pre-existing failures as UNRELATED
+  without blocking. Deleted /deep, /cif, /jira_log_Create,
+  /chezmoi-audit, and the three /supermemory-* commands (zero use).
+  Moved copywriting and copy-editing out of the global skill directory
+  into the optional content asset profile.
+- Important records:
+  - Evidence came from ~/.local/share/opencode/opencode.db (message and part
+    tables); the most frequent corrections were scope expansion, learning output
+    format, unnecessary questions, slow subagent workflows, and unexplained
+    jargon.
+  - config/external-assets.json in the chezmoi source was already ahead of the
+    runtime copy (love-tutor profile, human-skill-tree revision); applying the
+    new content profile also deployed those pending source changes.
+  - The global core asset profile was re-applied so ~/.agents/skills copies of
+    the implementation-understanding skills match the new source.
+  - Project-specific facts (no EF migrations, build fast path, conventions,
+    Bizform subjectTypeId) were written to E:/Project/GSS_ESG2412/AGENTS.md,
+    which is outside chezmoi and excluded from that repository's git index.
+- Portability: No absolute paths were added to shared files; /worklog uses
+  ~/Documents/jira. .chezmoiremove carries the deleted commands and moved
+  skill directories so other machines drop them on apply.
+- Chezmoi: Updated managed files, deleted seven command sources, moved two skill
+  directories with git mv, applied scoped targets, and removed the runtime
+  copies of deleted and moved paths.
+- Verification: Scoped chezmoi status is clean for every touched target;
+  xternal-assets.json parses; all edited sources are LF-only;
+  ~/.agents/skills/implementation-understanding-tutor/SKILL.md hash matches
+  the source. Agent behaviour in live sessions is not yet exercised; restart
+  OpenCode to load the new definitions.

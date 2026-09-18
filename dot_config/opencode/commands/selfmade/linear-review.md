@@ -9,11 +9,11 @@ subtask: true
 Scope: `$ARGUMENTS`
 
 1. 使用 `skill` tool 載入 `linear-workflow` 與 `to-tickets`。
-2. 若審閱內容包含需求品質、acceptance criteria 或 issue 是否可執行，載入 `deliver-prd` 與 `deliver-acceptance-criteria`；若包含技術設計或架構決策，載入 `to-spec` 與 `develop-adr`。
+2. 若審閱內容包含需求品質、acceptance criteria 或 issue 是否可執行，且目前專案已安裝 `deliver-prd` 與 `deliver-acceptance-criteria`，才載入；若包含技術設計或架構決策，且已安裝 `to-spec` 與 `develop-adr`，才載入。未安裝時直接以 `linear-workflow` 規則處理。
 3. 以 `linear-workflow` skill 的 `review` 模式審閱 `$ARGUMENTS` 指定的 team、project 或 issue，並用 `to-tickets` 檢查拆解、依賴與可執行性。
 4. `$ARGUMENTS` 為空時，執行 skill 的「恢復上次工作」流程；高可信候選不存在時，以 `question` tool 逐層提供 Teams → Projects / Issues 選擇。
 5. 本命令永遠唯讀。不得呼叫任何 `linear_save_*`、delete、merge 或其他會改變 Linear 狀態的 tool。
-6. 回報 current focus、實際 progress、下一步、blockers、risks、最近完成與未知資訊。
+6. 回報第一段固定是兩個清單：「已完成」與「未完成」（每項一行，附 issue 識別碼）；之後才是 current focus、下一步、blockers、risks 與未知資訊。
 
 ## Examples
 

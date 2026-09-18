@@ -4,3 +4,19 @@ dot_AppData_Local_nvim_blink.lua
 # prompt through v1's experimental.chat.system.transform hook. It was loaded by
 # directory discovery rather than by any config entry.
 .config/opencode/plugins/remove-tag.js
+
+# Removed 2026-09-18: zero-use commands over three months (supermemory plugin is
+# no longer configured; jira_log_Create was an alias of /selfmade:worklog jira;
+# /deep and /cif contradicted the user's length and subtask expectations).
+.config/opencode/commands/selfmade/deep.md
+.config/opencode/commands/selfmade/cif.md
+.config/opencode/commands/selfmade/jira_log_Create.md
+.config/opencode/commands/selfmade/chezmoi-audit.md
+.config/opencode/commands/selfmade/supermemory-init.md
+.config/opencode/commands/selfmade/supermemory-login.md
+.config/opencode/commands/selfmade/supermemory-logout.md
+
+# Moved 2026-09-18 to config/assets/skills and the optional content asset
+# profile; they are no longer global skills.
+.config/opencode/skills/copywriting
+.config/opencode/skills/copy-editing

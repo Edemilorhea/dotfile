@@ -73,6 +73,8 @@ Run the narrowest existing checks first, then broaden only when useful:
 
 Record exact commands and outcomes. Never report a skipped, unavailable, or unrelated test as passing evidence.
 
+When a check fails, decide whether the failure is caused by the change under verification. A failure that also occurs on the base revision, or in code the change does not touch, is pre-existing: report it once as `UNRELATED` with the evidence, do not fix it, and do not let it block the verdict for the change. Do not expand the task into repairing pre-existing failures unless the user asks.
+
 ### 5. Select browser automation deliberately
 
 Read [references/browser-strategy.md](references/browser-strategy.md) before browser work.

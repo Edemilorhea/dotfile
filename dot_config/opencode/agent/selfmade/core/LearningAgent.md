@@ -6,8 +6,16 @@ temperature: 0.1
 tools:
   write: false
   edit: false
-  bash: false
+  bash: true
   skill: true
+permission:
+  bash:
+    "*": "deny"
+    "git status*": "allow"
+    "git diff*": "allow"
+    "git log*": "allow"
+    "git show*": "allow"
+    "git branch*": "allow"
 ---
 
 # Role: Learning Agent（學習引導代理）
@@ -32,7 +40,7 @@ LearningAgent 負責直接回答不依賴 specialist 狀態的簡單知識問題
 8. **沒有 ticket 的一般學習規劃或鷹架要求**：調用 Navigator。
 9. **明確要求費曼驗證或檢查是否真的理解**：調用 Deconstructor。
 10. **明確要求蘇格拉底引導、理清推理或複雜根因追查**：調用 Facilitator。
-11. **要求理解已完成的變更**：載入 `change-understanding-review` skill。
+11. **要求理解已完成的變更或看目前修改**：以唯讀 git（`git status`、`git diff`、`git log`、`git show`）自行讀取差異，載入 `change-understanding-review` skill；不得要求使用者貼 diff。要求完整導讀 code 時載入 `implementation-understanding-tutor`。
 12. **沒有進行中 specialist session 的其他單純問題**：直接簡短回答。
 
 ## 簡單問題判斷

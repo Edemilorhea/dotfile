@@ -56,4 +56,5 @@ n_a_items:
 
 - 唯讀 agent：只能 Read / Grep / Glob / Bash 查證，不得修改任何檔案。
 - 發現機密（金鑰/token/帳密）：回報位置，不引用內容。
+- 只攻擊 contract 的 `scope` 內、且會改變 `decision` 的失效模式。contract 未要求的威脅模型、多實例部署、未來擴充或「以防萬一」情境一律標 `OUT_OF_SCOPE`；不得因此建議新增鎖、token、佇列、協調器或其他機制。
 - 相同失效條件、證據與決策影響只回報一次。

@@ -53,4 +53,5 @@ untested_assumptions:
 - 唯讀 agent：只能 Read / Grep / Glob / Bash 查證，不得修改任何檔案。
 - 能實查的必須實查，不得只憑待審包描述推論。
 - 不得改寫 contract、擴大 scope 或提出與 decision 無關的 blocker。
+- contract 未列出的需求、未來擴充、假設性負載或安全情境，一律標 `OUT_OF_SCOPE`；不得因此建議新增機制、欄位、抽象層或防護。objection 只能指出「命題在 scope 內哪裡不成立」，不能提出新功能需求。
 - 相同失效條件、證據與決策影響只回報一次。

@@ -77,14 +77,14 @@ Agent verdict 是線索，不是票數。主代理必須以 Read、Grep、測試
 
 先回報：`抗辯結果：<SURVIVED | REFUTED | INCONCLUSIVE | ABORTED> - <一句主要理由>`。
 
-接著依序列出：
+接著依序列出，整份回報以使用者能在一分鐘內讀完為目標：
 
-1. 三鏡頭簡表：鏡頭、verdict、關鍵理由、是否有效完成。
-2. `BLOCKER`：含主代理驗證結果。
-3. `QUALIFIER`。
-4. `OUT_OF_SCOPE`。
-5. Coverage 與實際使用的 calls/budget。
-6. 是否值得建立 v2 或新 review；不得直接宣稱將自動重審。
+1. 三鏡頭簡表：鏡頭、verdict、一句關鍵理由。
+2. `BLOCKER`：最多 3 條，每條用一句白話說明「哪裡會壞、為什麼」，附主代理驗證結果與 file:line。超過 3 條時只列影響最大的 3 條，其餘以一行計數帶過。
+3. `QUALIFIER` 與 `OUT_OF_SCOPE`：只列數量與一行摘要，不逐條展開；使用者要求時再列。
+4. 一行：實際使用的 calls/budget，以及是否值得建立 v2（不得自動重審）。
+
+不得輸出超過 3 條展開的 objection、術語未解釋的 verdict，或未經去重的重複發現。
 
 ## 禁止事項
 

@@ -71,7 +71,9 @@ Jira 輸出是由事實證據衍生的呈現結果，不得改寫 Linear、Locu�
 - `Summary: <一段精簡摘要>`
 - `Content:` 下方列出 1–3 個具體項目，每項包含技術動作與可驗證成果。
 
-不同日期以水平線分隔。Jira-ready 內容直接回傳至對話；除非使用者另外明確要求，不得建立 `Documents/Jira_Worklog`、PDF、Obsidian note 或其他檔案。
+Jira 內容只寫給人看的值：不得放 commit hash、Locu session/task ID、Linear identifier、欄位名稱或來源標註；證據只用於產生內容，不出現在內容裡。
+
+不同日期以水平線分隔。Jira-ready 內容寫入 Markdown 檔案 `~/Documents/jira/YYYY-MM-DD_YYYY-MM-DD.md`（檔名為 target range 的起迄日期；單日時兩者相同），目錄不存在時建立。寫檔後在對話中回報檔案路徑與每個日期的 `Title` 一行摘要，不重複貼出完整內容。不得建立 PDF、Obsidian note 或其他檔案。
 
 ## Obsidian 儲存
 

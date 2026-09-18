@@ -83,6 +83,10 @@
     "ponytail": {
       "description": "Optional project prompting framework through the pinned Ponytail plugin.",
       "defaultScope": "project"
+    },
+    "content": {
+      "description": "Optional marketing copywriting and copy-editing skills for content projects.",
+      "defaultScope": "project"
     }
   },
   "overlays": [
@@ -241,6 +245,26 @@
       "defaultScope": "project",
       "sourcePath": "~/.config/opencode/config/assets/skills/document-processing",
       "targetPath": ".opencode/skills/document-processing"
+    },
+    {
+      "id": "copywriting",
+      "type": "skill",
+      "channel": "copy-template",
+      "profiles": ["content"],
+      "scopes": ["project"],
+      "defaultScope": "project",
+      "sourcePath": "~/.config/opencode/config/assets/skills/copywriting",
+      "targetPath": ".opencode/skills/copywriting"
+    },
+    {
+      "id": "copy-editing",
+      "type": "skill",
+      "channel": "copy-template",
+      "profiles": ["content"],
+      "scopes": ["project"],
+      "defaultScope": "project",
+      "sourcePath": "~/.config/opencode/config/assets/skills/copy-editing",
+      "targetPath": ".opencode/skills/copy-editing"
     },
     {
       "id": "init",
