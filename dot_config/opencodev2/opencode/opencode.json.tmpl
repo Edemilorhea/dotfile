@@ -266,6 +266,13 @@
     //     opencode-auto-fallback            upstream stale, not ported
     //     ./plugins/opencode-mem/...        not needed for now
     //     ./plugins/openai-usage.ts         monkey-patches a v1 build, use "stats"
+    //     opencode2-todo                    0.2.1 registers todowrite server-side,
+    //                                       but its src/tui.tsx has no
+    //                                       "@jsxImportSource solid-js" pragma and the
+    //                                       published tarball omits tsconfig.json, so
+    //                                       the cli transpiles the JSX with the React
+    //                                       runtime and fails every reconciliation with
+    //                                       "Cannot find package 'react'".
     //
     //   waiting for upstream to publish a v2 build:
     //     opencode-handoff
@@ -275,17 +282,13 @@
     //
     //   v2-capable, enabled below:
     //     @tarquinen/opencode-dcp           3.2.0 ships lib/v2 setup() for @opencode/plugin
-    //     opencode2-todo                    community plugin, restores todowrite only
     //
     // Install plugins from npm, not from a git specifier. OpenCode installs with
     // npm, and npm cannot select a subdirectory of a repository: the
-    // "github:...::path:" form is pnpm syntax. npm cloned the repo, found no
-    // package.json at its root, and failed with NpmInstallFailedError on every
-    // plugin reconciliation.
+    // "github:...::path:" form is pnpm syntax.
     "plugins": [
         "@ex-machina/opencode-anthropic-auth@next",
-        "@tarquinen/opencode-dcp@3.2.0",
-        "opencode2-todo@0.2.1"
+        "@tarquinen/opencode-dcp@3.2.0"
     ],
     // Replaces the v1 mandatory-format.ts plugin. The builtins already detect a
     // project-local prettier dependency and a biome.json; dprint is not a v2

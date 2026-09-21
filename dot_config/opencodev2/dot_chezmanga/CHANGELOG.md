@@ -163,3 +163,26 @@ The v2 binary, database, credentials, and other runtime state stay in
   is clean. The server log shows
   `loading plugin id=opencode2-todo@0.2.1` with no failure for `role=server`.
   A live `todowrite` call succeeded. `role=cli` still logs the react JSX error.
+## 2026-09-22T00:47:00+08:00 - Drop the todo plugin from the v2 plugin list
+
+- Status: Completed
+- Machine: DESKTOP-3JHKCAP
+- Platform: Windows 11 x64
+- Scope: opencode/opencode.json.tmpl
+- Summary: `opencode2-todo@0.2.1` was removed from `plugins`. The v2 session no
+  longer has a `todowrite` tool, and the repeated cli-side plugin load failure
+  stops.
+- Important records:
+  - The npm install and the server-side load both succeeded, but the cli failed
+    on every reconciliation with `Cannot find package 'react'` while loading
+    `src/tui.tsx`. The file carries no `/** @jsxImportSource solid-js */`
+    pragma and the published tarball omits `tsconfig.json` (`files` is
+    `["src", "tool"]`), so the cli transpiles its JSX with the default React
+    runtime. Upstream packaging bug, not a configuration error.
+  - The reason is recorded in the `dropped on purpose` comment block so the
+    plugin is not reinstalled without an upstream fix.
+- Portability: No machine-specific literals.
+- Chezmoi: Updated one existing managed template and applied it.
+- Verification: `chezmoi status` for `.config/opencodev2` is clean, and
+  `opencode2 api get /api/config` reports only
+  `@ex-machina/opencode-anthropic-auth@next` and `@tarquinen/opencode-dcp@3.2.0`.
