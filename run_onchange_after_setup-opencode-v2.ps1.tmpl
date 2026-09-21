@@ -134,5 +134,15 @@ Set-FileLink -Source (Join-Path $v1Config 'AGENTS.md') -Target (Join-Path $v2Con
 # with tools/locu through this junction.
 Set-Junction -Source (Join-Path $v1Config 'tools/locu') -Target (Join-Path $v2Config 'plugins/locu/core')
 
+# opencode2.cmd redirects XDG_CONFIG_HOME wholesale, so every tool an agent runs
+# loses ~/.config. Git is the one that then changes behavior silently: with no
+# config of its own it falls back to the Git for Windows system defaults, which
+# set core.autocrlf=true and leave core.safecrlf unset, so agent commits can
+# rewrite LF to CRLF in repositories that have no .gitattributes.
+#
+# Only bridge directories that are genuinely shared. ~/.config/tuios and
+# ~/.config/scoop deliberately differ from their sandbox copies and stay split.
+Set-Junction -Source (Join-Path $HOME '.config/git') -Target (Join-Path $root 'xdg/config/git')
+
 Write-Host '[OpenCode v2] Complete. Run "opencode2 auth login anthropic --method claude-max" in a new terminal.'
 {{- end }}

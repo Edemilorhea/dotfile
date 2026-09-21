@@ -205,3 +205,44 @@ runtime state are deliberately excluded and are recreated by the setup script.
   autopush published it.
 - Verification: The scoped `chezmoi status` is clean, the file parses as JSON,
   and it remains LF-only. No TUI restart was performed to observe the tab bar.
+
+## 2026-09-21T10:33:12+08:00 - Bridge ~/.config/git into the sandbox XDG root
+
+- Status: Completed
+- Machine: TC-TSENG
+- Platform: windows/x64
+- Scope: `run_onchange_after_setup-opencode-v2.ps1.tmpl`,
+  `xdg/config/git`
+- Summary: Junctioned `~/.config/git` into the sandbox so Git keeps the user's
+  own configuration inside an OpenCode v2 session instead of falling back to
+  the Git for Windows system defaults.
+- Important records:
+  - `opencode2.cmd` redirects all four XDG variables for the whole process
+    tree, so every tool an agent runs loses `~/.config`, not only opencode.
+  - Measured inside a session before the change: `core.autocrlf=true`,
+    `core.safecrlf` unset, `init.defaultBranch=master`,
+    `push.autoSetupRemote` unset, and no `user.name` or `user.email`. The
+    `autocrlf` default can rewrite LF to CRLF in repositories without a
+    `.gitattributes`, which contradicts the repository line-ending rules.
+  - A commit made before the change, `a10c790` in the dotfiles repository,
+    recorded the OS-guessed author `Tc Tseng (曾靖文)`. The user confirmed the
+    identity is theirs on another machine, so it was left unamended.
+  - The same leak already had two downstream workarounds: the TUIOS changelog
+    note about pointing `XDG_CONFIG_HOME` back at `~/.config`, and the
+    `openai-usage` plugins temporarily restoring `XDG_DATA_HOME`.
+  - `~/.config/tuios` and `~/.config/scoop` have sandbox copies whose contents
+    differ, so they were deliberately left split rather than junctioned.
+  - `xdg/config/git` did not exist, so the junction needed no backup rename.
+- Portability: The junction is created by the existing Windows-only
+  `Set-Junction` helper from `$HOME`, and the script remains guarded by
+  `{{ if eq .chezmoi.os "windows" }}`.
+- Chezmoi: Updated the managed setup script; the junction was created directly
+  so the runtime matches now, and the idempotent script will reproduce it on
+  the next apply and on other machines.
+- Verification: The rendered template parses as PowerShell and the source is
+  LF-only. The junction reports `LinkType=Junction` to
+  `C:\Users\tc_tseng\.config\git`. Git inside this session now reports
+  `user.name=TC Tseng`, `user.email=tc_tseng@gss.com.tw`,
+  `core.autocrlf=false`, `core.safecrlf=true`, `init.defaultBranch=main`, and
+  `push.autoSetupRemote=true`, which includes values from `config.local`. The
+  script itself was not re-executed through `chezmoi apply`.
