@@ -1,6 +1,6 @@
 ---
 description: Run a task through the explicit command-only Fable Loop
-agent: FableAgent
+agent: selfmade/fable-agent
 subtask: false
 ---
 

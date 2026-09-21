@@ -1,6 +1,6 @@
 ---
 description: Judge completed work through the explicit command-only Fable Judge
-agent: FableAgent
+agent: selfmade/fable-agent
 subtask: false
 ---
 

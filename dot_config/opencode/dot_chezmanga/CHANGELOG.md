@@ -953,3 +953,36 @@
   `valid: true` with no drift. Scoped `chezmoi status` is clean and all edited
   sources are LF-only. Loading `2.2.22` in a live V1 or V2 project session was
   not exercised.
+
+## 2026-09-22T00:36:10+08:00 - Point V2 command frontmatter at path-derived agent IDs
+
+- Status: Completed
+- Machine: DESKTOP-3JHKCAP
+- Platform: Windows 11 x64
+- Scope: commands/fable-method.md, commands/fable-judge.md,
+  commands/fable-loop.md, commands/selfmade/fable.md,
+  commands/selfmade/mentor.md, commands/selfmade/socratic.md,
+  commands/selfmade/learning-roadmap.md, commands/selfmade/feynman.md
+- Summary: Eight V2 commands referenced agents by the bare `name:` value from
+  the agent frontmatter. V2 ignores `name:` and derives the agent ID from the
+  file path, so every one of them failed with `Agent not found`. Each command
+  now names the full V2 agent ID.
+- Important records:
+  - V1 honors the agent frontmatter `name:` field, so `agent/selfmade/fable-agent.md`
+    is `FableAgent` on V1 and `selfmade/fable-agent` on V2. The same split
+    applies to `Mentor`, `Facilitator`, `Navigator`, and `Deconstructor`, which
+    become `selfmade/subagents/learning/<Name>` on V2.
+  - Only `commands/` was edited. V2 reads `commands/` and V1 reads `command/`:
+    the V2 server lists exactly the 21 files in `commands/` plus four builtin
+    and plugin commands, and none of the `command/`-only names. V1 behavior is
+    unchanged.
+  - The agent Markdown files were deliberately left alone. Renaming them to
+    match the V1 `name:` value would flatten the `selfmade/` hierarchy and risk
+    ID collisions.
+- Portability: Agent IDs are repository-relative; no machine-specific literals.
+- Chezmoi: Updated eight existing managed targets and applied them.
+- Verification: Scoped `chezmoi status` for `.config/opencode/commands` is
+  clean, all eight sources remain LF-only, and the rendered targets show the
+  full agent IDs. The registered V2 agent IDs were read from
+  `opencode2 api get /api/agent`. Running the commands interactively was not
+  exercised.

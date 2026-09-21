@@ -1,6 +1,6 @@
 ---
 description: Run a task through the isolated, evidence-first Fable workflow
-agent: FableAgent
+agent: selfmade/fable-agent
 subtask: false
 ---
 

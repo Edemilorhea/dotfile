@@ -132,3 +132,34 @@ The v2 binary, database, credentials, and other runtime state stay in
   directory started and served HTTP. Plugin load status was not verified because
   the managed-service port is held by the running v2 service; run
   `opencode2 service restart` and then `opencode2 api get /api/plugin`.
+
+## 2026-09-22T00:34:46+08:00 - Install the todo plugin from npm instead of a git subdirectory spec
+
+- Status: Completed
+- Machine: DESKTOP-3JHKCAP
+- Platform: Windows 11 x64
+- Scope: opencode/opencode.json.tmpl
+- Summary: The `plugins` entry for the community todo plugin changed from
+  `github:gabparrot/opencode2-todo-tool#main::path:opencode2-todo` to
+  `opencode2-todo@0.2.1`, so the plugin installs and the repeated startup
+  failure stops.
+- Important records:
+  - OpenCode installs plugins with npm. npm git specifiers cannot select a
+    subdirectory; the `::path:` suffix is pnpm syntax. npm cloned the
+    repository, found no `package.json` at its root, and failed with
+    `NpmInstallFailedError` on every plugin reconciliation.
+  - The author publishes the package to npm as `opencode2-todo`; `0.2.1` is
+    the latest published version. Repository `main` is `0.2.3` but unpublished.
+  - Server-side load succeeds and the `todowrite` tool is registered. The CLI
+    side still fails to load `src/tui.tsx` with
+    `Cannot find package 'react'`: the file has no
+    `/** @jsxImportSource solid-js */` pragma and the published tarball omits
+    `tsconfig.json` (`files` is `["src", "tool"]`), so the JSX transform
+    defaults to the React runtime. This is an upstream packaging bug and only
+    disables the optional TUI sidebar.
+- Portability: Plugin spec is a plain npm version; no machine-specific literals.
+- Chezmoi: Updated one existing managed template and applied it.
+- Verification: `chezmoi status` for `.config/opencodev2/opencode/opencode.json`
+  is clean. The server log shows
+  `loading plugin id=opencode2-todo@0.2.1` with no failure for `role=server`.
+  A live `todowrite` call succeeded. `role=cli` still logs the react JSX error.

@@ -1,6 +1,6 @@
 ---
 description: Run one direct Facilitator role turn in the current session for Socratic reasoning and debugging
-agent: Facilitator
+agent: selfmade/subagents/learning/Facilitator
 subtask: false
 ---
 

@@ -1,6 +1,6 @@
 ---
 description: Build a scaffolded learning roadmap with the Navigator role for one direct turn
-agent: Navigator
+agent: selfmade/subagents/learning/Navigator
 subtask: false
 ---
 

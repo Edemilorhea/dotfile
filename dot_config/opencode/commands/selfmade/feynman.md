@@ -1,6 +1,6 @@
 ---
 description: Run one direct Deconstructor role turn in the current session for Feynman understanding checks
-agent: Deconstructor
+agent: selfmade/subagents/learning/Deconstructor
 subtask: false
 ---
 

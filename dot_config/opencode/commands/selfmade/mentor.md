@@ -1,6 +1,6 @@
 ---
 description: Run one direct Mentor role turn in the current session for guided real-project implementation
-agent: Mentor
+agent: selfmade/subagents/learning/Mentor
 subtask: false
 ---
 
