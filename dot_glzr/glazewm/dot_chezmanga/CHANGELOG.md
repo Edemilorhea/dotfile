@@ -189,3 +189,22 @@
 - Portability: The helper resolves `zebar` through `PATH` in the same way it already resolves `glazewm`, and derives the expected monitor count from live state instead of a fixed number.
 - Chezmoi: Updated the existing managed `restart-glazewm.ps1` source and applied the rendered target.
 - Verification: PowerShell AST parsing passed; scoped `chezmoi diff` matched the intended change; scoped apply completed and scoped `chezmoi status` is clean; source and target SHA256 match with LF-only line endings. A live `Alt+Shift+W` restart was not executed, so the retry path is not yet observed end to end.
+
+## 2026-09-21T10:12:43+08:00 - Reseat the Zebar dock reservation in place
+
+- Status: Completed
+- Machine: TC-TSENG
+- Platform: windows/x64
+- Scope: `restart-glazewm.ps1`, removed `refresh-work-area.ps1`
+- Summary: Replaced the ineffective Zebar-restart retry with a direct `ABM_SETPOS` reissue against Zebar's own bar windows, and made `Alt+Shift+W` attempt that cheap repair before falling back to a full restart.
+- Important records:
+  - The 2026-09-17 retry approach was observed failing end to end: `restart.log` recorded `Zebar did not reserve a top work area on every monitor after 3 retries` on 2026-09-21, and a manual Zebar restart reproduced a zero top reservation on the same monitor.
+  - Live probing showed the shell still holds Zebar's `ABM_NEW` registration for the affected monitor: an external `ABM_SETPOS` with `RECT { 1923, -503, 3843, -463 }` returned success and restored 40px immediately, so only the reservation, not the registration, is lost.
+  - Four standalone AppBar probes reserved and released 40px on the same monitor, including one that registered while the window still sat on the primary monitor. This rules out Windows, the negative monitor origin, the 3px horizontal offset, DPI scaling, and app-bar registration order.
+  - The repair derives the reserved length from a healthy monitor's `reservation - bar height` margin and matches monitors by bar height, so mixed-DPI setups keep their own scaled values instead of borrowing pixel counts.
+  - A monitor without a Zebar bar window fails the repair and falls through to the full restart, because that case needs Zebar itself rather than a reservation reissue.
+  - `refresh-work-area.ps1` only asked GlazeWM to re-read an already wrong Windows work area, was bound to no shortcut, and its VBS launcher was removed on 2026-09-01, so it was deleted rather than kept.
+  - `overline-TC/custom-src/main/App.tsx` still schedules up to three `wscript.exe //B refresh-work-area.vbs` calls per bar instance against that deleted launcher. Removing it needs a widget rebuild and is left for a separate change.
+- Portability: The helper resolves `glazewm` and `zebar` through `PATH`, reads monitor geometry from live GlazeWM state, and enables Per-Monitor-V2 DPI awareness before reading any window or monitor rectangle.
+- Chezmoi: Updated the managed `restart-glazewm.ps1` source and applied it; removed `refresh-work-area.ps1` from both source and target without invoking chezmoi commands that trigger the configured Git auto-commit and auto-push.
+- Verification: PowerShell AST parsing passed; scoped `chezmoi diff` matched the intended change; scoped apply completed and scoped `chezmoi status` is clean; the source uses LF-only line endings. A healthy-state run exited 0 in 1.68s without changing the GlazeWM PID. A fault was then injected by collapsing the monitor's app-bar rect to zero height while keeping its registration, and a second run exited 0 in 2.12s, restored 40px on all three monitors, and left both GlazeWM and Zebar PIDs unchanged. The full-restart fallback path was not exercised.
