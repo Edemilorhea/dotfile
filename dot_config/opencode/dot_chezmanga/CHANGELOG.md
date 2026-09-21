@@ -986,3 +986,49 @@
   full agent IDs. The registered V2 agent IDs were read from
   `opencode2 api get /api/agent`. Running the commands interactively was not
   exercised.
+## 2026-09-22T01:02:00+08:00 - Make AGENTS.md runtime-neutral and record the V1/V2 boundaries
+
+- Status: Completed
+- Machine: DESKTOP-3JHKCAP
+- Platform: Windows 11 x64
+- Scope: AGENTS.md.tmpl, skills/ (slim8 isolation, unmanaged)
+- Summary: `AGENTS.md.tmpl` no longer renders a chezmoi source directory, and a
+  new `V1 and V2 boundaries` section records the four rules that caused this
+  week's failures. The eight `oh-my-opencode-slim` skills were also moved out of
+  the shared global `skills/` tree into the two projects that use them.
+- Important records:
+  - The AGENTS.md drift was not a manual edit. Line 67 rendered
+    `{{ .chezmoi.sourceDir }}`, and chezmoi resolves that through the V2
+    junction as `~/.opencode-v2/xdg/data/chezmoi` but as `~/.local/share/chezmoi`
+    under V1. Whichever runtime applied last won, so the target flip-flopped.
+    The template now tells the reader to run `chezmoi source-path` instead, and
+    the file renders identically from both runtimes.
+  - Recorded boundaries: V1 reads `command/` and V2 reads `commands/`; V2
+    derives agent IDs from the file path and ignores frontmatter `name:`; the
+    global `skills/` tree is shared and must not receive third-party installs;
+    no shared file may contain a runtime-specific absolute path.
+  - `opencode-assets.ps1 slim8-migration -MigrationMode apply` backed up and
+    removed `simplify`, `codemap`, `clonedeps`, `deepwork`,
+    `verification-planning`, `reflect`, `oh-my-opencode-slim`, and `worktrees`
+    from `~/.config/opencode/skills`, then wrote `deleted` tombstones. Backup:
+    `~/.local/state/opencode/slim8-skills-isolation-backups/20260921T164641265Z-c5163ef6812c435e8720ff710ca08ba6`.
+    Restore with `slim8-migration -MigrationMode restore`. None of the eight was
+    chezmoi-managed, and the manifest showed `lastManagedHash == lastSeenHash`,
+    so nothing hand-written was lost. The migration classified them as
+    `customized` only because it compares on-disk 2.2.10 content against the
+    pinned 2.2.22 bundle.
+  - `officialWebsite` and `sip-pos-ezpay/invoice-service` were re-applied at
+    `oh-my-opencode-slim@2.2.22`, which is dual-host, so the plugin now loads on
+    both runtimes. Their eight skills are project-local under `.opencode/skills`.
+    `@dietrichgebert/ponytail@4.9.0` was dropped from both: it has no V2
+    entrypoint and upstream has five unmerged V2 pull requests.
+- Portability: The template no longer emits any absolute path. The boundary
+  rules name only `~`-relative locations.
+- Chezmoi: Updated one existing managed template and applied it. The slim8
+  migration and the project assets are outside chezmoi by design.
+- Verification: `chezmoi status` for the whole home directory is clean, the
+  rendered `AGENTS.md` is LF-only and contains no source directory literal, and
+  `opencode-assets.ps1 status` reports every asset and overlay as `installed` in
+  both projects. The `sippos-pre` MCP block in `invoice-service` survived the
+  apply unchanged. Running the slim orchestrator in a live session was not
+  exercised.

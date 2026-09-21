@@ -64,8 +64,18 @@ Shared instructions for coding agents.
 
 ## Configuration maintenance
 
-- The source of truth is chezmoi. Update `{{ .chezmoi.sourceDir | replace "\\" "/" }}` first, then apply it to runtime.
+- The source of truth is chezmoi. Locate a file with `chezmoi source-path <target>`, update the source first, then apply it to runtime. Do not write the resolved source directory into a shared file: it differs per runtime.
 - Restart OpenCode after changing its configuration, agents, commands, skills, or this file.
+
+## V1 and V2 boundaries
+
+This machine runs OpenCode V1 as `opencode` and V2 as `opencode2`. They share one
+configuration tree through junctions, so respect these boundaries.
+
+- V1 reads `command/` and V2 reads `commands/`. Add a new V2 command to `commands/` only, and never assume an edit reaches both.
+- V2 derives an agent ID from the agent file path and ignores the frontmatter `name:` field, which V1 honors. `agent/selfmade/fable-agent.md` is `FableAgent` on V1 and `selfmade/fable-agent` on V2. A V2 command must name the full path-derived ID.
+- The global `skills/` directory is shared. Install a third-party or plugin-bundled skill through the project-scoped asset manager instead, so it never lands in the shared global tree.
+- Never write a runtime-specific absolute path into a shared file. Paths under `~/.opencode-v2/` exist only for V2 on this machine.
 
 ## Command-only Fable payloads
 
