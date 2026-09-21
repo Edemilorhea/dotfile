@@ -7,6 +7,43 @@ This tree holds every OpenCode v2 configuration file. `opencode2.cmd` points
 The v2 binary, database, credentials, and other runtime state stay in
 `~/.opencode-v2` and are excluded from chezmoi.
 
+## 2026-09-21T23:10:00+08:00 - Capture the cli.json prompt block and diagnose the two failing MCP servers
+
+- Status: Partial
+- Machine: DESKTOP-3JHKCAP
+- Platform: Microsoft Windows NT 10.0.26200.0 / X64
+- Scope: `opencode/cli.json`
+- Summary: `chezmoi status` reported `MM` for `opencode/cli.json`. The runtime
+  file carried a `prompt` block (`"paste": "full"`, `"image_preview": true`)
+  that the source never captured, so the next `chezmoi apply` would have
+  deleted the v2 image-paste setting. The target was authoritative and is now
+  re-added to the source. No MCP configuration was changed.
+- Important records:
+  - The two MCP servers the user reported as unusable are `markitdown` and
+    `linear`. Neither needs a configuration change.
+  - `markitdown` fails only because `markitdown-mcp` was installed at
+    `14:42:26Z`, after the running OpenCode v2 process attempted its MCP
+    connections at `14:33:47Z`. The server itself is healthy: a direct stdio
+    handshake answers `initialize` and `tools/list`, and `Bun.spawn` starts the
+    bare `markitdown-mcp` command in 1.3 s. A restart is the fix.
+  - `opencode mcp list` queries the background service and reports its cached
+    connection state, so it cannot re-test a server without a restart. A second
+    service cannot be started against a scratch `XDG_CONFIG_HOME`; it fails with
+    "Timed out waiting for the background service to start".
+  - `linear` reports `needs_auth`. `~/.opencode-v2/xdg/data/opencode/` has no
+    `mcp-auth.json`, so v2 never completed the OAuth flow. Run
+    `opencode2.cmd mcp auth linear` and authorize in the browser. That
+    credential lives outside chezmoi.
+  - `opencode/service.json` holds a service password and is deliberately left
+    unmanaged.
+- Portability: `cli.json` contains no machine-specific paths, so it stays a
+  plain file with no template.
+- Chezmoi: re-added `dot_config/opencodev2/opencode/cli.json` from the target.
+- Verification: `chezmoi status` is empty after the re-add. The source and
+  target `cli.json` are both pure LF. Live MCP recovery for `markitdown` and
+  `linear` stays unverified until OpenCode v2 restarts, which is why this entry
+  is `Partial`.
+
 ## 2026-09-21T22:49:19+08:00 - Templatize MCP server paths and repair them on this machine
 
 - Status: Completed
