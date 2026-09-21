@@ -2,6 +2,46 @@
 
 Management root: `~/.opencode-v2`
 
+Since 2026-09-21 this tree holds only the launcher and runtime state. The v2
+configuration moved to `~/.config/opencodev2`, which has its own `.chezmanga`
+changelog.
+
+## 2026-09-21T19:40:00+08:00 - Keep only the launcher and runtime state here
+
+- Status: Completed
+- Machine: TC-TSENG
+- Platform: windows/x64
+- Scope: `opencode2.cmd`, `xdg/config` (removed from chezmoi)
+- Summary: `opencode2.cmd` now sets `XDG_CONFIG_HOME` to
+  `%USERPROFILE%\.config\opencodev2`; the configuration files it used to carry are
+  managed under `~/.config/opencodev2`.
+- Important records:
+  - `XDG_DATA_HOME`, `XDG_STATE_HOME`, and `XDG_CACHE_HOME` still resolve through
+    `%~dp0`, so the database, credentials, and cache stay isolated from v1.
+  - The stale `~/.opencode-v2/xdg/config` directory is still on disk for the
+    running service and can be removed after a verified restart.
+- Portability: The wrapper uses `%USERPROFILE%` for the configuration root and
+  `%~dp0` for everything else.
+- Chezmoi: `.chezmoiignore` now excludes the whole `.opencode-v2/xdg/**` runtime tree.
+- Verification: The applied `opencode2.cmd` contains the new `XDG_CONFIG_HOME`
+  value; the v2 configuration resolves at the new path.
+
+## 2026-09-21T18:08:45+08:00 - Restore V2 session todos with a temporary plugin
+
+- Status: Completed
+- Machine: TC-TSENG
+- Platform: Windows x64
+- Scope: `xdg/config/opencode/opencode.json`
+- Summary: Added the archived community `opencode2-todo` plugin from GitHub to restore the V2 `todowrite` tool and per-round todo injection.
+- Important records:
+  - This is not an official OpenCode package and is intentionally temporary.
+  - The plugin provides `todowrite`, but not a separate `todoread` tool.
+  - V1 was not changed because it has its own native/plugin configuration.
+  - The `plan` agent now uses Opus 5 so the default session model is Opus 5. `general` is a subagent and cannot be a default primary agent. Fable stays limited to the adversarial agents and manual selection.
+- Portability: The plugin is loaded from a Git package specification; no machine-specific absolute path was added.
+- Chezmoi: Updated the V2 source configuration and will apply only the V2 configuration target.
+- Verification: Confirmed local V2 is `opencode v2.0.11`; before the change, `opencode2 plugin list` showed no todo plugin. Post-apply plugin health verification remains pending.
+
 This tree runs OpenCode v2 (`opencode2`) side by side with the v1 install that
 owns `~/.config/opencode` and `~/.local/share/opencode`. Only configuration is
 managed by chezmoi. The 215 MB binary, the SQLite database, credentials, and
@@ -282,3 +322,54 @@ runtime state are deliberately excluded and are recreated by the setup script.
   `leader_key='alt+a'`, `preferred_shell='nu'`, `theme='tokyonight'`, and
   `dockbar_position='top'` for TUIOS, and the full four-key Scoop config. No
   TUIOS or Scoop process was launched to confirm runtime behavior.
+
+## 2026-09-21T15:12:17+08:00 - Upgrade to OpenCode 2.0.11 and share the slim skills manifest with v1
+
+- Status: Completed
+- Machine: TC-TSENG
+- Platform: Microsoft Windows 10.0.26200 / X64
+- Scope: `run_onchange_after_setup-opencode-v2.ps1.tmpl` and `.chezmoiignore`
+  in the chezmoi source root; runtime `bin/opencode.exe` and
+  `xdg/config/opencode/.oh-my-opencode-slim`
+- Summary: The sandbox binary moved from 2.0.5 to 2.0.11, the minimum for
+  `oh-my-opencode-slim@2.2.22` is 2.0.7. A fourth junction now maps
+  `xdg/config/opencode/.oh-my-opencode-slim` to
+  `~/.config/opencode/.oh-my-opencode-slim` so the plugin's skill tombstones
+  are the same file under both runtimes.
+- Important records:
+  - This corrects the 2026-09-17T14:21 entry, which recorded that no
+    `oh-my-opencode-slim` build worked on v2. Since `2.2.19` (2026-09-12) the
+    stable `2.2.x` line exports both `server()` and `setup()`; `2.2.22`
+    (2026-09-19) pins the 2.0.7 baseline. The `3.0.0-beta.*` line is the
+    marketplace branch and is not the v2 port.
+  - `oh-my-opencode-slim` copies its bundled skills into
+    `$XDG_CONFIG_HOME/opencode/skills` on every top-level session unless
+    `$XDG_CONFIG_HOME/opencode/.oh-my-opencode-slim/skills-manifest.json`
+    marks them `deleted`. Because `skills/` is already a junction to the v1
+    tree, a missing v2 manifest would have written the eight skills into the
+    shared directory, and v1 would then have adopted them back as `managed`.
+    The v1 manifest, its `skills.lock` directory, and `skill-updates/` are all
+    content-hash based and safe to share.
+  - `Install-Binary` now renames a running `opencode.exe` to
+    `opencode.exe.previous` before moving the new one in. This apply ran from
+    inside a v2 session, and Windows refuses to overwrite a mapped image but
+    allows renaming it. `opencode.exe.previous` (2.0.5) can be deleted after
+    the service restarts; it is under the ignored `bin/`.
+  - The five `opencode.exe` processes alive during the apply still run 2.0.5.
+    `opencode2 service restart` (or closing all sessions) is required before
+    2.0.11 is actually used.
+  - `xdg/config/opencode/cli.json` differs from its source (`theme.name`
+    changed from `github` to `ayu` by the TUI). It was deliberately not
+    touched or re-added; it remains an open conflict for a separate decision.
+- Portability: The junction reuses the existing `foreach` over `Set-Junction`
+  from `$HOME`. The rename-aside logic is Windows-only, like the rest of the
+  script. The version stays in the single `$version` variable.
+- Chezmoi: Updated the managed setup script and `.chezmoiignore`; applied with
+  `chezmoi apply --include=scripts` to avoid the unrelated `cli.json` prompt.
+  The onchange script re-ran and downloaded `@opencode/cli-windows-x64@2.0.11`.
+- Verification: `bin/.version` and `bin/opencode.exe --version` both report
+  2.0.11. The new junction reports `LinkType=Junction` to
+  `C:\Users\tc_tseng\.config\opencode\.oh-my-opencode-slim`, and reading the
+  manifest through it lists all eight skills as `deleted`. The rendered
+  template is LF-only. Loading `oh-my-opencode-slim@2.2.22` in a v2 project
+  session was not exercised because no project has been re-applied yet.

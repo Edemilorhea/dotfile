@@ -4,13 +4,16 @@ $ErrorActionPreference = 'Stop'
 # OpenCode v2 sandbox. Runs beside the v1 install that owns ~/.config/opencode
 # and ~/.local/share/opencode. Bump $version to reinstall the binary: chezmoi
 # reruns this script whenever its rendered content changes.
-$version = '2.0.5'
+$version = '2.0.11'
 
 $root = Join-Path $HOME '.opencode-v2'
 $binDir = Join-Path $root 'bin'
 $exe = Join-Path $binDir 'opencode.exe'
 $stamp = Join-Path $binDir '.version'
 $v1Config = Join-Path $HOME '.config/opencode'
+# Configuration lives under ~/.config so chezmoi manages every OpenCode config
+# in one place. Only the binary and runtime state stay in ~/.opencode-v2.
+$v2ConfigHome = Join-Path $HOME '.config/opencodev2'
 
 function Get-Target {
     $arch = if ([System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture -eq 'Arm64') { 'arm64' } else { 'x64' }
@@ -39,9 +42,18 @@ function Install-Binary {
         if ($LASTEXITCODE -ne 0) { throw "tar failed with exit code $LASTEXITCODE" }
 
         New-Item -ItemType Directory -Path $binDir -Force | Out-Null
+        # A running opencode.exe (shared service or an active session) cannot be
+        # overwritten, but Windows allows renaming it. Park the old binary aside;
+        # live processes keep their mapped image and the next launch gets $version.
+        $previous = "$exe.previous"
+        Remove-Item -LiteralPath $previous -Force -ErrorAction SilentlyContinue
+        if (Test-Path -LiteralPath $exe) { Rename-Item -LiteralPath $exe -NewName (Split-Path -Leaf $previous) }
         Move-Item (Join-Path $work 'package/bin/opencode.exe') $exe -Force
         Set-Content -LiteralPath $stamp -Value $version -NoNewline
         Write-Host "[OpenCode v2] Installed $version to $exe"
+        if (Get-Process opencode -ErrorAction SilentlyContinue) {
+            Write-Host "[OpenCode v2] Running opencode processes still use the previous binary. Run 'opencode2 service restart' when convenient."
+        }
     }
     finally {
         Remove-Item -Recurse -Force $work -ErrorAction SilentlyContinue
@@ -108,9 +120,10 @@ Write-Host '[OpenCode v2] Starting sandbox setup...'
 
 # Runtime directories. Only xdg/config is managed by chezmoi; the rest holds the
 # database, credentials, and cache, and is excluded in .chezmoiignore.
-foreach ($name in 'xdg/config/opencode', 'xdg/data', 'xdg/state', 'xdg/cache') {
+foreach ($name in 'xdg/data', 'xdg/state', 'xdg/cache') {
     New-Item -ItemType Directory -Path (Join-Path $root $name) -Force | Out-Null
 }
+New-Item -ItemType Directory -Path (Join-Path $v2ConfigHome 'opencode') -Force | Out-Null
 
 $installed = if (Test-Path -LiteralPath $stamp) { (Get-Content -LiteralPath $stamp -Raw).Trim() } else { '' }
 if (-not (Test-Path -LiteralPath $exe) -or $installed -ne $version) {
@@ -123,8 +136,12 @@ Add-UserPath -Entry $root
 
 # agent, commands, and skills stay single-sourced in the v1 config tree so
 # chezmoi manages exactly one copy of each markdown file.
-$v2Config = Join-Path $root 'xdg/config/opencode'
-foreach ($name in 'agent', 'commands', 'skills') {
+# .oh-my-opencode-slim holds the plugin's skills-manifest.json, whose "deleted"
+# tombstones keep it from copying its bundled skills into the shared skills/
+# junction. The plugin resolves that directory from XDG_CONFIG_HOME, so v2 must
+# see the same manifest as v1 or it would reinstall the skills globally.
+$v2Config = Join-Path $v2ConfigHome 'opencode'
+foreach ($name in 'agent', 'commands', 'skills', '.oh-my-opencode-slim') {
     Set-Junction -Source (Join-Path $v1Config $name) -Target (Join-Path $v2Config $name)
 }
 Set-FileLink -Source (Join-Path $v1Config 'AGENTS.md') -Target (Join-Path $v2Config 'AGENTS.md')
@@ -144,7 +161,7 @@ Set-Junction -Source (Join-Path $v1Config 'tools/locu') -Target (Join-Path $v2Co
 #   scoop - loses scoop_repo and scoop_branch.
 # Bridge them back so a sandboxed session behaves like a normal shell.
 foreach ($name in 'git', 'tuios', 'scoop') {
-    Set-Junction -Source (Join-Path $HOME ".config/$name") -Target (Join-Path $root "xdg/config/$name")
+    Set-Junction -Source (Join-Path $HOME ".config/$name") -Target (Join-Path $v2ConfigHome $name)
 }
 
 Write-Host '[OpenCode v2] Complete. Run "opencode2 auth login anthropic --method claude-max" in a new terminal.'

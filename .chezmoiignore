@@ -81,19 +81,23 @@
 
 # OpenCode v2 沙箱 - 執行檔、runtime 狀態與機器專屬備份不進版控
 .opencode-v2/bin/**
-.opencode-v2/xdg/data/**
-.opencode-v2/xdg/state/**
-.opencode-v2/xdg/cache/**
-.opencode-v2/xdg/config/opencode/service.json
+.opencode-v2/xdg/**
 .opencode-v2/PATH-user-backup.txt
 .opencode-v2/removed-dead-shims/**
 
-# OpenCode v2 沙箱 - junction/symlink 指向 .config/opencode，實體只管理一次
-.opencode-v2/xdg/config/opencode/agent/**
-.opencode-v2/xdg/config/opencode/commands/**
-.opencode-v2/xdg/config/opencode/skills/**
-.opencode-v2/xdg/config/opencode/AGENTS.md
-.opencode-v2/xdg/config/opencode/plugins/locu/core/**
+# OpenCode v2 設定 - runtime 狀態不進版控
+.config/opencodev2/opencode/service.json
+
+# OpenCode v2 設定 - junction/symlink 指向 .config/opencode，實體只管理一次
+.config/opencodev2/git/**
+.config/opencodev2/tuios/**
+.config/opencodev2/scoop/**
+.config/opencodev2/opencode/agent/**
+.config/opencodev2/opencode/commands/**
+.config/opencodev2/opencode/skills/**
+.config/opencodev2/opencode/.oh-my-opencode-slim/**
+.config/opencodev2/opencode/AGENTS.md
+.config/opencodev2/opencode/plugins/locu/core/**
 
 # Backups / temporary / test-only files
 .config/psmux/backups/**

@@ -1,5 +1,163 @@
 # OpenCode Chezmoi Changelog
 
+## 2026-09-21T18:15:00+08:00 - Strengthen command and process lifecycle safety
+
+- Status: Completed
+- Machine: TC-TSENG
+- Platform: Windows x64
+- Scope: `AGENTS.md.tmpl`
+- Summary: Added an explicit lifecycle gate for shell commands, persistent services, test servers, readiness probes, PID cleanup, and timeout handling.
+- Important records:
+  - Foreground servers, watchers, TUIs, polling loops, and log followers are prohibited.
+  - A process started for a task must have a recorded PID and bounded cleanup path.
+- Portability: Uses Windows `Start-Process -PassThru` wording while retaining platform-neutral lifecycle rules.
+- Chezmoi: Updated the managed shared agent instructions.
+- Verification: Source edit completed; scoped apply and runtime behavior verification remain pending.
+
+## 2026-09-21T18:30:00+08:00 - Keep Opus 5 as the default model and limit Fable to adversarial agents
+
+- Status: Completed
+- Machine: TC-TSENG
+- Platform: Windows x64
+- Scope: `opencode.json`
+- Summary: Set the global model and the `plan` agent to `anthropic/claude-opus-5` so new sessions no longer default to the more expensive Fable model.
+- Important records:
+  - `plan` is the configured default primary agent, so its model determined the effective default. `general` is a subagent and cannot be a default primary agent.
+  - `Skeptic` and `RedTeam` intentionally keep `anthropic/claude-fable-5-1`; manual model selection is unaffected.
+- Portability: Model identifiers only; no machine-specific values.
+- Chezmoi: Updated the managed V1 configuration source.
+- Verification: Source edit completed; scoped apply and a new-session model check remain pending.
+
+## 2026-09-21T16:21:23+08:00 - Make implementation-understanding output readable: scenario sentence first, author checklists internal
+
+- Status: Completed
+- Machine: tc-tseng
+- Platform: windows/x64
+- Scope: config/assets/skills/implementation-understanding-tutor/{SKILL.md,
+  references/full-feature-example.md, evals/evals.json},
+  config/assets/skills/implementation-understanding-code-teach-contract/SKILL.md,
+  config/assets/skills/implementation-understanding-quality-contract/SKILL.md,
+  config/assets/skills/implementation-understanding-report-contract/SKILL.md
+- Summary: A live Code Teach session on a 1043-line handler showed the skill
+  was complete but painful to read: six meta headings per guided unit, the
+  same method rendered three times (map, five-field causal node, walkthrough),
+  a `Confirmed` tag on every paragraph, and no fixed slot answering "why does
+  this code exist" in the user's language. The reader's own words were "我根
+  本不知道你為了什麼而做". Rewrote the output rules so the author's
+  completeness checks stay internal and the reader gets a scenario sentence
+  before every code block.
+- Important records:
+  - Explanation chain is now `為了什麼 → Responsibility → Input/Pre-state →
+    Result → Handoff → Downstream impact`. The new first slot is a scenario
+    sentence in user-facing language, taken from the shared example; the
+    example is promoted from decoration to skeleton.
+  - Reading budget is measured in structural elements (1 diagram or table,
+    3 code blocks per round), not code lines. Progress, lens, and goal
+    collapse to one opening line; content headings are named by question or
+    scenario step, not work stage.
+  - The five-field causal node is now an internal self-check in
+    code-teach-contract ("內部 Causal Node"); it is not rendered. The
+    Method-chain map is the only diagram in a Code unit.
+  - Confidence: `Confirmed` is the default and not written; only `Inferred`
+    and `Unknown` are labelled, with reasons.
+  - Evidence rules (file:line-range, caller-first, Unknown over invention)
+    are unchanged; they caught a wrong claim during the session and stay.
+  - Guided and Focused skeletons in the tutor were replaced; Report six-layer
+    headings are unchanged. full-feature-example.md Layer 4 groups now open
+    with a scenario sentence instead of a rendered node. evals.json
+    assertions 4, 7, 8, 9, 10, 11, 12 updated to the new format.
+  - `opencode-assets.ps1 -Assets <ids>` still applies the whole profile
+    recorded in assets.lock.json (`core`), so the sync re-ran all 16 core
+    assets including skills-cli clones. First attempt hit the 120 s tool
+    timeout mid-clone; second attempt completed. Lock file is not managed.
+- Portability: No absolute paths added; all content is prose and JSON.
+- Chezmoi: Updated six managed files under
+  dot_config/opencode/config/assets/skills/implementation-understanding-*.
+  Applied the four skill directories with scoped `chezmoi apply`, then
+  synced ~/.agents/skills copies via the core asset profile.
+- Verification: evals.json parses. Grep for `five-field`, rendered `causal
+  node`, `閱讀進度`, `本次理解目標`, `Evidence 與導讀` finds only internal-check
+  or negative-example mentions. All six source files LF-only. Scoped
+  `chezmoi status` is clean for the four skill directories. SHA256 of the
+  four ~/.agents/skills SKILL.md files match ~/.config copies. Pre-existing
+  unrelated pending source (love-tutor content profile) was left unapplied.
+  Live teaching behaviour with the new format is unverified; restart
+  OpenCode to load it.
+
+## 2026-09-21T10:22:31+08:00 - Install jev-review MCP and require it for code review
+
+- Status: Completed
+- Machine: tc-tseng
+- Platform: windows/x64
+- Scope: opencode.json, AGENTS.md.tmpl, commands/selfmade/review.md,
+  skills/jev-review/, and `~/.opencode-v2/xdg/config/opencode/opencode.json`
+- Summary: Registered the `jev-review` local MCP server (tool `jev_review`,
+  shown as `jev-review_jev_review`) in both the v1 and v2 OpenCode configs,
+  installed its `jev-review` skill, and added an AGENTS.md rule plus a `/review`
+  step so code-review tasks call `jev_review` for per-dimension quality scores.
+- Important records:
+  - Upstream: https://github.com/NiazMorshed2007/jev-review, cloned at commit
+    `57690af54ef7d862c2483342c1e61c14dffcf727` into
+    `~/.local/share/opencode/jev-review`. The committed `dist/server.js`
+    bundle runs directly with Node 20+; no `npm install` is needed. Update with
+    `git pull` in that directory.
+  - The clone lives beside `office-mcp` under `~/.local/share/opencode/`,
+    which `.chezmoiignore.tmpl` excludes on Windows, so it is deliberately
+    unmanaged. Re-clone it on a new machine before the MCP entry can start.
+  - `JEV_API_KEY` is referenced as `{env:JEV_API_KEY}` and is not stored in
+    any managed file. The server starts and lists `jev_review` without the key;
+    the key is only needed when the tool is called. The user will set it later.
+  - `skills/jev-review/SKILL.md` is a verbatim copy of the upstream skill,
+    normalized from CRLF to LF to match the repository convention.
+  - Review context (task, diff, files) is sent to `https://api.typesafe.ai`;
+    the AGENTS.md rule forbids sending secrets, `.env`, vendored, or unrelated
+    content.
+- Portability: The MCP `command` uses the same hard-coded
+  `C:\Users\tc_tseng\...` form as the existing `office-mcp` entry; both
+  `opencode.json` files are still plain (non-template) files. Convert to a
+  template when a second machine or user is added.
+- Chezmoi: Updated `dot_config/opencode/opencode.json`,
+  `dot_config/opencode/AGENTS.md.tmpl`,
+  `dot_config/opencode/commands/selfmade/review.md`,
+  `dot_opencode-v2/xdg/config/opencode/opencode.json`; added
+  `dot_config/opencode/skills/jev-review/SKILL.md`.
+- Verification: Stdio probe of `dist/server.js` without `JEV_API_KEY` returned
+  serverInfo `jev-review 0.1.1` and tools `[jev_review]`. Scoped
+  `chezmoi apply` then `chezmoi status` is clean for all targets. Both rendered
+  `opencode.json` files parse and point at an existing `server.js`; the v2
+  junction exposes `skills/jev-review/SKILL.md` and the Jev section in
+  `AGENTS.md`. The running OpenCode session registered the `jev-review` MCP
+  server and skill. Touched source files are LF only. A live `jev_review`
+  call is unverified until the key is set.
+
+## 2026-09-21T00:00:00+08:00 - Install the TypeSafe agent skill manually
+
+- Status: Completed
+- Machine: DESKTOP-3JHKCAP
+- Platform: windows/x64
+- Scope: skills/typesafe-ai/
+- Summary: Added the upstream `typesafe-ai` skill so OpenCode can load TypeSafe
+  guidance for System One primitives, routing patterns, and API/SDK work.
+- Important records:
+  - Upstream ships this skill as a Claude Code plugin marketplace entry
+    (`typesafe-ai/skills`) or via `npx skills add`. Neither targets OpenCode's
+    `skills/<id>/SKILL.md` layout, so the skill was installed manually from
+    `https://raw.githubusercontent.com/typesafe-ai/skills/main/skills/typesafe-ai/SKILL.md`.
+  - The upstream frontmatter `license: MIT` key was dropped to match the
+    name/description-only convention used by the other local skills. The MIT
+    text is kept as `skills/typesafe-ai/LICENSE` for attribution.
+  - The skill carries no reference files upstream; its body points at live
+    `docs.typesafe.ai` Markdown pages, so updates mostly arrive through the docs
+    rather than the file. Refresh the file by re-fetching the raw SKILL.md.
+- Portability: No machine-specific paths. Markdown only, so it applies unchanged
+  on every machine.
+- Chezmoi: Added `dot_config/opencode/skills/typesafe-ai/SKILL.md` and `LICENSE`.
+- Verification: Scoped `chezmoi apply` then `chezmoi status` for
+  `~/.config/opencode/skills/typesafe-ai` is clean. Both files are visible
+  through the v2 junction at
+  `~/.opencode-v2/xdg/config/opencode/skills/typesafe-ai`, and the running
+  OpenCode session registered the `typesafe-ai` skill.
+
 ## 2026-09-18T10:57:11+08:00 - Add knowledge scaffolding and bounded gap handling to Mentor
 
 - Status: Completed
@@ -697,3 +855,51 @@
   script now resolves `Add-SkillsCliFrontmatter` at line 752, and the metadata
   file exists. The asset manager was not executed, so frontmatter injection is
   unverified at runtime.
+
+## 2026-09-21T15:12:17+08:00 - Upgrade oh-my-opencode-slim to the dual-host 2.2.22 release
+
+- Status: Completed
+- Machine: TC-TSENG
+- Platform: Microsoft Windows 10.0.26200 / X64
+- Scope: `config/external-assets.json`, `scripts/opencode-assets.ps1`,
+  `config/skills-registry.md`, `tests/opencode-assets-slim8.fixture.ps1`
+- Summary: The `oh-my-opencode-slim` asset now pins `2.2.22` (revision
+  `3685293ae6896deca1d85a14a38ba47510a50add`). That release exports
+  `{ id, server, setup }`, so OpenCode V1 (`server()`, >=1.18.29) and OpenCode
+  V2 (`setup()`, >=2.0.7) load the same npm spec from the same project
+  `.opencode/opencode.json`. No V1/V2 split is needed in the Asset Manager.
+- Important records:
+  - The manager keeps writing the V1-shaped `plugin` array because V2
+    normalizes it in memory and V1 would crash on V2-only shapes. A new
+    `Set-ManagedPluginSpec` helper refuses to touch a project config that
+    already has the V2-native `plugins` key, since V2 would then silently
+    ignore the `plugin` array the manager writes.
+  - `Set-ManagedPluginSpec` also removes the previous lock entry's
+    `pluginSpecs` before adding the new spec. Before this fix, re-running
+    `apply` after a version bump left both `@2.2.10` and `@2.2.22` in the
+    project config. Both `opencode-plugin` code paths (slim and ponytail) use
+    the helper.
+  - The 8-skill `Slim8SkillNames` list is unchanged. `2.2.22` ships a ninth
+    directory, `src/skills/loop-engineering`, but it is not in the upstream
+    `CUSTOM_SKILLS` registry, so the plugin never syncs it and no tombstone is
+    required.
+  - The plugin resolves its tombstone manifest from `XDG_CONFIG_HOME`, so the
+    V2 sandbox needs `~/.opencode-v2/xdg/config/opencode/.oh-my-opencode-slim`
+    to reach the same file; that junction is recorded in the `~/.opencode-v2`
+    changelog. Without it a V2 session would reinstall the eight skills into
+    the shared `skills/` junction and V1 would adopt them back as `managed`.
+  - Existing projects still hold `oh-my-opencode-slim@2.2.10` in their
+    `.opencode/opencode.json` until `opencode-assets.ps1 apply` is re-run in
+    each project. The `orchestrator` overlays were not re-reviewed for the V2
+    native-delegation wording (`subagent(...)` instead of `task(...)`).
+- Portability: All paths use `~` or are project-relative; no new
+  machine-specific literals.
+- Chezmoi: Updated four existing managed targets and applied them. The
+  content-hash trigger in `run_onchange_after_install-opencode-external-assets`
+  re-ran the global `core` profile install as designed.
+- Verification: `tests/opencode-assets-slim8.fixture.ps1` passes, including a
+  new case that upgrades `2.2.21` to `2.2.22` and asserts a single plugin spec
+  in the project config and lock. `opencode-assets.ps1 doctor -Json` reports
+  `valid: true` with no drift. Scoped `chezmoi status` is clean and all edited
+  sources are LF-only. Loading `2.2.22` in a live V1 or V2 project session was
+  not exercised.

@@ -1,6 +1,6 @@
 {
     "$schema": "https://opencode.ai/config.json",
-    "model": "anthropic/claude-fable-5-1",
+    "model": "anthropic/claude-opus-5",
     "autoupdate": true, // 1.18.21 is ok
     "instructions": [
         "AGENTS.md"
@@ -53,6 +53,17 @@
                 "PYTHONUTF8": "1",
                 "PYTHONIOENCODING": "utf-8",
                 "OFFICE_MCP_DEFAULT_FOLDER": "C:\\Users\\tc_tseng\\Documents"
+            }
+        },
+        "jev-review": {
+            "type": "local",
+            "command": [
+                "node",
+                "C:\\Users\\tc_tseng\\.local\\share\\opencode\\jev-review\\dist\\server.js"
+            ],
+            "enabled": true,
+            "environment": {
+                "JEV_API_KEY": "{env:JEV_API_KEY}"
             }
         }
     },
@@ -198,7 +209,7 @@
     },
     "agent": {
         "plan": {
-            "model": "anthropic/claude-fable-5-1",
+            "model": "anthropic/claude-opus-5",
             "permission": {
                 "edit": "deny"
             }
@@ -254,12 +265,18 @@
     //     ./plugins/openai-usage.ts         monkey-patches a v1 build, use "stats"
     //
     //   waiting for upstream to publish a v2 build:
-    //     @tarquinen/opencode-dcp           active "v2" branch upstream
     //     opencode-handoff
     //     opencode-command-inject
     //     @franlol/opencode-md-table-formatter
+    //     oh-my-tokens                      entry is v1-only (no v2 setup export)
+    //
+    //   v2-capable, enabled below:
+    //     @tarquinen/opencode-dcp           3.2.0 ships lib/v2 setup() for @opencode/plugin
+    //     opencode2-todo                    community plugin, restores todowrite only
     "plugins": [
-        "@ex-machina/opencode-anthropic-auth@next"
+        "@ex-machina/opencode-anthropic-auth@next",
+        "@tarquinen/opencode-dcp@3.2.0",
+        "github:gabparrot/opencode2-todo-tool#main::path:opencode2-todo"
     ],
     // Replaces the v1 mandatory-format.ts plugin. The builtins already detect a
     // project-local prettier dependency and a biome.json; dprint is not a v2
