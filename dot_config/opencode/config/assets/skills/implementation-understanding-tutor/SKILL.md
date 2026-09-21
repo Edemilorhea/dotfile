@@ -39,18 +39,26 @@ description: |-
 | **Mechanism**    | 這種協作為什麼能運作？   | 問題、參與者、shared resource、協作規則、guarantees、limitations、failure/retry、code touchpoints       | 不重講整個 flow，一次只講一個機制 |
 | **Code**         | 程式如何產生並交出結果？ | method chain、inputs、algorithm、bounded actual code、branches/returns、post-state、下一棒如何使用      | 不先輸出架構長文，不混入 review   |
 
-每個 component、step、mechanism 或 method 都沿同一條主線解釋：`Responsibility → Input / Pre-state → Transformation / Result → Handoff → Downstream impact`。只列「誰呼叫誰」不算理解；必須說出它負責什麼、產生什麼結果、下一棒怎麼用、失敗時後續有何不同。
+每個 component、step、mechanism 或 method 都沿同一條主線解釋：`為了什麼 → Responsibility → Input / Pre-state → Transformation / Result → Handoff → Downstream impact`。只列「誰呼叫誰」不算理解；必須說出它負責什麼、產生什麼結果、下一棒怎麼用、失敗時後續有何不同。
+
+「為了什麼」是一句情境句，放在每段 code 或每個節點之前，用使用者看得到的情境寫（「NetZero 回來的只有區域名字，但寫進資料庫需要文件 id，中間要有翻譯」），不用技術詞（「建立 areaName 到 planDocumentId 的對照表」）。讀者卡住時最常說的是「我不知道你為了什麼而做」；情境句就是回答這句話的固定位置。貫穿例子從這裡取材，它是骨架，不是裝飾。
 
 Mechanism 只在理解下一段 code 所必需時 just-in-time 插入，放在使用它的 code 之前。
 
 ## 每輪閱讀預算（guided / teach-back）
 
-- 只回答一個主要問題，最多一張主要圖或表。
-- Architecture 最多 7 個 components；Flow 最多 7 個 steps；Mechanism 一次一個；Code 一次一個 coherent method group（約 10–40 行）。
+閱讀負擔來自結構層數，不是 code 行數。一輪 code 只有 30 行，但包了 1 張 map、1 張欄位表、5 段 walkthrough、2 張對照表，讀者一樣讀不動。預算因此以結構元素計：
+
+- 只回答一個主要問題。
+- 最多 1 張圖或表、最多 3 段 code。Method-chain map 算那 1 張圖。
+- 元資訊（進度、視角、目標）壓成開頭一行，不佔標題。內容標題用問題或情境步驟命名（「為什麼刪除要分兩批」），不用工作階段命名（「Evidence 與導讀」）。
+- Architecture 最多 7 個 components；Flow 最多 7 個 steps；Mechanism 一次一個；Code 一次一個 coherent method group。
 - 主路徑先於 failure、alternative 與 edge cases。
 - Code 編號反映呼叫階層：被 9 呼叫的方法編為 9.1、9.2，不另起 10、11。
-- 結尾固定：簡短進度（`[完成]`／`[目前]`／`[待讀]`）＋最多兩個下一步選項。
+- 結尾固定：最多兩個下一步選項。
 - teach-back：每輪只問一個高資訊量問題，針對缺口修正，不重貼整份內容。
+
+作者的完整性檢查（causal node 五欄、逐段 confidence）留在內部，不渲染給讀者。同一個 method 讓讀者先看 map 一句、再看五欄表、再看 walkthrough，是讀三遍才拿到內容。
 
 使用者說「看不懂」「還是不懂」「X 跟 Y 的關係」時：停在同一單位，載入 `wait-what` 或 `eli5-explainer`，用不同的切法重講（例如先畫兩者關係圖，再回到 code）；不得重複原本結構。
 
@@ -79,8 +87,8 @@ Contract 不得改變本 skill 的範圍、模式、標題與語氣；所有 evi
 
 1. 依「使用者怎麼說」決定範圍、視角、模式；判不出範圍時問一個問題。
 2. 載入 quality contract。
-3. 選一個共同的 trigger、request、entity 或 payload 當貫穿例子。
-4. 蒐集最小充分 evidence（`grep` 找入口與呼叫者、`read` 讀相符區段）；每個節點記錄責任、輸入、結果、交接、後續影響與 confidence。全分支範圍另建 coverage ledger。
+3. 選一個共同的 trigger、request、entity 或 payload 當貫穿情境；每段 code 前的情境句都從它取材。
+4. 蒐集最小充分 evidence（`grep` 找入口與呼叫者、`read` 讀相符區段）；每個節點在內部記錄為了什麼、責任、輸入、結果、交接、後續影響與 confidence。輸出時 Confirmed 是預設不標，只標 Inferred 與 Unknown。全分支範圍另建 coverage ledger。
 5. Code 視角載入 code contract；Mechanism 載入 mechanism contract；report 載入 report contract。
 6. 依閱讀預算交付一個單位；Code Teach 的第一個實質回覆在最多 3–7 步 orientation 後立即進入第一個 method group。
 7. 更新進度；輸出前依 quality contract 檢查，不通過先重整。
@@ -105,11 +113,14 @@ Guided / teach-back 每個單位：
 ```markdown
 # [target] Guided Implementation Understanding
 
-## 閱讀進度
-## 本次視角：[Architecture / Flow / Mechanism / Code]
-## 本次理解目標
-## Evidence 與導讀
-## Responsibility → Result → Handoff → Downstream impact
+進度 [完成 a · 目前 b · 待讀 c] · 視角 [Architecture / Flow / Mechanism / Code] · 本段目標：[一句]
+
+## [以問題或情境步驟命名的內容標題]
+
+[情境句] → [圖或 code] → [說明：責任、結果、交接、失敗時後續有何不同]
+
+## [下一個內容標題，若有]
+
 ## 下一步
 ```
 
@@ -118,12 +129,15 @@ Focused：
 ```markdown
 # [target] Focused Implementation Deep Dive
 
-## 最小背景
-## 在完整操作流的位置
-## 本次視角：[Architecture / Flow / Mechanism / Code]
-## Evidence 與導讀
-## Responsibility → Result → Handoff → Downstream impact
+在整個流程的位置：[一句] · 視角 [Architecture / Flow / Mechanism / Code]
+
+## [以問題或情境步驟命名的內容標題]
+
+[情境句] → [圖或 code] → [說明]
+
 ## Unknowns / 驗證
 ```
+
+內容標題的數量由預算決定，不由骨架決定。兩個骨架裡只有開頭一行和結尾一節是固定的。
 
 需要中型完整範例時，讀取 `references/full-feature-example.md`；它是格式與資訊密度的範例，不是專案事實來源。

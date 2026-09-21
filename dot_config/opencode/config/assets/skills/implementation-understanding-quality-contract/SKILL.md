@@ -28,10 +28,10 @@ Specialist 只提供標準化 evidence，不得決定最終標題、順序或語
 
 1. 每個 code-specific claim 附目前版本的 `file:line-range`。舊版證據標成 old/diff range。
 2. 先找實際 caller，再描述 runtime 順序。Interface、registration 或 method 存在不代表已執行。
-3. 每個重要主張標示 **Confirmed**、**Inferred** 或 **Unknown**。Inferred 必須寫推導依據；Unknown 不替作者補故事。
+3. 每個重要主張在內部分類為 **Confirmed**、**Inferred** 或 **Unknown**。輸出時 Confirmed 是預設，不標；只標 Inferred 與 Unknown。Inferred 必須寫推導依據；Unknown 不替作者補故事。逐段掛 `Confirmed` 對作者是紀律，對讀者是雜訊。
 4. 區分目前實作、目標設計與建議。不得混寫。
 5. 主路徑先於 branches、edge cases、alternatives 與完整證據清單。
-6. 使用同一個具體例子貫穿六層。不要每層更換 request、ID、payload 或比喻。
+6. 使用同一個具體情境貫穿六層。不要每層更換 request、ID、payload 或比喻。每段 code 前的情境句都從它取材，用使用者看得到的情境寫，不用技術詞。
 7. 不讀 secrets、credentials、`.env` 或 generated dependency directories。遵守最近的 repository instructions。
 
 ## Verification Separation
@@ -43,26 +43,28 @@ Tests Present、Verification Plan、Actual Execution Evidence 必須分開。不
 - 模式符合使用者範圍；`auto` 未任意縮成 Focused。
 - Report 使用六層；guided/teach-back 使用四視角 learning units，沒有把內部六層 ledger 整份倒給讀者。
 - 明確 Code Teach 已優先於「完整／所有修改」等範圍詞；沒有錯誤落回純 report。
-- 明確 Code Teach 的第一個實質回覆已包含 bounded actual code walkthrough，不只包含 inventory、flow、mechanism 或 causal nodes。
+- 明確 Code Teach 的第一個實質回覆已包含 bounded actual code walkthrough，不只包含 inventory、flow、mechanism 或導航表。
 - branch/range/PR/working-tree 的完整 Code Teach 有 coverage ledger；沒有用單一代表路徑冒充所有修改。
 - Report 有六個 exact headings，順序正確，沒有省略；`depth` 而非完整性控制篇幅。
 - 明確 Code Teach report 的 Layer 1 至 3 合計不超過 3 至 7 個 orientation items，Layer 4 是主體。
-- Guided 一輪只有一個主要問題、符合元件/步驟/機制/method-group 資訊預算，並顯示短 progress 與最多兩個下一步。
+- Guided 一輪只有一個主要問題、最多 1 張圖或表、最多 3 段 code，符合元件/步驟/機制/method-group 資訊預算。
+- Guided 的進度、視角、目標壓成開頭一行；內容標題以問題或情境步驟命名，不以工作階段命名；結尾最多兩個下一步。
 - Guided 的 Change/Verification 只是 evidence overlays 或簡短 closure，沒有變成額外視角。
-- 六層使用同一個具體例子。
+- 六層使用同一個具體情境。
+- 每段 code 與每個重要節點前都有一句情境句，用使用者語言回答「為了什麼」，不是把 code 翻成中文。
 - 先 operation flow，再 method/code。
-- 每個重要節點都串起 Responsibility、Result、Handoff、Downstream impact；不只列 caller graph。
+- 每個重要節點都串起 為了什麼、Responsibility、Result、Handoff、Downstream impact；不只列 caller graph。
 - Code Teach 前已通過 Orientation Gate；既有 orientation 被明確沿用且未重講，不足時只補最小 map。
 - Layer 3 每個主要步驟都有 Logic、Data、Program、State、Boundary、Evidence。
 - Layer 4 先有局部 Method-chain mental map；單一 method 至少有一行上下游定位。
 - Actual Code Teach 已明確載入 `vibe-coding-tutor`，其 project/architecture/pattern/exercise/extension 支援已整合而非另附報告。
-- Layer 4 causal node 只有 Position、Responsibility/Not responsible for、Input/Pre-state、Result/Effect、Handoff/Downstream impact，沒有與 walkthrough 重複。
-- Node 只作 navigation；algorithm、branch/return、post-state、caller consumption、confidence 與 downstream impact 被自然整合進 bounded walkthrough，沒有渲染成另一組固定欄位。
+- Causal node 五欄只在內部自檢，輸出沒有渲染成表或固定欄位；其資訊自然融進 walkthrough 的第一段與最後一段。
+- Method-chain map 是 Code 單位裡唯一的圖；之後沒有第二張表講同一批 method。
 - 適用的 mechanism/primitive 已說明 problem、actors/resource、coordination、guarantees、limitations、failure/recovery 與 code touchpoints，然後恢復原 flow/code；沒有逐 token 教 syntax。
 - Overall result 描述可觀察語意結果，與只描述程式回傳值的 Return value 明確區分。
 - 相似方法的唯一責任與排除責任可清楚區分；wrapper/delegation 已明示。
 - 每個 code-specific claim 都有 `file:line-range`。
-- Confirmed、Inferred、Unknown 沒有混用。
+- 只有 Inferred 與 Unknown 被標示並附依據；沒有在每段都掛 Confirmed。
 - Tests Present、Verification Plan、Actual Execution Evidence 已分開。
 - ELI5 只套用通過 gate 的單一機制，並有精確說明與比喻限制；高混淆 method cluster 已在相關 Code unit 前主動使用 bounded ELI5。
 - 沒有 specialist 報告拼貼或重複 flow。

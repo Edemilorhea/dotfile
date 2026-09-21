@@ -26,21 +26,8 @@ return {
                 vim.cmd("colorscheme tokyonight-night")
             end
 
-            vim.api.nvim_set_hl(0, "@keyword.tsx", { fg = "#6C95EB" })
-            vim.api.nvim_set_hl(0, "@keyword.conditional.tsx", { fg = "#6C95EB" })
-            vim.api.nvim_set_hl(0, "@keyword.return.tsx", { fg = "#6C95EB" })
-            vim.api.nvim_set_hl(0, "@keyword", { fg = "#6C95EB" })
-            vim.api.nvim_set_hl(0, "@keyword.conditional", { fg = "#6C95EB" })
-            vim.api.nvim_set_hl(0, "@keyword.return", { fg = "#6C95EB" })
-            vim.api.nvim_set_hl(0, "@keyword.import", { fg = "#6C95EB" })
-            vim.api.nvim_set_hl(0, "@lsp.typemod.function.declaration.typescript", { fg = "#fefefe" })
-            vim.api.nvim_set_hl(0, "@lsp.type.function.typescript", { fg = "#39cc9b" })
-            vim.api.nvim_set_hl(0, "@function.call.tsx", { fg = "#39cc9b" })
-            vim.api.nvim_set_hl(0, "@lsp.type.function.typescriptreact", { fg = "#39cc9b" })
-            vim.api.nvim_set_hl(0, "@tag.attribute.tsx", { fg = "#6c95eb" })
-            vim.api.nvim_set_hl(0, "@tag.tsx", { fg = "#4EC9B0" })
-            vim.api.nvim_set_hl(0, "@tag.builtin.tsx", { fg = "#4EC9B0" })
-            vim.api.nvim_set_hl(0, "@comment", { fg = "#85ba59", italic = true })
+            -- 語法上色的覆寫改由 lua/config/autocmds.lua 的 ColorScheme 掛鉤統一處理，
+            -- 這裡只負責套用主題本身，切換 colorscheme 時覆寫才不會被洗掉。
         end,
     },
     -- tokyonight 備用主題 (可用 :colorscheme tokyonight-night 切換)

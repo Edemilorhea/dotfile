@@ -25,33 +25,36 @@ description: Use ONLY when implementation-understanding-tutor explicitly delegat
 
 ## Method-chain Mental Map
 
-固定先輸出 **Method-chain mental map**，再按實際 execution order 教 code。這張局部 map 不重複完整操作流；它將每個方法壓成一句結果，以顯示責任如何交接。
+固定先輸出 **Method-chain mental map**，再按實際 execution order 教 code。這張局部 map 不重複完整操作流；它將每個方法壓成一句結果，以顯示責任如何交接。它是本輪唯一的圖，之後不再出現第二張表。
 
 - 依實際機制分組，例如 Producer、Wake-up、Consumer、External、Completion；不存在的組別不得硬造。
 - 每個節點使用 `MethodName → 一句執行結果`，並標出跨 transaction、process、queue 或 external boundary 的交接。
 - 只有單一 method 時，可用一行標示其上下游位置，不需假裝存在多方法鏈。
-- 若符合高混淆 method cluster 規則，在 map 後、causal nodes 前加入 bounded ELI5。
+- 若符合高混淆 method cluster 規則，在 map 後、第一段 code 前加入 bounded ELI5。
 
-## Causal Node 與 Walkthrough
+## 內部 Causal Node
 
-每個 method/group 先用五欄 causal node 作導航：
+每個 method/group 在蒐證時用五欄 causal node 自檢完整性：Position、Responsibility / Not responsible for、Input / Pre-state、Result / Effect、Handoff / Downstream impact。若多個 node 的 Result/Effect 幾乎相同，重新切分責任或明確指出 wrapper/delegation。
 
-1. **Position**
-2. **Responsibility / Not responsible for**
-3. **Input / Pre-state**
-4. **Result / Effect**
-5. **Handoff / Downstream impact**
+這五欄是作者的檢查清單，不渲染給讀者。渲染出來的結果是讀者對同一個 method 先讀 map 一句、再讀五欄表、再讀 walkthrough；三個抽象層講同一件事，讀者讀到第三遍才拿到內容。五欄的資訊改為自然融進 walkthrough 的第一段與最後一段。
 
-Node 只負責定位，不重複 algorithm，也不是 implementation teaching 的替代品。若多個 node 的 Result/Effect 幾乎相同，重新切分責任或明確指出 wrapper/delegation。
+## Walkthrough
 
-Node 後立即進入自然的 implementation walkthrough，不再建立第二張固定欄位表。Walkthrough 必須：
+每個 method/group 的 walkthrough 由一句情境句開場。情境句回答「為了什麼」，用使用者看得到的情境寫，不用技術詞：
 
-- 引用足夠且有界的 actual code，通常 10 至 40 行，以語意完整為準，不在 branch 或 handoff 中間硬切。
+- 用：「NetZero 回來的只有『台北』兩個字，但寫進資料庫需要文件 id，中間要有翻譯。」
+- 不用：「`TryResolveSelectedPlanDocuments` 建立 areaName 到 planDocumentId 的對照表。」
+
+前者讓讀者知道接下來的 code 在解決什麼；後者只是把 code 翻成中文。
+
+情境句之後直接進 code。Walkthrough 必須：
+
+- 引用足夠且有界的 actual code，以語意完整為準，不在 branch 或 handoff 中間硬切。
 - 依 actual execution order 串起 algorithm，不按檔名或 diff 順序。
 - 在相關行旁說明 branch、early return、null、status、exception、void 的語意。
 - 說明 post-state、caller consumption，以及 success/failure/cancellation 對 downstream 的差異。
 - 區分可觀察的 semantic result 與只描述程式回傳值的 return value。
-- 每個 code-specific claim 附 `file:line-range` 與 confidence。
+- 每個 code-specific claim 附 `file:line-range`。Confirmed 是預設，不標；只在 Inferred 或 Unknown 時標示並寫依據。
 - 有助理解時才加入一個 trace、prediction、small exercise 或 teach-back。
 
 這些是 walkthrough 必須涵蓋的證據，不是另外十個 headings 或 card fields。主路徑先於 failure、alternative 與 edge cases。

@@ -118,15 +118,11 @@ Branches：無效 item 在步驟 2 拒絕；DB commit 失敗時步驟 5 不回�
 
 **比喻限制：** 抽屜只說明 atomic commit 與責任交接；它不保證 worker 只送一次，也不證明 Logistics API 已去重或已完成內部處理。
 
-### Code Teach group 1：`CreateOrderHandler.Handle`
+### Code Teach group 1：為什麼訂單和物流通知要一起存
 
-以下 causal node 只作導航：
+客戶 C-7 按下「下單」。系統要記住兩件事：訂單本身，以及「等一下要通知物流」。如果只存了訂單、還沒來得及存通知就當機，這張訂單永遠不會出貨。所以 `Handle` 的工作是把這兩筆資料當成一件事存進去，存好了才把訂單編號交回去。它不負責真的去通知物流，也不管通知失敗後怎麼重試，那是 worker 的事。
 
-- **Position**：`OrdersController.Create` → **`Handle`** → `UnitOfWork.Commit` → controller 使用回傳 ID。
-- **Responsibility / Not responsible for**：協調建立訂單並提交 business/outbox state；不投遞物流通知，也不處理 retry 或 completion state。
-- **Input / Pre-state**：DB 尚無 `ORD-42`；輸入是 `CreateOrderRequest(C-7, items)` 與 cancellation token。
-- **Result / Effect**：系統已持久保存 `ORD-42` 及其待送物流通知，呼叫端可取得訂單 ID。
-- **Handoff / Downstream impact**：controller 以 ID 回 `201`；已提交的 outbox row 讓 worker 之後能接棒。Commit 失敗時兩者都不能發生。
+呼叫鏈：`OrdersController.Create` → **`Handle`** → `UnitOfWork.Commit` → controller 拿回傳 ID 回 `201`。
 
 **Implementation algorithm：** (1) 驗證 request；(2) 建立 aggregate/event；(3) 交 repository tracking；(4) await commit；(5) commit 成功才 return ID。`src/application/CreateOrderHandler.cs:30-67`
 
@@ -146,15 +142,11 @@ return order.Id;                                      // 只在 commit 成功後
 - **Post-state**：成功時 DB 有 order 與 outbox row；失敗時此 transaction 不留下半套結果。
 - **Caller consumption / next handoff**：controller 把 ID 投影成 `201` response；worker 稍後從已提交 outbox row 接棒。
 
-### Code Teach group 2：`OutboxWorker.Process`
+### Code Teach group 2：訂單存好之後，誰去通知物流
 
-以下 causal node 只作導航：
+客戶已經拿到 `201`，但物流還不知道有這張單。`Process` 在另一個時間點被 polling loop 叫醒，撿起 `ORD-42` 那筆還沒送出的通知（`ProcessedAt=null` 且已到期），試著送一次。送成功就標記完成，物流沒回應就安排重試。它不建立訂單、不回應原本的 HTTP request，也不知道物流服務內部有沒有去重。
 
-- **Position**：hosted-service polling loop → **`Process`** → `LogisticsClient.CreateShipment` → `MarkProcessed` / `ScheduleRetry` → commit。
-- **Responsibility / Not responsible for**：協調單次 delivery attempt 並推進 outbox state；不建立 order、不回應原始 HTTP request，也不決定物流服務內部是否去重。
-- **Input / Pre-state**：`ORD-42` 的 outbox row 已 commit、`ProcessedAt=null` 且已到期；worker 收到 message payload。
-- **Result / Effect**：一筆到期通知已完成一次物流投遞嘗試，資料庫留下成功或重試結果。
-- **Handoff / Downstream impact**：成功 state 使未來 polling 跳過此 row；retry state 使未來 iteration 能再次接棒。未分類 exception 的 downstream effect 是 Unknown。
+呼叫鏈：hosted-service polling loop → **`Process`** → `LogisticsClient.CreateShipment` → `MarkProcessed` / `ScheduleRetry` → commit。未分類 exception 之後會發生什麼，證據不足，Unknown。
 
 **Implementation algorithm：** (1) payload mapping；(2) await 外部 call；(3) success branch 標記 processed，timeout branch 安排 retry；(4) await commit 保存 branch 結果。`src/workers/OutboxWorker.cs:28-71`
 

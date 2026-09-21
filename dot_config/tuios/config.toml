@@ -6,6 +6,9 @@ theme = "tokyonight"
 dockbar_position = "top"
 scrollback_lines = 50000
 shared_borders = true
+show_clock = true
+hide_window_buttons = true
+window_title_position = "top"
 
 [keybindings]
 leader_key = "alt+a"
@@ -18,6 +21,38 @@ nav_up = ["k", "up"]
 nav_right = ["l", "right"]
 
 # Release h/l from their TUIOS snap defaults to avoid duplicate bindings.
+# Alt+h/j/k/l preselect keys are owned by GlazeWM (focus direction); release them.
 [keybindings.layout]
 snap_left = []
 snap_right = []
+preselect_left = []
+preselect_down = []
+preselect_up = []
+preselect_right = []
+
+# Alt+1..9 and Alt+Shift+1..9 are owned by GlazeWM (workspace switch/move).
+# Release them here; switch TUIOS workspaces with <leader> w 1-9 instead,
+# matching the psmux habit of using the prefix for tab switching.
+[keybindings.workspaces]
+switch_workspace_1 = []
+switch_workspace_2 = []
+switch_workspace_3 = []
+switch_workspace_4 = []
+switch_workspace_5 = []
+switch_workspace_6 = []
+switch_workspace_7 = []
+switch_workspace_8 = []
+switch_workspace_9 = []
+move_and_follow_1 = []
+move_and_follow_2 = []
+move_and_follow_3 = []
+move_and_follow_4 = []
+move_and_follow_5 = []
+move_and_follow_6 = []
+move_and_follow_7 = []
+move_and_follow_8 = []
+move_and_follow_9 = []
+
+# Alt+p is owned by GlazeWM (resize); use <leader> p instead. Alt+n stays.
+[keybindings.terminal_mode]
+terminal_prev_window = []

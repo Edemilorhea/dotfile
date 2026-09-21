@@ -1548,6 +1548,29 @@ function Test-NpmFrameworkConfigOwnership {
     }
 }
 
+function Set-ManagedPluginSpec {
+    param(
+        [Parameter(Mandatory = $true)]$Config,
+        [Parameter(Mandatory = $true)][string]$PluginSpec,
+        [AllowNull()]$PreviousEntry,
+        [Parameter(Mandatory = $true)][string]$ConfigPath
+    )
+
+    # OpenCode V1 and V2 both read the V1-shaped `plugin` array from the shared
+    # project config. When a native V2 `plugins` key is present, V2 prefers it and
+    # silently ignores `plugin`, so the manager would not actually install anything.
+    if ($Config.PSObject.Properties['plugins']) {
+        throw "Refusing to manage plugins in $ConfigPath because it already uses the V2-native 'plugins' key; the manager writes the V1-compatible 'plugin' array shared by both runtimes."
+    }
+    [string[]]$plugins = if ($Config.PSObject.Properties['plugin']) { @($Config.plugin) } else { @() }
+    [string[]]$stale = if ($PreviousEntry -and $PreviousEntry.PSObject.Properties['pluginSpecs']) {
+        @($PreviousEntry.pluginSpecs | Where-Object { $_ -ne $PluginSpec })
+    } else { @() }
+    $plugins = @($plugins | Where-Object { $stale -notcontains $_ })
+    if ($plugins -notcontains $PluginSpec) { $plugins += $PluginSpec }
+    Set-ObjectProperty $Config 'plugin' @($plugins)
+}
+
 function Install-OpenCodePluginAsset {
     param(
         [Parameter(Mandatory = $true)]$Asset,
@@ -1559,12 +1582,11 @@ function Install-OpenCodePluginAsset {
     if ($ResolvedScope -ne 'project') {
         throw "OpenCode plugin asset $($Asset.id) is project-only."
     }
+    $previousPluginEntry = @($ExistingLock.assets | Where-Object id -eq $Asset.id) | Select-Object -First 1
     if ($Asset.id -ne 'oh-my-opencode-slim') {
         $configPath = Resolve-TargetPath $Asset.configPath $ResolvedScope $ResolvedProjectRoot
         $config = Get-JsonConfig $configPath
-        [string[]]$plugins = if ($config.PSObject.Properties['plugin']) { @($config.plugin) } else { @() }
-        if ($plugins -notcontains $Asset.pluginSpec) { $plugins += $Asset.pluginSpec }
-        Set-ObjectProperty $config 'plugin' @($plugins)
+        Set-ManagedPluginSpec $config $Asset.pluginSpec $previousPluginEntry $configPath
         Save-JsonConfig $configPath $config
         return [pscustomobject]@{
             id = $Asset.id
@@ -1609,9 +1631,7 @@ function Install-OpenCodePluginAsset {
 
         $configPath = Resolve-TargetPath $Asset.configPath $ResolvedScope $ResolvedProjectRoot
         $config = Get-JsonConfig $configPath
-        [string[]]$plugins = if ($config.PSObject.Properties['plugin']) { @($config.plugin) } else { @() }
-        if ($plugins -notcontains $Asset.pluginSpec) { $plugins += $Asset.pluginSpec }
-        Set-ObjectProperty $config 'plugin' @($plugins)
+        Set-ManagedPluginSpec $config $Asset.pluginSpec $previousPluginEntry $configPath
         Save-JsonConfig $configPath $config
         $installedPaths = @($mappings | ForEach-Object { $_.target })
 

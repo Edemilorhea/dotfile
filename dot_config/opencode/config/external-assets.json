@@ -538,10 +538,10 @@
       "scopes": ["project"],
       "defaultScope": "project",
       "repository": "https://github.com/alvinunreal/oh-my-opencode-slim.git",
-      "revision": "6a8861f6505621ed998d4e3e5afaccd2e0b5ef8c",
+      "revision": "3685293ae6896deca1d85a14a38ba47510a50add",
       "package": "oh-my-opencode-slim",
-      "packageVersion": "2.2.10",
-      "pluginSpec": "oh-my-opencode-slim@2.2.10",
+      "packageVersion": "2.2.22",
+      "pluginSpec": "oh-my-opencode-slim@2.2.22",
       "skills": [
         "clonedeps",
         "codemap",
@@ -559,7 +559,7 @@
       "globalSkillsBackupPath": "~/.local/state/opencode/slim8-skills-isolation-backups",
       "configPath": ".opencode/opencode.json",
       "conflictsWith": ["gsd"],
-      "notes": "The Asset Manager installs the pinned bundled skills only in the selected project and writes upstream-supported global deletion tombstones before the plugin can start."
+      "notes": "Dual-host package: the default export carries server() for OpenCode V1 (>=1.18.29) and setup() for OpenCode V2 (>=2.0.7), so one plugin spec serves both runtimes. The Asset Manager installs the pinned bundled skills only in the selected project and writes upstream-supported global deletion tombstones before the plugin can start; the V2 sandbox junctions ~/.config/opencode/.oh-my-opencode-slim so both hosts read the same tombstones."
     },
     {
       "id": "adversarial-review-pack",

@@ -235,3 +235,57 @@
 - Portability: All four files use LazyVim, Snacks, and Telescope APIs with no machine-specific paths. The explorer width is a runtime value, not a stored path.
 - Chezmoi: Re-added the four existing managed sources from their targets after editing `lazy.lua` in place; chezmoi's autocommit and autopush published each one.
 - Verification: Scoped `chezmoi status` is clean for all four targets and every source file is LF-only. Neovim was not restarted, so the Vue extra, the explorer sidebar bindings, and the picker scope remain unverified at runtime.
+
+## 2026-09-21T14:04:14+08:00 - Telescope path display for deep project trees
+
+- Status: Completed
+- Machine: TC-TSENG
+- Platform: windows/x64
+- Scope: `lua/plugins/tools.lua`
+- Summary: Made Telescope distinguish identically named files in deeply nested projects. Results now show the filename first with its directory chain after it, and the preview window is always available with a title that tracks the selected entry.
+- Important records:
+  - `path_display` changed from `{ "smart" }` to `{ filename_first = { reverse_directories = true } }`. The `smart` display collapsed the shared prefix into `..`, so files such as `SystemSettings/ApiConnectionQuery.cs` and `Impl/ApiConnectionQuery.cs` rendered almost identically. `reverse_directories` puts the closest parent directory first so width truncation keeps the most distinguishing segment.
+  - `dynamic_preview_title = true` makes the preview border title show the selected file path.
+  - `layout_config.preview_cutoff` changed from `120` to `0`. At 120 the preview was suppressed whenever the terminal was narrower than 120 columns, which also hid the dynamic title.
+  - Telescope has no built-in footer for the selected entry; a prompt-border footer was considered and rejected because the border title is truncated to the prompt window width and solves nothing that the two settings above do not already cover.
+  - Rebound horizontal results scrolling to `<C-h>` and `<C-l>` in both insert and normal mode. Telescope's defaults `<M-f>` and `<M-k>` are captured by GlazeWM on this machine and never reach Neovim.
+  - `<C-l>` previously held `actions.complete_tag`, which was moved to `<C-y>`. That action only applies to pickers built on `prefilter_sorter` (`lsp_document_symbols`, `lsp_workspace_symbols`, `treesitter`, `diagnostics`) and raises `No tag pre-filtering set for this picker` elsewhere. Losing the key would not disable `:tag:` prefiltering itself, only the completion popup.
+  - Every action mapping wraps `require("telescope.actions")` in a closure. The `opts` table is a literal evaluated when lazy.nvim reads the spec at startup, so a bare `require` there would force Telescope to load eagerly.
+- Portability: Pure Telescope options with no machine-specific paths. The `<C-h>` / `<C-l>` choice is driven by a GlazeWM keybinding present on this machine but is harmless on hosts without it.
+- Chezmoi: Updated the existing managed source and applied the scoped target.
+- Verification: Scoped `chezmoi diff` showed only the intended hunks and scoped `chezmoi status` is clean; the source file is LF-only; `loadfile` on the applied target reported no syntax error. Neovim was not restarted, so the rendered picker layout and the new keymaps are unverified at runtime.
+## 2026-09-21T14:37:24+08:00 - Rider-style C# semantic highlighting
+
+- Status: Completed
+- Machine: TC-TSENG
+- Platform: windows/x64
+- Scope: `lua/config/autocmds.lua`
+- Summary: Added a JetBrains Rider inspired highlight set for C# LSP semantic tokens. C# previously had no colour rules at all, and Roslyn's tokens suppressed the generic treesitter ones.
+- Important records:
+  - The existing JetBrains-style overrides in `lua/plugins/ui-restructured.lua` are bound to `tsx`, `typescript`, and `typescriptreact` apart from the generic `@keyword*` and `@comment` rules. No `.cs` rule existed anywhere in the configuration.
+  - Roslyn negotiates the pure LSP token schema for non Visual Studio clients. Beyond the standard types it emits C# specific custom types such as `controlKeyword`, `field`, `constant`, `recordClass`, `recordStruct`, `delegate`, `extensionMethod`, `stringVerbatim`, `excludedCode`, `xmlDocComment*`, and `regex*`. Neither Neovim's default links nor rose-pine define those groups, so the spans fell back to `Normal`.
+  - Token names were taken from `CustomLspSemanticTokenNames.cs` and `SemanticTokensSchema.cs` in dotnet/roslyn rather than guessed. A misspelled group fails silently with no visible difference.
+  - Semantic token extmarks use priority 125 against treesitter's 100. Types that treesitter already renders well (`variable`, `parameter`, `property`, `namespace`, `string`, `number`, `operator`, `comment`, `punctuation`, `whitespace`, `text`) are cleared to an empty table so the theme and the existing `@keyword` and `@comment` overrides keep winning.
+  - Palette reuses the existing TypeScript hexes for shared concepts (`#4EC9B0` types, `#39CC9B` methods) and adds Rider's field purple `#9876AA` and doc-comment green `#629755`. It is not Darcula: the user's established keyword colour is blue `#6C95EB`, so `controlKeyword` links to `@keyword` instead of Darcula orange.
+  - Modifier groups carry style only and no colour, so they compose on top of the type mark: `deprecated` strikethrough and `reassignedVariable` underline, matching Rider.
+  - Installed under a `ColorScheme` autocommand plus an immediate call, following the `set_indent_hl` and `set_float_hl` pattern already in this file, so the colours survive a colourscheme switch. The TypeScript overrides still live in rose-pine's `config` function and do not have that protection; left unchanged.
+  - Only the `cs` filetype is covered. Razor buffers use the `razor` filetype and were not addressed.
+- Portability: Plain Neovim highlight APIs and literal hex colours with no machine-specific paths.
+- Chezmoi: Updated the existing managed source and applied the scoped target.
+- Verification: `loadfile` reported no syntax error, and sourcing the file in a headless session resolved every representative group to the intended value (`@lsp.type.field.cs` 0x9876AA, `@lsp.type.class.cs` 0x4EC9B0, `@lsp.type.extensionMethod.cs` 0x39CC9B italic, `@lsp.type.xmlDocCommentText.cs` 0x629755, `@lsp.type.variable.cs` empty, `@lsp.mod.reassignedVariable.cs` underline). Scoped `chezmoi status` is clean and the file is LF-only. No C# solution was opened against a live Roslyn server, so the rendered result in a real buffer is unverified.
+
+## 2026-09-21T14:51:24+08:00 - Centralize syntax overrides and cover Razor
+
+- Status: Completed
+- Machine: TC-TSENG
+- Platform: windows/x64
+- Scope: `lua/config/autocmds.lua`, `lua/plugins/ui-restructured.lua`
+- Summary: Closed the two items left open by the previous entry. The C# highlight set now also covers Razor buffers, and the generic plus TypeScript overrides moved out of rose-pine's config function into the same ColorScheme hook so they survive a colourscheme switch.
+- Important records:
+  - Roslyn also serves Razor. Razor buffers use the `razor` filetype, and Neovim appends the filetype to every semantic token highlight group, so the same rules had to be registered twice. `set_csharp_hl` was restructured to key the table by bare token name and loop over `{ "cs", "razor" }`.
+  - The fifteen `nvim_set_hl` calls previously at the end of rose-pine's `config` function ran exactly once at startup. Any later `:colorscheme` reset them, including the tokyonight fallback path in that same function. They are now `set_lang_hl` in `autocmds.lua`, called through `set_syntax_hl` together with the C# rules from one `ColorScheme` autocommand plus an immediate call.
+  - rose-pine's `config` now only applies the theme. Hex literals were normalized to uppercase during the move; the colour values themselves are unchanged.
+  - Startup ordering is safe either way. If `autocmds.lua` loads before the colourscheme, the autocommand reapplies the overrides; if it loads after, the immediate call covers it. This matches the existing `set_indent_hl` and `set_float_hl` pattern in the same file.
+- Portability: Plain Neovim highlight APIs and literal hex colours with no machine-specific paths.
+- Chezmoi: Updated two existing managed sources and applied both scoped targets.
+- Verification: `loadfile` reported no syntax error for either file. A headless session sourced `autocmds.lua` and confirmed `@keyword` #6C95EB, `@comment` #85BA59, `@tag.tsx` #4EC9B0, `@lsp.type.field.cs` #9876AA, `@lsp.type.field.razor` #9876AA, `@lsp.type.controlKeyword.razor` linked to `@keyword`, and `@lsp.type.variable.razor` empty; every value was identical after `:colorscheme desert`, which is the regression this change targets. Scoped `chezmoi status` is clean and both files are LF-only. No Razor or C# project was opened against a live Roslyn server, so the rendered result in a real buffer is unverified.

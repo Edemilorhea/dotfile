@@ -19,13 +19,37 @@ return {
             defaults = {
                 prompt_prefix = "> ",
                 selection_caret = "> ",
-                path_display = { "smart" },
+                -- 檔名在前、目錄在後；reverse_directories 讓最貼近檔案的目錄先出現，
+                -- 深層專案即使被寬度截斷，保留的仍是最有辨識度的那一段。
+                path_display = { filename_first = { reverse_directories = true } },
+                -- preview 視窗標題跟著選取項目顯示完整路徑。
+                dynamic_preview_title = true,
                 file_ignore_patterns = { "node_modules", ".git/" },
+                -- <M-f> / <M-k> 是 Telescope 預設的 results 水平捲動，但 Alt 組合被 GlazeWM 攔走，
+                -- 所以改綁 <C-h> / <C-l>；<C-l> 原本的 complete_tag 移到 <C-y>。
+                -- 這裡用 closure 包住 require，避免啟動期就載入 telescope.actions。
                 mappings = {
                     i = {
                         ["<C-v>"] = function()
                             local keys = vim.api.nvim_replace_termcodes("<C-r>+", true, false, true)
                             vim.api.nvim_feedkeys(keys, "n", false)
+                        end,
+                        ["<C-h>"] = function(bufnr)
+                            require("telescope.actions").results_scrolling_left(bufnr)
+                        end,
+                        ["<C-l>"] = function(bufnr)
+                            require("telescope.actions").results_scrolling_right(bufnr)
+                        end,
+                        ["<C-y>"] = function(bufnr)
+                            require("telescope.actions").complete_tag(bufnr)
+                        end,
+                    },
+                    n = {
+                        ["<C-h>"] = function(bufnr)
+                            require("telescope.actions").results_scrolling_left(bufnr)
+                        end,
+                        ["<C-l>"] = function(bufnr)
+                            require("telescope.actions").results_scrolling_right(bufnr)
                         end,
                     },
                 },
@@ -39,7 +63,7 @@ return {
                     },
                     width = 0.87,
                     height = 0.80,
-                    preview_cutoff = 120,
+                    preview_cutoff = 0,
                 },
             },
             extensions = {

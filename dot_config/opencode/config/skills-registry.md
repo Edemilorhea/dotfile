@@ -147,7 +147,7 @@ Project repositories may commit `.opencode/assets.json`; the generated `.opencod
 
 | Profile | Package | Managed behavior |
 | --- | --- | --- |
-| `oh-my-opencode-slim` | `oh-my-opencode-slim@2.2.10` | Adds only the pinned plugin spec to project `.opencode/opencode.json`; the upstream global installer is not run. |
+| `oh-my-opencode-slim` | `oh-my-opencode-slim@2.2.22` | Adds only the pinned plugin spec to project `.opencode/opencode.json`; the upstream global installer is not run. The package is dual-host (V1 `server()` and V2 `setup()`), so the same project config works under `opencode` (>=1.18.29) and `opencode2` (>=2.0.7). |
 | `gsd` | `@opengsd/gsd-core@1.10.0` | Runs the pinned official OpenCode installer with the `standard` profile and an isolated HOME; deploys only its generated file manifest and safely merges its project permission/MCP entries. |
 | `ponytail` | `@dietrichgebert/ponytail@4.9.0` | Adds only the pinned plugin spec to project `.opencode/opencode.json`. |
 

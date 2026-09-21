@@ -90,8 +90,8 @@ try {
             repository = $repository
             revision = $revision
             package = 'oh-my-opencode-slim'
-            packageVersion = '2.2.10'
-            pluginSpec = 'oh-my-opencode-slim@2.2.10'
+            packageVersion = '2.2.21'
+            pluginSpec = 'oh-my-opencode-slim@2.2.21'
             skills = @($script:SkillNames)
             bundledSkillsPath = 'src/skills'
             projectSkillsPath = '.opencode/skills'
@@ -118,7 +118,7 @@ try {
         skills = [ordered]@{
             simplify = [ordered]@{
                 status = 'managed'
-                packageVersion = '2.2.10'
+                packageVersion = '2.2.21'
                 sourceHash = ''
                 lastManagedHash = ''
                 lastSeenHash = ''
@@ -157,6 +157,19 @@ try {
     $entry = @($lock.assets | Where-Object id -eq 'oh-my-opencode-slim')[0]
     Assert-True (@($entry.installedPaths).Count -eq 8) 'Lock does not record all installed paths.'
     Assert-True (@($entry.installedPathHashes).Count -eq 8) 'Lock does not record all installed path hashes.'
+
+    $catalog.assets[0].packageVersion = '2.2.22'
+    $catalog.assets[0].pluginSpec = 'oh-my-opencode-slim@2.2.22'
+    $catalog | ConvertTo-Json -Depth 20 | Set-Content -LiteralPath $catalogPath -Encoding utf8
+    $upgrade = Invoke-Manager $managerPath $fixtureHome @(
+        'apply', '-Scope', 'project', '-Assets', 'oh-my-opencode-slim', '-CatalogPath', $catalogPath, '-ProjectRoot', $project, '-Json'
+    )
+    Assert-True ($upgrade.exitCode -eq 0) "Project upgrade failed: $($upgrade.output -join "`n")"
+    $projectConfig = Get-Content -LiteralPath (Join-Path $project '.opencode\opencode.json') -Raw | ConvertFrom-Json
+    Assert-True (@($projectConfig.plugin).Count -eq 1 -and $projectConfig.plugin[0] -eq 'oh-my-opencode-slim@2.2.22') "Upgrade left stale plugin specs: $(@($projectConfig.plugin) -join ', ')"
+    $lock = Get-Content -LiteralPath $lockPath -Raw | ConvertFrom-Json
+    $entry = @($lock.assets | Where-Object id -eq 'oh-my-opencode-slim')[0]
+    Assert-True (@($entry.pluginSpecs) -join ',' -eq 'oh-my-opencode-slim@2.2.22') 'Lock did not record the upgraded plugin spec.'
 
     Add-Content -LiteralPath (Join-Path $project '.opencode\skills\simplify\SKILL.md') -Value 'drift'
     $status = Invoke-Manager $managerPath $fixtureHome @(

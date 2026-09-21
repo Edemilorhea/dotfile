@@ -37,7 +37,7 @@ description: Use ONLY when implementation-understanding-tutor explicitly delegat
 - **Program**：caller、callee、return 或 event handoff。
 - **State**：domain、memory、DB、queue、external side effect。
 - **Boundary**：API、process、transaction、queue 或 external system boundary；沒有則寫 `Not applicable`。
-- **Evidence**：`file:line-range` 與 confidence。
+- **Evidence**：`file:line-range`；只在 Inferred 或 Unknown 時標示。
 
 不要先產生四份獨立 flow 報告。應以 operation step 為主軸，將四種 flow 放在同一步內。
 
@@ -61,7 +61,7 @@ description: Use ONLY when implementation-understanding-tutor explicitly delegat
 
 ## Code Teach Report
 
-`report` 遇到明確 Code Teach 仍必須以 Layer 4 為主體。先明確載入 `implementation-understanding-code-teach-contract`；Layer 1 至 Layer 3 只提供讀 code 所需的 orientation，不得讓 change inventory、機制摘要或 causal nodes 佔據主要篇幅。每個重要 method/group 都必須引用 bounded actual code 並沿 execution order 教學。
+`report` 遇到明確 Code Teach 仍必須以 Layer 4 為主體。先明確載入 `implementation-understanding-code-teach-contract`；Layer 1 至 Layer 3 只提供讀 code 所需的 orientation，不得讓 change inventory、機制摘要或導航表佔據主要篇幅。每個重要 method/group 都必須以情境句開場，引用 bounded actual code 並沿 execution order 教學。
 
 明確 Code Teach 加 `report` 時，Layer 1 至 Layer 3 合計最多 3 至 7 個主要 orientation items；Layer 3 可在每個 item 內緊湊對齊 Logic/Data/Program/State/Boundary/Evidence。保留三個 exact headings 與必要資訊，但不得在 Layer 4 actual code 前展開 branches、完整 inventory 或非必要 mechanism。
 

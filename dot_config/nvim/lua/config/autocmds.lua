@@ -152,6 +152,160 @@ vim.api.nvim_create_autocmd("ColorScheme", {
 })
 vim.schedule(set_float_hl)
 
+-- C#（Roslyn LSP）語意上色，配色參考 JetBrains Rider。
+--
+-- Roslyn 對非 Visual Studio 客戶端送的是 pure LSP token set：除了標準 type 之外，還有一批
+-- C# 專屬的自訂 type（controlKeyword、field、recordClass、extensionMethod ...）。Neovim 的
+-- 預設連結和 rose-pine 都沒有涵蓋這些名稱，對應的 highlight group 是空的，那些區段就掉回
+-- Normal，看起來像完全沒上色。
+--
+-- token type 名稱取自 dotnet/roslyn 的 CustomLspSemanticTokenNames.cs 與 SemanticTokensSchema.cs，
+-- 不是猜的；拼錯的話會靜默失效，看不出差別。
+--
+-- LSP semantic token 的 extmark priority 是 125，treesitter 是 100。凡是 treesitter 已經處理得
+-- 夠好的 type，這裡一律設成空表清掉，讓既有主題與 @keyword / @comment 那組設定繼續生效。
+local csharp_palette = {
+    type = "#4EC9B0", -- 型別，沿用 @tag.tsx 的青綠
+    method = "#39CC9B", -- 方法，沿用 TS function 的綠
+    field = "#9876AA", -- Rider 的欄位紫
+    doc = "#629755", -- Rider 的 XML 文件註解綠
+    excluded = "#6E6A86", -- #if 排除掉的區塊，rose-pine muted
+}
+
+-- Roslyn 也服務 Razor，Razor buffer 的 filetype 是 razor，highlight group 尾綴跟著變，
+-- 所以同一份規則要對兩個 filetype 各套一次。
+local csharp_filetypes = { "cs", "razor" }
+
+local function set_csharp_hl()
+    local c = csharp_palette
+    local types = {
+        -- C# 專屬 type，完全沒有 fallback
+        controlKeyword = { link = "@keyword" },
+        operatorOverloaded = { link = "@operator" },
+        field = { fg = c.field },
+        constant = { fg = c.field, italic = true },
+        event = { fg = c.field },
+        extensionMethod = { fg = c.method, italic = true },
+        delegate = { fg = c.type },
+        recordClass = { fg = c.type },
+        recordStruct = { fg = c.type },
+        array = { fg = c.type },
+        pointer = { fg = c.type },
+        functionPointer = { fg = c.type },
+        module = { link = "@module" },
+        label = { link = "@label" },
+        stringVerbatim = { link = "@string" },
+        stringEscapeCharacter = { link = "@string.escape" },
+        preprocessorText = { link = "@comment" },
+        excludedCode = { fg = c.excluded },
+
+        -- 標準 type，但 Neovim 的預設連結給得太保守
+        class = { fg = c.type },
+        struct = { fg = c.type },
+        enum = { fg = c.type },
+        interface = { fg = c.type, italic = true },
+        typeParameter = { fg = c.type, italic = true },
+        method = { fg = c.method },
+
+        -- 交回 treesitter 處理
+        variable = {},
+        parameter = {},
+        property = {},
+        namespace = {},
+        string = {},
+        number = {},
+        operator = {},
+        comment = {},
+        punctuation = {},
+        whitespace = {},
+        text = {},
+        testCodeMarkdown = {},
+    }
+
+    -- 修飾詞的 extmark priority 比 type 高，只設樣式不設顏色就能疊加上去。
+    -- Rider 會把棄用的符號加刪節線、被重新賦值的變數加底線。
+    local mods = {
+        deprecated = { strikethrough = true },
+        reassignedVariable = { underline = true },
+    }
+
+    -- /// <summary> 這類 XML 文件註解
+    local xml_doc = {
+        "Text",
+        "Name",
+        "Delimiter",
+        "AttributeName",
+        "AttributeQuotes",
+        "AttributeValue",
+        "CDataSection",
+        "Comment",
+        "EntityReference",
+        "ProcessingInstruction",
+    }
+    for _, name in ipairs(xml_doc) do
+        types["xmlDocComment" .. name] = { fg = c.doc, italic = true }
+    end
+
+    -- Regex 字面值內部的著色
+    local regex = {
+        Text = "@string",
+        Comment = "@comment",
+        CharacterClass = "@string.escape",
+        Anchor = "@string.escape",
+        Quantifier = "@string.escape",
+        Grouping = "@string.escape",
+        Alternation = "@string.escape",
+        SelfEscapedCharacter = "@string.escape",
+        OtherEscape = "@string.escape",
+    }
+    for name, link in pairs(regex) do
+        types["regex" .. name] = { link = link }
+    end
+
+    for _, ft in ipairs(csharp_filetypes) do
+        for name, spec in pairs(types) do
+            vim.api.nvim_set_hl(0, "@lsp.type." .. name .. "." .. ft, spec)
+        end
+        for name, spec in pairs(mods) do
+            vim.api.nvim_set_hl(0, "@lsp.mod." .. name .. "." .. ft, spec)
+        end
+    end
+end
+
+-- 通用與 TypeScript/TSX 的 JetBrains 風格上色。
+-- 原本寫在 rose-pine 的 config 函式裡，只在啟動時跑一次，任何後續的 colorscheme 切換都會把它
+-- 洗掉；移到這裡與 C# 共用同一個 ColorScheme 掛鉤。
+local function set_lang_hl()
+    local groups = {
+        ["@keyword"] = { fg = "#6C95EB" },
+        ["@keyword.conditional"] = { fg = "#6C95EB" },
+        ["@keyword.return"] = { fg = "#6C95EB" },
+        ["@keyword.import"] = { fg = "#6C95EB" },
+        ["@keyword.tsx"] = { fg = "#6C95EB" },
+        ["@keyword.conditional.tsx"] = { fg = "#6C95EB" },
+        ["@keyword.return.tsx"] = { fg = "#6C95EB" },
+        ["@lsp.typemod.function.declaration.typescript"] = { fg = "#FEFEFE" },
+        ["@lsp.type.function.typescript"] = { fg = "#39CC9B" },
+        ["@lsp.type.function.typescriptreact"] = { fg = "#39CC9B" },
+        ["@function.call.tsx"] = { fg = "#39CC9B" },
+        ["@tag.attribute.tsx"] = { fg = "#6C95EB" },
+        ["@tag.tsx"] = { fg = "#4EC9B0" },
+        ["@tag.builtin.tsx"] = { fg = "#4EC9B0" },
+        ["@comment"] = { fg = "#85BA59", italic = true },
+    }
+    for group, spec in pairs(groups) do
+        vim.api.nvim_set_hl(0, group, spec)
+    end
+end
+
+local function set_syntax_hl()
+    set_lang_hl()
+    set_csharp_hl()
+end
+
+vim.api.nvim_create_autocmd("ColorScheme", { pattern = "*", callback = set_syntax_hl })
+set_syntax_hl()
+
 local function convert_line_endings(fileformat)
     vim.cmd([[silent! %s/\r$//e]])
     vim.bo.fileformat = fileformat
