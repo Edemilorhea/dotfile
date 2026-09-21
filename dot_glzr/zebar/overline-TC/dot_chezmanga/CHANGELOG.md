@@ -88,3 +88,19 @@
 - Portability: The change uses Zebar's existing Tauri window API and has no machine-specific path.
 - Chezmoi: Updated the managed source and deployed runtime bundle, then applied both to the current machine.
 - Verification: The deployed bundle passed `node --check`; a live GlazeWM query reported the selector as shown, floating, and focused.
+
+## 2026-09-21T10:40:37+08:00 - Drop the dead work-area refresh call
+
+- Status: Completed
+- Machine: TC-TSENG
+- Platform: windows/x64
+- Scope: `custom-src/main/App.tsx`, `widgets/main/dist/assets/main-w_IRe7zy.js`, `CUSTOMIZATION.md`
+- Summary: Removed the startup effect that asked GlazeWM to run `~/.glzr/glazewm/refresh-work-area.vbs`, along with the three path constants that fed it.
+- Important records:
+  - The VBS launcher was deleted on 2026-09-01, so every bar instance scheduled up to three `shell-exec -- wscript.exe` calls against a missing file, each guarded by a 1500 ms timeout and a 1000 ms retry.
+  - The effect could not have worked even with the launcher present: it only asked GlazeWM to re-read the Windows work area, while the actual defect is that Windows never reserved the space. `restart-glazewm.ps1` now re-issues `ABM_SETPOS` against Zebar's own bar windows instead.
+  - The deployed bundle was patched in place because this managed pack does not include the upstream monorepo dependencies needed to rebuild it. The content hash in the file name no longer matches its content; `index.html` references the bundle by name, so this is consistent with the earlier backports.
+  - `widgetPackPath` still exists independently in `RightButtons.tsx` and `workspaceDock.tsx`, which use it as a shell working directory. Only the `App.tsx` copy was removed.
+- Portability: The change only deletes code and introduces no machine-specific path.
+- Chezmoi: Updated the managed source, deployed runtime bundle, and documentation, then applied all three to the current machine.
+- Verification: The patched bundle passed `node --check` and contains no remaining `refresh-work-area`, `wscript`, or `Oy`/`Vy`/`_y` references, while `Dy` (useAutoTiling) is intact. After a Zebar restart all three bars rendered at 1920x38 on their monitor origins and `errors.log` gained no new entry.

@@ -39,15 +39,13 @@ extracts local executable icons; failed or inaccessible lookups fall back to a
 themed process initial. The main widget may execute only this helper with a
 single bounded process-name argument.
 
-When the main widget starts or reloads, it waits for Zebar to register its
-Windows AppBar and then runs `~/.glzr/glazewm/refresh-work-area.vbs`. This hidden
-launcher starts `refresh-work-area.ps1` without opening a terminal window. The
-PowerShell helper sends GlazeWM the Windows work-area-change message that makes
-it read the new monitor geometry and redraw existing windows. A short named
-mutex prevents the per-monitor widgets from running overlapping refreshes. It
-refreshes during registration and once more after all monitor widgets have had
-time to settle. The checked-in `dist/index.html` contains the runtime backport;
-`custom-src/main/App.tsx` is the source for future builds.
+The main widget no longer runs a work-area refresh helper on start. Zebar
+registers each monitor's AppBar once and sometimes leaves a monitor with no top
+reservation, but asking GlazeWM to re-read the work area cannot fix that,
+because the Windows work area itself is wrong. `~/.glzr/glazewm/restart-glazewm.ps1`,
+bound to `Alt+Shift+W`, re-issues `ABM_SETPOS` against Zebar's own bar windows
+instead. The checked-in `dist/assets/main-*.js` carries this removal as a
+runtime backport; `custom-src/main/App.tsx` is the source for future builds.
 
 Editable custom source files are preserved under `custom-src`:
 

@@ -246,3 +246,39 @@ runtime state are deliberately excluded and are recreated by the setup script.
   `core.autocrlf=false`, `core.safecrlf=true`, `init.defaultBranch=main`, and
   `push.autoSetupRemote=true`, which includes values from `config.local`. The
   script itself was not re-executed through `chezmoi apply`.
+
+## 2026-09-21T10:40:37+08:00 - Bridge tuios and scoop config into the sandbox
+
+- Status: Completed
+- Machine: TC-TSENG
+- Platform: windows/x64
+- Scope: `run_onchange_after_setup-opencode-v2.ps1.tmpl`, `xdg/config/tuios`,
+  `xdg/config/scoop`
+- Summary: Junctioned `~/.config/tuios` and `~/.config/scoop` into the sandbox
+  as well, after confirming that their sandbox copies were generated defaults
+  rather than an intentional split.
+- Important records:
+  - The previous entry recorded these two as deliberately divergent. That was
+    wrong, and this entry corrects it. Diffing the files showed the sandbox
+    copies were written by the tools themselves when they found no config:
+    `xdg/config/tuios/config.toml` at 2026-09-21 09:57 and
+    `xdg/config/scoop/config.json` at 2026-09-18 16:34.
+  - The generated TUIOS file was the full 6993-byte default template with
+    `leader_key='ctrl+b'` and with `alt+h/j/k/l` and `alt+1..9` bound. The
+    managed 1515-byte config releases exactly those keys because GlazeWM owns
+    them, so a sandboxed TUIOS session had colliding bindings.
+  - The generated Scoop file kept only `last_update` and lost `scoop_repo`,
+    `scoop_branch`, and `lastupdate`.
+  - Both generated copies were renamed to `<name>_backup_20260921_103935`
+    inside `xdg/config` rather than deleted. They hold no user content and can
+    be removed.
+- Portability: The three bridged names now share one `foreach` loop over the
+  existing Windows-only `Set-Junction` helper.
+- Chezmoi: Updated the managed setup script; the junctions were created
+  directly so the runtime matches now, and the idempotent script reproduces
+  them on the next apply and on other machines.
+- Verification: The rendered template parses as PowerShell and the source is
+  LF-only. Reading through `$XDG_CONFIG_HOME` inside this session now returns
+  `leader_key='alt+a'`, `preferred_shell='nu'`, `theme='tokyonight'`, and
+  `dockbar_position='top'` for TUIOS, and the full four-key Scoop config. No
+  TUIOS or Scoop process was launched to confirm runtime behavior.

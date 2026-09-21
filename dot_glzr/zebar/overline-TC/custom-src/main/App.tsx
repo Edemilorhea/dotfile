@@ -29,12 +29,6 @@ const providers = zebar.createProviderGroup({
   systray: { type: 'systray' },
   battery: { type: 'battery' },
 });
-const widgetPackPath = zebar.currentWidget().htmlPath.replace(
-  /[\\/]widgets[\\/]main[\\/]dist[\\/][^\\/]+$/,
-  ''
-);
-const glzrPath = widgetPackPath.replace(/[\\/]zebar[\\/][^\\/]+$/, '');
-const refreshScriptPath = `${glzrPath}\\glazewm\\refresh-work-area.vbs`;
 
 function App() {
   const [output, setOutput] = useState(providers.outputMap);
@@ -42,46 +36,6 @@ function App() {
 
   useEffect(() => {
     providers.onOutput(() => setOutput(providers.outputMap));
-  }, []);
-
-  useEffect(() => {
-    let cancelled = false;
-    let timeoutId: number;
-    let attempts = 0;
-
-    const refreshCommand =
-      `shell-exec -- wscript.exe //B "${refreshScriptPath}"`;
-
-    const refreshAfterDocking = async () => {
-      attempts += 1;
-
-      try {
-        const glazewm = providers.outputMap.glazewm;
-        if (!glazewm) {
-          throw new Error('GlazeWM provider is not ready.');
-        }
-
-        await Promise.race([
-          glazewm.runCommand(refreshCommand),
-          new Promise((_, reject) =>
-            window.setTimeout(() => reject(new Error('GlazeWM timed out.')), 1500)
-          ),
-        ]);
-      } catch {
-        if (!cancelled && attempts < 3) {
-          timeoutId = window.setTimeout(refreshAfterDocking, 1000);
-        }
-      }
-    };
-
-    // Zebar recreates its native AppBar when this widget reloads. Give Windows
-    // time to publish the new work area, then make GlazeWM read it again.
-    timeoutId = window.setTimeout(refreshAfterDocking, 1500);
-
-    return () => {
-      cancelled = true;
-      window.clearTimeout(timeoutId);
-    };
   }, []);
 
   useAutoTiling();
