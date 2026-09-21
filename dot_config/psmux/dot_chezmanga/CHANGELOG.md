@@ -121,3 +121,19 @@
 - Portability: The override uses psmux-native hook syntax and a `~`-relative plugin path inside the existing Windows-specific psmux scope.
 - Chezmoi: Updated the managed `psmux.conf` source and applied only that target.
 - Verification: Scoped diff showed only the hook override; scoped apply succeeded; reloading the running server without ending sessions reported `client-attached -> run-shell -b "pwsh -NoProfile -File \"~/.psmux/plugins/psmux-continuum/scripts/auto_save.ps1\" -IntervalMinutes 15"`.
+
+## 2026-09-21T22:41:16+08:00 - Restore OpenCode image paste for the v2 binary
+
+- Status: Completed
+- Machine: DESKTOP-3JHKCAP
+- Platform: Microsoft Windows NT 10.0.26200.0 / AMD64
+- Scope: `psmux.conf`
+- Summary: Added `opencode2` and `opencode2.cmd` to the conditional `C-v` forwarding list so OpenCode v2 receives the raw key and can read clipboard images.
+- Important records:
+  - The 2026-08-29 binding only matched `oc`, `opencode`, and `opencode.exe`. OpenCode v2 is launched through the `opencode2.cmd` wrapper, so shell integration reports `opencode2` and the condition failed.
+  - With the condition false, `paste-detection on` handled the key as a text-only paste, so image clipboard data never reached OpenCode. Pasting worked in Windows Terminal and Rio without psmux because no interception happened there.
+  - `oc` still maps to the v1 wrapper; both generations stay supported by the same binding.
+  - `psmux-resurrect` `@resurrect-processes` still lists only `oc` and `opencode`, so a restored v2 pane does not restart `opencode2`. That is unrelated to paste and was left unchanged.
+- Portability: The binding uses psmux-native format comparisons and stays inside the existing Windows-specific psmux scope.
+- Chezmoi: Updated the managed `psmux.conf` source and applied only that target.
+- Verification: Scoped diff showed only the binding line; scoped apply succeeded; `psmux source-file` reloaded the running server without ending sessions; the root key table contained the extended `C-v` binding; evaluating the same condition against the live panes returned `match=1` for the `opencode2` pane and `match=0` for the `nvim` and `nu` panes. An interactive image paste was not performed by the agent.

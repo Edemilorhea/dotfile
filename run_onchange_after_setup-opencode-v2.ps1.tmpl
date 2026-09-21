@@ -153,15 +153,25 @@ Set-Junction -Source (Join-Path $v1Config 'tools/locu') -Target (Join-Path $v2Co
 
 # opencode2.cmd redirects XDG_CONFIG_HOME wholesale, so every tool an agent runs
 # loses ~/.config and silently falls back to its own defaults:
-#   git   - Git for Windows system config sets core.autocrlf=true and leaves
-#           core.safecrlf unset, so commits can rewrite LF to CRLF in
-#           repositories that have no .gitattributes.
-#   tuios - writes a full default config whose alt+hjkl and alt+1..9 bindings
-#           collide with GlazeWM, instead of the psmux-derived config.
-#   scoop - loses scoop_repo and scoop_branch.
+#   git     - Git for Windows system config sets core.autocrlf=true and leaves
+#             core.safecrlf unset, so commits can rewrite LF to CRLF in
+#             repositories that have no .gitattributes.
+#   tuios   - writes a full default config whose alt+hjkl and alt+1..9 bindings
+#             collide with GlazeWM, instead of the psmux-derived config.
+#   scoop   - loses scoop_repo and scoop_branch.
+#   chezmoi - loses chezmoi.toml, so an agent cannot reach the dotfile config.
 # Bridge them back so a sandboxed session behaves like a normal shell.
-foreach ($name in 'git', 'tuios', 'scoop') {
+foreach ($name in 'git', 'tuios', 'scoop', 'chezmoi') {
     Set-Junction -Source (Join-Path $HOME ".config/$name") -Target (Join-Path $v2ConfigHome $name)
+}
+
+# XDG_DATA_HOME is redirected the same way, so tools that keep state in
+# ~/.local/share lose it too. chezmoi resolves its source directory from
+# $XDG_DATA_HOME/chezmoi and reports "not managed" for every target without
+# this bridge. Do not bridge 'opencode' here: that collision is the reason the
+# sandbox redirects XDG_DATA_HOME in the first place.
+foreach ($name in 'chezmoi') {
+    Set-Junction -Source (Join-Path $HOME ".local/share/$name") -Target (Join-Path $root "xdg/data/$name")
 }
 
 Write-Host '[OpenCode v2] Complete. Run "opencode2 auth login anthropic --method claude-max" in a new terminal.'

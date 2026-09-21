@@ -373,3 +373,20 @@ runtime state are deliberately excluded and are recreated by the setup script.
   manifest through it lists all eight skills as `deleted`. The rendered
   template is LF-only. Loading `oh-my-opencode-slim@2.2.22` in a v2 project
   session was not exercised because no project has been re-applied yet.
+
+## 2026-09-21T22:45:08+08:00 - Bridge chezmoi config and source into the sandbox XDG root
+
+- Status: Completed
+- Machine: DESKTOP-3JHKCAP
+- Platform: Microsoft Windows 10.0.26200 / AMD64
+- Scope: `run_onchange_after_setup-opencode-v2.ps1.tmpl`, `xdg/data/chezmoi`
+- Summary: Junctioned `~/.config/chezmoi` and `~/.local/share/chezmoi` into the sandbox so an agent running inside v2 can use chezmoi without overriding `--source` and `--config` on every invocation.
+- Important records:
+  - chezmoi needs two directories. `chezmoi.toml` resolves from `$XDG_CONFIG_HOME/chezmoi` and the source repository from `$XDG_DATA_HOME/chezmoi`. Both were missing, so every target reported `not managed` and `chezmoi status` failed with `GetFileAttributesEx ~/.opencode-v2/xdg/data/chezmoi: The system cannot find the file specified.`
+  - This is the first bridge on the `XDG_DATA_HOME` side; the earlier git, tuios, and scoop bridges only covered `XDG_CONFIG_HOME`.
+  - `opencode` is deliberately not bridged under `xdg/data`. That collision with the v1 install is the reason the sandbox redirects `XDG_DATA_HOME` at all.
+  - `atuin` and `claude` also keep state in `~/.local/share` and remain unbridged. Neither has caused an observed failure, so they were left alone.
+  - chezmoi now reports its source directory through the junction path, for example `C:/Users/TC/.opencode-v2/xdg/data/chezmoi/dot_config/psmux/psmux.conf`. Git resolves the same worktree through it, so `chezmoi git` and the configured autoCommit and autoPush hooks are unaffected.
+- Portability: Both junctions use the existing Windows-only `Set-Junction` helper with `$HOME`-relative paths, inside the script's `eq .chezmoi.os "windows"` guard.
+- Chezmoi: Updated the managed setup script; the junctions are runtime artifacts under the existing `.opencode-v2/xdg/**` ignore rule.
+- Verification: `chezmoi apply --include=scripts --dry-run` showed only the script change; the scoped apply printed both junctions; afterwards a bare `chezmoi source-path` and `chezmoi status` on `~/.config/psmux/psmux.conf` succeeded from inside the v2 sandbox with no override flags, and `git -C` on the junction path listed the same three modified sources as `chezmoi git -- status`. The two pre-existing `MM` divergences in `.config/opencodev2/opencode/cli.json` and `opencode.json` were left untouched.
