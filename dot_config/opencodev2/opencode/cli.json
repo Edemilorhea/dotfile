@@ -55,5 +55,9 @@
   },
   "terminal": {
     "title": true
+  },
+  "prompt": {
+    "paste": "full",
+    "image_preview": true
   }
 }

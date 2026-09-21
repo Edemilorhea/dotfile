@@ -1,5 +1,55 @@
 # OpenCode Chezmoi Changelog
 
+## 2026-09-21T22:49:19+08:00 - Templatize MCP server paths and repair them on this machine
+
+- Status: Completed
+- Machine: DESKTOP-3JHKCAP
+- Platform: Microsoft Windows NT 10.0.26200.0 / X64
+- Scope: `opencode.json`, now `opencode.json.tmpl`
+- Summary: `jev-review`, `office-mcp`, and `markitdown` all reported `Failed`
+  in the MCP server list because the config hard-coded `C:\Users\tc_tseng\...`
+  absolute paths from the machine that installed them, and none of the three
+  servers existed here. The MCP paths are now rendered from
+  `.chezmoi.homeDir`, `jev-review` and `markitdown` are installed locally, and
+  `office-mcp` is disabled until its sources are restored.
+- Important records:
+  - The 2026-09-21T10:22:31 entry already predicted this: it recorded the
+    `tc_tseng` literals as a known portability debt to "convert to a template
+    when a second machine or user is added". This is that second machine.
+  - `jev-review` was re-cloned from https://github.com/NiazMorshed2007/jev-review
+    at commit `57690af54ef7d862c2483342c1e61c14dffcf727` into
+    `~/.local/share/opencode/jev-review`, per the earlier entry's recovery
+    note. The committed `dist/server.js` runs directly; no `npm install` ran.
+    That directory stays unmanaged because `.chezmoiignore.tmpl` excludes
+    `~/.local/share/opencode/` on Windows.
+  - `markitdown-mcp` 0.0.1a7 was installed with `pip install markitdown-mcp`
+    into the user Python 3.13 at
+    `~/AppData/Local/Programs/Python/Python313`. Its console script is already
+    on PATH, so the config keeps the bare `markitdown-mcp` command and needs no
+    path template.
+  - `office-mcp` is a locally built Python server. Neither chezmoi nor any
+    changelog records an upstream, and `~/.local/share/opencode/office-mcp`
+    does not exist here, so it cannot be rebuilt. Its entry is kept, templated,
+    and set to `"enabled": false` with a comment describing how to restore it.
+    The `office-documents` skill stays unusable until then.
+  - `JEV_API_KEY` is still unset on this machine. The server starts and lists
+    `jev_review` without it; the key is only needed when the tool is called.
+- Portability: All MCP paths now render from `{{ .chezmoi.homeDir }}`, which
+  chezmoi returns with forward slashes on Windows, so the rendered JSON needs
+  no backslash escaping and matches the repository's forward-slash convention.
+  Remaining machine-specific assumption: both `jev-review` and `office-mcp`
+  expect their unmanaged directories under `~/.local/share/opencode/`, which
+  every new machine must recreate by hand.
+- Chezmoi: renamed `dot_config/opencode/opencode.json` to
+  `dot_config/opencode/opencode.json.tmpl` and templated its MCP paths.
+- Verification: `chezmoi status` is empty for the applied target. The rendered
+  `~/.config/opencode/opencode.json` contains no `tc_tseng` occurrence and is
+  pure LF. `git -C ~/.local/share/opencode/jev-review rev-parse HEAD` reports
+  `57690af54ef7d862c2483342c1e61c14dffcf727` and `dist/server.js` exists;
+  `node --version` is v24.15.0, above the required 20. `markitdown-mcp --help`
+  runs and confirms STDIO is its default transport. Live MCP startup for this
+  v1 config is unverified; restart OpenCode v1 to load it.
+
 ## 2026-09-21T18:15:00+08:00 - Strengthen command and process lifecycle safety
 
 - Status: Completed

@@ -7,6 +7,51 @@ This tree holds every OpenCode v2 configuration file. `opencode2.cmd` points
 The v2 binary, database, credentials, and other runtime state stay in
 `~/.opencode-v2` and are excluded from chezmoi.
 
+## 2026-09-21T22:49:19+08:00 - Templatize MCP server paths and repair them on this machine
+
+- Status: Completed
+- Machine: DESKTOP-3JHKCAP
+- Platform: Microsoft Windows NT 10.0.26200.0 / X64
+- Scope: `opencode/opencode.json`, now `opencode/opencode.json.tmpl`
+- Summary: The v2 MCP server list showed `jev-review`, `office-mcp`, and
+  `markitdown` as `Failed`. The config carried `C:\Users\tc_tseng\...`
+  absolute paths from the machine that installed them, and none of the three
+  servers existed here. The MCP paths now render from `.chezmoi.homeDir`,
+  `jev-review` and `markitdown` are installed locally, and `office-mcp` is
+  disabled until its sources are restored. The v1 config received the same
+  change in the same task.
+- Important records:
+  - `jev-review` was re-cloned from https://github.com/NiazMorshed2007/jev-review
+    at commit `57690af54ef7d862c2483342c1e61c14dffcf727` into the shared
+    `~/.local/share/opencode/jev-review`, which both v1 and v2 reference.
+  - `markitdown-mcp` 0.0.1a7 is installed in the user Python 3.13 and resolves
+    on PATH, so its bare command needs no path template.
+  - `office-mcp` has no recorded upstream and no local sources, so it is kept
+    as a templated entry with `"enabled": false` and a restore comment.
+  - The applied file also carried a pending unrelated source change: the
+    `github:gabparrot/opencode2-todo-tool` plugin was already uncommented in
+    the chezmoi source but had never been applied. The user confirmed keeping
+    it enabled, so this apply activated it. Its effect is unverified here.
+  - `chezmoi` needs `--config ~/.config/chezmoi/chezmoi.toml -S
+    ~/.local/share/chezmoi` inside a v2 session: `opencode2.cmd` redirects
+    `XDG_CONFIG_HOME` and `XDG_DATA_HOME`, so bare `chezmoi` resolves its
+    source directory to the empty `~/.opencode-v2/xdg/data/chezmoi` and reports
+    managed files as "not managed".
+- Portability: All MCP paths render from `{{ .chezmoi.homeDir }}`, which
+  chezmoi returns with forward slashes on Windows, so the rendered JSON needs
+  no backslash escaping. Remaining machine-specific assumption: `jev-review`
+  and `office-mcp` expect unmanaged directories under
+  `~/.local/share/opencode/` that each new machine must recreate by hand.
+- Chezmoi: renamed `dot_config/opencodev2/opencode/opencode.json` to
+  `dot_config/opencodev2/opencode/opencode.json.tmpl` and templated its MCP
+  paths.
+- Verification: `chezmoi status` is empty for the applied target. The rendered
+  `~/.config/opencodev2/opencode/opencode.json` contains no `tc_tseng`
+  occurrence and is pure LF. The running v2 session picked up the new config
+  and exposed the `jev-review` MCP namespace, so that server now starts.
+  `markitdown-mcp --help` runs and confirms STDIO is its default transport, but
+  its live MCP startup is unverified; restart OpenCode to re-check the list.
+
 ## 2026-09-21T19:40:00+08:00 - Move v2 configuration under ~/.config and enable DCP
 
 - Status: Completed

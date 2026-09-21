@@ -58,24 +58,27 @@
             ],
             "enabled": true
         },
+        // Disabled: the server sources under ~/.local/share/opencode/office-mcp
+        // are unmanaged and exist only on the machine that built them. Restore
+        // that directory, then set "enabled" back to true.
         "office-mcp": {
             "type": "local",
             "command": [
-                "C:\\Users\\tc_tseng\\.local\\share\\opencode\\office-mcp\\.venv\\Scripts\\python.exe",
-                "C:\\Users\\tc_tseng\\.local\\share\\opencode\\office-mcp\\server.py"
+                "{{ .chezmoi.homeDir }}/.local/share/opencode/office-mcp/.venv/Scripts/python.exe",
+                "{{ .chezmoi.homeDir }}/.local/share/opencode/office-mcp/server.py"
             ],
-            "enabled": true,
+            "enabled": false,
             "environment": {
                 "PYTHONUTF8": "1",
                 "PYTHONIOENCODING": "utf-8",
-                "OFFICE_MCP_DEFAULT_FOLDER": "C:\\Users\\tc_tseng\\Documents"
+                "OFFICE_MCP_DEFAULT_FOLDER": "{{ .chezmoi.homeDir }}/Documents"
             }
         },
         "jev-review": {
             "type": "local",
             "command": [
                 "node",
-                "C:\\Users\\tc_tseng\\.local\\share\\opencode\\jev-review\\dist\\server.js"
+                "{{ .chezmoi.homeDir }}/.local/share/opencode/jev-review/dist/server.js"
             ],
             "enabled": true,
             "environment": {
