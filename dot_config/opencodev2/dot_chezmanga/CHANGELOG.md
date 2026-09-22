@@ -186,3 +186,17 @@ The v2 binary, database, credentials, and other runtime state stay in
 - Verification: `chezmoi status` for `.config/opencodev2` is clean, and
   `opencode2 api get /api/config` reports only
   `@ex-machina/opencode-anthropic-auth@next` and `@tarquinen/opencode-dcp@3.2.0`.
+
+## 2026-09-21T21:08:25+08:00 - Normalize V2 MCP and permission configuration
+
+- Status: Completed
+- Machine: TC-TSENG
+- Platform: windows/x64
+- Scope: opencode/opencode.json
+- Summary: Converted MCP servers, provider settings, permissions, update policy, and the local locu plugin registration to OpenCode V2 configuration shapes.
+- Important records:
+  - Agents and skills were intentionally left unchanged because they remain shared with the V1 configuration.
+  - The V2 source remains the chezmoi source of truth; the rendered target was applied separately.
+- Portability: Existing machine-specific MCP command paths were preserved because they point to installed local runtimes.
+- Chezmoi: Updated source and applied the single V2 configuration target.
+- Verification: JSON parsing passed; scoped chezmoi dry-run showed only the intended V2 configuration update; target apply completed.
