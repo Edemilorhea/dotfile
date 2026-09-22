@@ -6,6 +6,7 @@ param(
     [ValidateSet('global', 'project')]
     [string]$Scope = 'project',
 
+    [string[]]$Runtimes = @(),
     [string[]]$Profiles = @(),
     [string[]]$Assets = @(),
     [string[]]$Exclude = @(),
@@ -15,12 +16,13 @@ param(
     [ValidateSet('plan', 'apply', 'restore')]
     [string]$MigrationMode = 'plan',
     [string]$BackupPath,
+    [switch]$SkipUnsupported,
     [switch]$Json
 )
 
 $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version Latest
-$script:ManagerVersion = '1.7.0'
+$script:ManagerVersion = '2.0.0'
 $script:Slim8SkillNames = @(
     'simplify',
     'codemap',
@@ -34,8 +36,12 @@ $script:Slim8SkillNames = @(
 $script:TuiExplicitSelection = $false
 $script:AssetSelectionExplicit = $PSBoundParameters.ContainsKey('Assets')
 $script:OverlaySelectionExplicit = $PSBoundParameters.ContainsKey('Overlays')
+$script:RuntimeSelectionExplicit = $PSBoundParameters.ContainsKey('Runtimes')
 $script:TuiBackValue = '__tui_back__'
 $script:TuiProjectRoot = [IO.Path]::GetFullPath((Get-Location).Path)
+$script:RuntimeTable = $null
+$script:SelectedRuntimes = @()
+$script:GlobalLockPath = $null
 
 function Test-InteractiveTerminal {
     try {
@@ -53,10 +59,17 @@ function New-TuiOption {
         [Parameter(Mandatory = $true)][string]$Label,
         [Parameter(Mandatory = $true)][string]$Value,
         [string]$Description,
-        [bool]$Installed = $false
+        [bool]$Installed = $false,
+        [bool]$Disabled = $false
     )
 
-    return [pscustomobject]@{ label = $Label; value = $Value; description = $Description; installed = $Installed }
+    return [pscustomobject]@{
+        label = $Label
+        value = $Value
+        description = $Description
+        installed = $Installed
+        disabled = $Disabled
+    }
 }
 
 function Format-TuiItemList {
@@ -153,7 +166,7 @@ function Read-TuiMenu {
         Write-Host 'OpenCode 擴充管理器' -ForegroundColor Cyan
         Write-Host $Title -ForegroundColor White
         $help = if ($MultiSelect) {
-            '↑/↓：移動  Space：選取  Enter：繼續  x：已安裝在目前位置'
+            '↑/↓：移動  Space：選取  Enter：繼續  x：已安裝在目前位置  [-]：所選 runtime 不支援'
         }
         else { '↑/↓：移動  Enter：確認' }
         if ($AllowBack) { $help += '  Esc：上一頁' }
@@ -166,12 +179,15 @@ function Read-TuiMenu {
         for ($index = $pageStart; $index -le $pageEnd; $index++) {
             $option = $Options[$index]
             $cursor = if ($index -eq $current) { '>' } else { ' ' }
-            $marker = if ($MultiSelect) {
+            $marker = if ($option.disabled) { '[-]' }
+            elseif ($MultiSelect) {
                 if ($selected.Contains([string]$option.value)) { '[x]' } else { '[ ]' }
             }
             else { '   ' }
             $installedMarker = if ($option.installed) { 'x' } else { ' ' }
-            $color = if ($index -eq $current) { 'Yellow' } else { 'Gray' }
+            $color = if ($option.disabled) { 'DarkRed' }
+            elseif ($index -eq $current) { 'Yellow' }
+            else { 'Gray' }
             Write-Host "$cursor $marker $installedMarker $($option.label)" -ForegroundColor $color
             if ($index -eq $current -and $option.description) {
                 Write-Host "      $($option.description)" -ForegroundColor DarkGray
@@ -187,14 +203,16 @@ function Read-TuiMenu {
             'UpArrow' { $current = if ($current -eq 0) { $Options.Count - 1 } else { $current - 1 } }
             'DownArrow' { $current = if ($current -eq $Options.Count - 1) { 0 } else { $current + 1 } }
             'Spacebar' {
-                if ($MultiSelect) {
+                if ($MultiSelect -and -not $Options[$current].disabled) {
                     $value = [string]$Options[$current].value
                     if (-not $selected.Remove($value)) { [void]$selected.Add($value) }
                 }
             }
             'Enter' {
-                if (-not $MultiSelect) { return $Options[$current].value }
-                if ($selected.Count -gt 0 -or $AllowEmpty) {
+                if (-not $MultiSelect) {
+                    if (-not $Options[$current].disabled) { return $Options[$current].value }
+                }
+                elseif ($selected.Count -gt 0 -or $AllowEmpty) {
                     return @($Options | Where-Object { $selected.Contains([string]$_.value) } | ForEach-Object { [string]$_.value })
                 }
             }
@@ -274,91 +292,152 @@ function Start-AssetManagerTui {
             }
 
             $manifest = if ($Scope -eq 'project') { Get-ProjectManifest $resolvedRoot } else { $null }
-            $suggestedProfiles = if ($manifest) { @($manifest.profiles) }
-                elseif (@($tuiLock.profiles).Count -gt 0) { @($tuiLock.profiles) }
-                elseif ($Scope -eq 'global') { @($Catalog.defaultProfiles) }
-                else { @() }
-            $availableItems = @($selectableAssets | Where-Object { @($_.scopes) -contains $Scope })
-            $profileOptions = @($Catalog.profiles.PSObject.Properties | ForEach-Object {
-                $profileName = $_.Name
-                $profileAssets = @($availableItems | Where-Object { @($_.profiles) -contains $profileName })
-                $profileItems = @($profileAssets | ForEach-Object {
-                    $installedPrefix = if ($installedIds -contains $_.id) { 'x ' } else { '  ' }
-                    "$installedPrefix$(Get-TuiItemKind $_)：$($_.id)"
+            $runtimeTable = @(Get-RuntimeTable $Catalog)
+            $lockedRuntimeIds = @($tuiLock.assets | ForEach-Object { Get-LockedRuntimeIds $_ $Catalog } | Select-Object -Unique)
+            $suggestedRuntimes = if ($manifest -and @($manifest.runtimes).Count -gt 0) { @($manifest.runtimes) }
+                elseif ($lockedRuntimeIds.Count -gt 0) { $lockedRuntimeIds }
+                else { @($Catalog.defaultRuntimes) }
+
+            :runtime while ($true) {
+                $runtimeOptions = @($runtimeTable | ForEach-Object {
+                    $details = [Collections.Generic.List[string]]::new()
+                    $details.Add("指令：$($_.command)$(if (-not $_.commandAvailable) { '（不在 PATH 上）' })")
+                    $details.Add("設定根目錄：$($_.configRoot)$(if (-not $_.configRootExists) { '（不存在）' })")
+                    $details.Add("Plugin 設定鍵：$($_.pluginConfigKey)")
+                    New-TuiOption "$($_.name) [$($_.id)]" $_.id ($details -join '；') $_.configRootExists
                 })
-                if ($profileItems.Count -gt 0) {
-                    $profileInstalled = @($profileAssets | Where-Object { $installedIds -notcontains $_.id }).Count -eq 0
-                    $profileDescription = "$($_.Value.description)；包含：$(Format-TuiItemList $profileItems 10)"
-                    New-TuiOption $profileName $profileName $profileDescription $profileInstalled
-                }
-            })
-            $availableProfileNames = @($profileOptions | ForEach-Object { $_.value })
-            $suggestedProfiles = @($suggestedProfiles | Where-Object { $availableProfileNames -contains $_ })
-            $itemOptions = @($availableItems | ForEach-Object {
-                New-TuiOption "[$(Get-TuiItemKind $_)] $($_.id)" $_.id (Get-TuiItemDescription $_) ($installedIds -contains $_.id)
-            })
+                $chosenRuntimes = @(Read-TuiMenu '請選擇要安裝到哪些 OpenCode 版本' $runtimeOptions $suggestedRuntimes -MultiSelect -AllowBack)
+                if ($chosenRuntimes.Count -eq 1 -and $chosenRuntimes[0] -eq $script:TuiBackValue) { continue scope }
+                $script:Runtimes = $chosenRuntimes
+                $script:RuntimeSelectionExplicit = $true
+                # The TUI renders unsupported items as [-] and confirms the skip list
+                # explicitly, so resolution must report them instead of throwing.
+                $script:SkipUnsupported = $true
+                $selectedRuntimeObjects = @(Resolve-SelectedRuntimes $Catalog $chosenRuntimes)
 
-            :selection while ($true) {
-                $script:Profiles = @()
-                $script:Assets = @()
-                $script:Exclude = @()
-                $script:Overlays = @()
-                $script:OverlaySelectionExplicit = $false
-                $selectionMode = Read-TuiMenu '請選擇安裝內容的挑選方式' @(
-                    (New-TuiOption '使用 Profile' 'profiles' '選一組或多組 Profile，畫面會列出各組包含的具體內容。')
-                    (New-TuiOption '只選個別項目' 'individual' '直接挑選一個或多個 Skill、Plugin、套件或其他擴充。')
-                    (New-TuiOption '進階選項' 'advanced' '微調 Profile：額外加入、排除，或同時設定兩者。')
-                ) -AllowBack
-                if ($selectionMode -eq $script:TuiBackValue) { continue scope }
-                if ($selectionMode -eq 'advanced') {
-                    $selectionMode = Read-TuiMenu '請選擇 Profile 微調方式' @(
-                        (New-TuiOption '加入個別項目' 'add' '使用 Profile，並額外加入指定項目。')
-                        (New-TuiOption '排除個別項目' 'exclude' '使用 Profile，但略過其中的指定項目。')
-                        (New-TuiOption '同時加入與排除' 'both' '同時設定額外加入與排除清單。')
-                    ) -AllowBack
-                    if ($selectionMode -eq $script:TuiBackValue) { continue selection }
+                $suggestedProfiles = if ($manifest) { @($manifest.profiles) }
+                    elseif (@($tuiLock.profiles).Count -gt 0) { @($tuiLock.profiles) }
+                    elseif ($Scope -eq 'global') { @($Catalog.defaultProfiles) }
+                    else { @() }
+                $availableItems = @($selectableAssets | Where-Object { @($_.scopes) -contains $Scope })
+                $itemSupport = @{}
+                foreach ($item in $availableItems) {
+                    $itemSupport[[string]$item.id] = Get-AssetRuntimeSupport $item $Catalog $selectedRuntimeObjects
                 }
-
-                if ($selectionMode -ne 'individual') {
-                    $selectedProfiles = @(Read-TuiMenu '請選擇 Profiles' $profileOptions $suggestedProfiles -MultiSelect -AllowBack)
-                    if ($selectedProfiles.Count -eq 1 -and $selectedProfiles[0] -eq $script:TuiBackValue) { continue selection }
-                    $script:Profiles = $selectedProfiles
-                }
-                if ($selectionMode -in @('individual', 'add', 'both')) {
-                    $title = if ($selectionMode -eq 'individual') { '請選擇要安裝的個別項目' } else { '請選擇要額外加入的項目' }
-                    $selectedItems = @(Read-TuiMenu $title $itemOptions -MultiSelect -AllowBack)
-                    if ($selectedItems.Count -eq 1 -and $selectedItems[0] -eq $script:TuiBackValue) { continue selection }
-                    $script:Assets = $selectedItems
-                }
-                if ($selectionMode -in @('exclude', 'both')) {
-                    $excludedItems = @(Read-TuiMenu '請選擇要排除的項目' $itemOptions -MultiSelect -AllowBack)
-                    if ($excludedItems.Count -eq 1 -and $excludedItems[0] -eq $script:TuiBackValue) { continue selection }
-                    $script:Exclude = $excludedItems
-                }
-                $script:TuiExplicitSelection = $true
-                $resolvedSelection = Get-Selections $Catalog $Scope $resolvedRoot
-                $availableOverlays = @(
-                    if ($Scope -eq 'project') {
-                        $Catalog.overlays | Where-Object {
-                            @($_.scopes) -contains $Scope -and @($resolvedSelection.assets.id) -contains $_.targetAssetId
-                        }
-                    }
-                )
-                if ($availableOverlays.Count -gt 0) {
-                    $suggestedOverlays = if ($manifest) { @($manifest.overlays) } else { $installedOverlayIds }
-                    $overlayOptions = @($availableOverlays | ForEach-Object {
-                        New-TuiOption "[Overlay] $($_.name)" $_.id (Get-TuiOverlayDescription $_ $Catalog) ($installedOverlayIds -contains $_.id)
+                $profileOptions = @($Catalog.profiles.PSObject.Properties | ForEach-Object {
+                    $profileName = $_.Name
+                    $profileAssets = @($availableItems | Where-Object { @($_.profiles) -contains $profileName })
+                    $profileItems = @($profileAssets | ForEach-Object {
+                        $installedPrefix = if ($installedIds -contains $_.id) { 'x ' } else { '  ' }
+                        $blockedSuffix = if ($itemSupport[[string]$_.id].supported.Count -eq 0) { '（不支援）' } else { '' }
+                        "$installedPrefix$(Get-TuiItemKind $_)：$($_.id)$blockedSuffix"
                     })
-                    $selectedOverlays = @(Read-TuiMenu '請選擇要套用的增修規則（Overlay）' $overlayOptions $suggestedOverlays -MultiSelect -AllowEmpty -AllowBack)
-                    if ($selectedOverlays.Count -eq 1 -and $selectedOverlays[0] -eq $script:TuiBackValue) { continue selection }
-                    $script:Overlays = $selectedOverlays
-                    $script:OverlaySelectionExplicit = $true
+                    if ($profileItems.Count -gt 0) {
+                        $installableAssets = @($profileAssets | Where-Object { $itemSupport[[string]$_.id].supported.Count -gt 0 })
+                        $profileInstalled = @($installableAssets | Where-Object { $installedIds -notcontains $_.id }).Count -eq 0
+                        $profileDescription = "$($_.Value.description)；包含：$(Format-TuiItemList $profileItems 10)"
+                        if ($installableAssets.Count -eq 0) {
+                            $profileDescription += "；所選 runtime 無法安裝此 Profile 的任何項目"
+                        }
+                        New-TuiOption $profileName $profileName $profileDescription $profileInstalled ($installableAssets.Count -eq 0)
+                    }
+                })
+                $availableProfileNames = @($profileOptions | Where-Object { -not $_.disabled } | ForEach-Object { $_.value })
+                $suggestedProfiles = @($suggestedProfiles | Where-Object { $availableProfileNames -contains $_ })
+                $itemOptions = @($availableItems | ForEach-Object {
+                    $support = $itemSupport[[string]$_.id]
+                    $label = "[$(Get-TuiItemKind $_)] $($_.id)"
+                    $description = Get-TuiItemDescription $_
+                    if ($support.blocked.Count -gt 0) {
+                        $label += " (不支援 $(@($support.blocked | ForEach-Object { $_.runtime }) -join ', '))"
+                        $description += "；$(Get-RuntimeBlockSummary $support.blocked)"
+                    }
+                    New-TuiOption $label $_.id $description ($installedIds -contains $_.id) ($support.supported.Count -eq 0)
+                })
+
+                :selection while ($true) {
+                    $script:Profiles = @()
+                    $script:Assets = @()
+                    $script:Exclude = @()
+                    $script:Overlays = @()
+                    $script:OverlaySelectionExplicit = $false
+                    $selectionMode = Read-TuiMenu '請選擇安裝內容的挑選方式' @(
+                        (New-TuiOption '使用 Profile' 'profiles' '選一組或多組 Profile，畫面會列出各組包含的具體內容。')
+                        (New-TuiOption '只選個別項目' 'individual' '直接挑選一個或多個 Skill、Plugin、套件或其他擴充。')
+                        (New-TuiOption '進階選項' 'advanced' '微調 Profile：額外加入、排除，或同時設定兩者。')
+                    ) -AllowBack
+                    if ($selectionMode -eq $script:TuiBackValue) { continue runtime }
+                    if ($selectionMode -eq 'advanced') {
+                        $selectionMode = Read-TuiMenu '請選擇 Profile 微調方式' @(
+                            (New-TuiOption '加入個別項目' 'add' '使用 Profile，並額外加入指定項目。')
+                            (New-TuiOption '排除個別項目' 'exclude' '使用 Profile，但略過其中的指定項目。')
+                            (New-TuiOption '同時加入與排除' 'both' '同時設定額外加入與排除清單。')
+                        ) -AllowBack
+                        if ($selectionMode -eq $script:TuiBackValue) { continue selection }
+                    }
+
+                    if ($selectionMode -ne 'individual') {
+                        $selectedProfiles = @(Read-TuiMenu '請選擇 Profiles' $profileOptions $suggestedProfiles -MultiSelect -AllowBack)
+                        if ($selectedProfiles.Count -eq 1 -and $selectedProfiles[0] -eq $script:TuiBackValue) { continue selection }
+                        $script:Profiles = $selectedProfiles
+                    }
+                    if ($selectionMode -in @('individual', 'add', 'both')) {
+                        $title = if ($selectionMode -eq 'individual') { '請選擇要安裝的個別項目' } else { '請選擇要額外加入的項目' }
+                        $selectedItems = @(Read-TuiMenu $title $itemOptions -MultiSelect -AllowBack)
+                        if ($selectedItems.Count -eq 1 -and $selectedItems[0] -eq $script:TuiBackValue) { continue selection }
+                        $script:Assets = $selectedItems
+                    }
+                    if ($selectionMode -in @('exclude', 'both')) {
+                        $excludedItems = @(Read-TuiMenu '請選擇要排除的項目' $itemOptions -MultiSelect -AllowBack)
+                        if ($excludedItems.Count -eq 1 -and $excludedItems[0] -eq $script:TuiBackValue) { continue selection }
+                        $script:Exclude = $excludedItems
+                    }
+                    $script:TuiExplicitSelection = $true
+                    # A selected Profile can still contain an asset that none of the chosen
+                    # runtimes supports. Report it here instead of failing later in apply.
+                    try {
+                        $resolvedSelection = Get-Selections $Catalog $Scope $resolvedRoot
+                    }
+                    catch {
+                        Clear-Host
+                        Write-Host '選取的內容無法安裝到所選的 runtime：' -ForegroundColor Yellow
+                        Write-Host $_.Exception.Message -ForegroundColor Gray
+                        Wait-TuiContinue
+                        continue selection
+                    }
+                    $blockedSelection = @($resolvedSelection.blocked)
+                    if ($blockedSelection.Count -gt 0) {
+                        Clear-Host
+                        Write-Host '以下項目在所選 runtime 無法安裝，將被略過：' -ForegroundColor Yellow
+                        foreach ($blockedAsset in $blockedSelection) {
+                            Write-Host "  $($blockedAsset.id)：$(Get-RuntimeBlockSummary $blockedAsset.blocked)" -ForegroundColor Gray
+                        }
+                        if (-not (Confirm-TuiAction '要略過這些項目並繼續嗎？')) { continue selection }
+                    }
+                    $availableOverlays = @(
+                        if ($Scope -eq 'project') {
+                            $Catalog.overlays | Where-Object {
+                                @($_.scopes) -contains $Scope -and @($resolvedSelection.assets.id) -contains $_.targetAssetId
+                            }
+                        }
+                    )
+                    if ($availableOverlays.Count -gt 0) {
+                        $suggestedOverlays = if ($manifest) { @($manifest.overlays) } else { $installedOverlayIds }
+                        $overlayOptions = @($availableOverlays | ForEach-Object {
+                            New-TuiOption "[Overlay] $($_.name)" $_.id (Get-TuiOverlayDescription $_ $Catalog) ($installedOverlayIds -contains $_.id)
+                        })
+                        $selectedOverlays = @(Read-TuiMenu '請選擇要套用的增修規則（Overlay）' $overlayOptions $suggestedOverlays -MultiSelect -AllowEmpty -AllowBack)
+                        if ($selectedOverlays.Count -eq 1 -and $selectedOverlays[0] -eq $script:TuiBackValue) { continue selection }
+                        $script:Overlays = $selectedOverlays
+                        $script:OverlaySelectionExplicit = $true
+                    }
+                    if ($Action -eq 'apply') {
+                        $scopeLabel = if ($Scope -eq 'global') { '全域設定' } else { '目前專案' }
+                        $runtimeLabel = @($selectedRuntimeObjects | ForEach-Object { $_.id }) -join ', '
+                        if (-not (Confirm-TuiAction "確定要將選取內容套用到${scopeLabel}（runtime：$runtimeLabel）嗎？")) { continue selection }
+                    }
+                    return $true
                 }
-                if ($Action -eq 'apply') {
-                    $scopeLabel = if ($Scope -eq 'global') { '全域設定' } else { '目前專案' }
-                    if (-not (Confirm-TuiAction "確定要將選取內容套用到${scopeLabel}嗎？")) { continue selection }
-                }
-                return $true
             }
         }
     }
@@ -430,13 +509,63 @@ function Resolve-HomePath {
     return [Environment]::ExpandEnvironmentVariables($Path)
 }
 
+function Test-RuntimeToken {
+    param([Parameter(Mandatory = $true)][string]$Path)
+
+    return $Path.Contains('{configRoot}')
+}
+
+function Expand-RuntimeToken {
+    param(
+        [Parameter(Mandatory = $true)][string]$Path,
+        [AllowNull()]$Runtime
+    )
+
+    if (-not (Test-RuntimeToken $Path)) {
+        return $Path
+    }
+    if (-not $Runtime) {
+        throw "Path uses the {configRoot} token but no runtime was supplied: $Path"
+    }
+    return $Path.Replace('{configRoot}', $Runtime.configRoot)
+}
+
+function Get-CanonicalPath {
+    param([Parameter(Mandatory = $true)][string]$Path)
+
+    $full = [IO.Path]::GetFullPath($Path)
+    $root = [IO.Path]::GetPathRoot($full)
+    if ([string]::IsNullOrEmpty($root)) {
+        return $full
+    }
+    $current = $root
+    $segments = $full.Substring($root.Length).Split([char[]]@('\', '/'), [StringSplitOptions]::RemoveEmptyEntries)
+    foreach ($segment in $segments) {
+        $current = Join-Path $current $segment
+        if (-not (Test-Path -LiteralPath $current)) {
+            continue
+        }
+        $item = Get-Item -LiteralPath $current -Force
+        if (-not $item.LinkType) {
+            continue
+        }
+        $resolved = $item.ResolveLinkTarget($true)
+        if ($resolved) {
+            $current = $resolved.FullName
+        }
+    }
+    return [IO.Path]::GetFullPath($current)
+}
+
 function Resolve-TargetPath {
     param(
         [Parameter(Mandatory = $true)][string]$Path,
         [Parameter(Mandatory = $true)][string]$ResolvedScope,
-        [Parameter(Mandatory = $true)][string]$ResolvedProjectRoot
+        [Parameter(Mandatory = $true)][string]$ResolvedProjectRoot,
+        [AllowNull()]$Runtime
     )
 
+    $Path = Expand-RuntimeToken $Path $Runtime
     if ($Path.StartsWith('~')) {
         return [IO.Path]::GetFullPath((Resolve-HomePath $Path))
     }
@@ -467,10 +596,155 @@ function Get-Catalog {
     }
     $catalog = Get-Content -LiteralPath $CatalogPath -Raw | ConvertFrom-Json
     $schemaVersion = if ($catalog.PSObject.Properties['schemaVersion']) { $catalog.schemaVersion } else { '<missing>' }
-    if ($schemaVersion -ne 4) {
+    if ($schemaVersion -ne 5) {
         throw "Unsupported asset catalog schema: $schemaVersion"
     }
+    if (-not $catalog.PSObject.Properties['runtimes'] -or $catalog.runtimes -isnot [pscustomobject] -or
+        @($catalog.runtimes.PSObject.Properties).Count -eq 0) {
+        throw "Asset catalog schema 5 requires a non-empty runtimes object: $CatalogPath"
+    }
+    $globalLock = if ($catalog.PSObject.Properties['managerPaths'] -and
+        $catalog.managerPaths.PSObject.Properties['globalLock']) {
+        [string]$catalog.managerPaths.globalLock
+    }
+    else { '~/.config/opencode/config/assets.lock.json' }
+    $script:GlobalLockPath = [IO.Path]::GetFullPath((Resolve-HomePath $globalLock))
     return $catalog
+}
+
+function Get-RuntimeTable {
+    param([Parameter(Mandatory = $true)]$Catalog)
+
+    if ($script:RuntimeTable) {
+        return $script:RuntimeTable
+    }
+    $rows = foreach ($property in $Catalog.runtimes.PSObject.Properties) {
+        $definition = $property.Value
+        foreach ($required in @('name', 'command', 'configRoot', 'pluginConfigKey')) {
+            if (-not $definition.PSObject.Properties[$required] -or
+                [string]::IsNullOrWhiteSpace([string]$definition.PSObject.Properties[$required].Value)) {
+                throw "Runtime $($property.Name) requires $required."
+            }
+        }
+        $configured = [string]$definition.configRoot
+        if ($definition.PSObject.Properties['configRootEnv'] -and $definition.configRootEnv) {
+            $override = Get-Item -LiteralPath "Env:$($definition.configRootEnv)" -ErrorAction SilentlyContinue
+            if ($override -and -not [string]::IsNullOrWhiteSpace($override.Value)) {
+                $configured = [string]$override.Value
+            }
+        }
+        $configRoot = [IO.Path]::GetFullPath((Resolve-HomePath $configured))
+        [pscustomobject]@{
+            id = $property.Name
+            name = [string]$definition.name
+            command = [string]$definition.command
+            configRoot = $configRoot
+            canonicalConfigRoot = Get-CanonicalPath $configRoot
+            pluginConfigKey = [string]$definition.pluginConfigKey
+            capabilities = @($definition.capabilities)
+            configRootExists = Test-Path -LiteralPath $configRoot -PathType Container
+            commandAvailable = $null -ne (Get-Command $definition.command -ErrorAction SilentlyContinue)
+        }
+    }
+    $script:RuntimeTable = @($rows)
+    return $script:RuntimeTable
+}
+
+function Get-RuntimeById {
+    param(
+        [Parameter(Mandatory = $true)]$Catalog,
+        [Parameter(Mandatory = $true)][string]$RuntimeId
+    )
+
+    $runtime = @(Get-RuntimeTable $Catalog | Where-Object id -eq $RuntimeId) | Select-Object -First 1
+    if (-not $runtime) {
+        throw "Unknown runtime id: $RuntimeId"
+    }
+    return $runtime
+}
+
+function Resolve-SelectedRuntimes {
+    param(
+        [Parameter(Mandatory = $true)]$Catalog,
+        [Parameter(Mandatory = $true)][AllowEmptyCollection()][string[]]$Requested
+    )
+
+    $table = Get-RuntimeTable $Catalog
+    $knownIds = @($table | ForEach-Object { $_.id })
+    $requestedIds = @($Requested | ForEach-Object { $_ -split ',' } | ForEach-Object { $_.Trim() } | Where-Object { $_ })
+    if (@($requestedIds | Where-Object { $_ -in @('all', 'both') }).Count -gt 0) {
+        $requestedIds = $knownIds
+    }
+    if ($requestedIds.Count -eq 0) {
+        $requestedIds = @($Catalog.defaultRuntimes)
+    }
+    if ($requestedIds.Count -eq 0) {
+        $requestedIds = $knownIds
+    }
+    $selectedIds = @($requestedIds | Select-Object -Unique)
+    foreach ($id in $selectedIds) {
+        if ($knownIds -notcontains $id) {
+            throw "Unknown runtime id: $id. Known runtimes: $($knownIds -join ', ')"
+        }
+    }
+    return @($table | Where-Object { $selectedIds -contains $_.id })
+}
+
+function Get-AssetRuntimeIds {
+    param(
+        [Parameter(Mandatory = $true)]$Asset,
+        [Parameter(Mandatory = $true)]$Catalog
+    )
+
+    if ($Asset.PSObject.Properties['runtimes'] -and @($Asset.runtimes).Count -gt 0) {
+        return @($Asset.runtimes | ForEach-Object { [string]$_ })
+    }
+    return @(Get-RuntimeTable $Catalog | ForEach-Object { $_.id })
+}
+
+function Get-AssetRuntimeBlockReason {
+    param(
+        [Parameter(Mandatory = $true)]$Asset,
+        [Parameter(Mandatory = $true)][string]$RuntimeId
+    )
+
+    if (-not $Asset.PSObject.Properties['runtimeBlocked']) {
+        return $null
+    }
+    $property = $Asset.runtimeBlocked.PSObject.Properties[$RuntimeId]
+    if (-not $property -or [string]::IsNullOrWhiteSpace([string]$property.Value)) {
+        return $null
+    }
+    return [string]$property.Value
+}
+
+function Get-AssetRuntimeSupport {
+    param(
+        [Parameter(Mandatory = $true)]$Asset,
+        [Parameter(Mandatory = $true)]$Catalog,
+        [Parameter(Mandatory = $true)][AllowEmptyCollection()][object[]]$SelectedRuntimes
+    )
+
+    $supportedIds = @(Get-AssetRuntimeIds $Asset $Catalog)
+    $supported = @($SelectedRuntimes | Where-Object { $supportedIds -contains $_.id })
+    $blocked = foreach ($runtime in @($SelectedRuntimes | Where-Object { $supportedIds -notcontains $_.id })) {
+        $reason = Get-AssetRuntimeBlockReason $Asset $runtime.id
+        [pscustomobject]@{
+            runtime = $runtime.id
+            reason = if ($reason) { $reason } else { "$($Asset.id) does not declare support for $($runtime.name)." }
+        }
+    }
+    return [pscustomobject]@{
+        declared = $supportedIds
+        supported = @($supported)
+        blocked = @($blocked)
+    }
+}
+
+function Get-RuntimeBlockSummary {
+    param([Parameter(Mandatory = $true)][AllowEmptyCollection()][object[]]$Blocked)
+
+    return @($Blocked | ForEach-Object { "$($_.runtime)：$($_.reason)" }) -join ' '
 }
 
 function Get-ProjectManifest {
@@ -482,15 +756,15 @@ function Get-ProjectManifest {
     }
     $manifest = Get-Content -LiteralPath $path -Raw | ConvertFrom-Json
     $schemaVersion = if ($manifest.PSObject.Properties['schemaVersion']) { $manifest.schemaVersion } else { '<missing>' }
-    if ($schemaVersion -notin @(1, 2)) {
+    if ($schemaVersion -notin @(1, 2, 3)) {
         throw "Unsupported project asset manifest schema: $schemaVersion"
     }
-    foreach ($propertyName in @('profiles', 'assets', 'exclude', 'overlays')) {
+    foreach ($propertyName in @('profiles', 'assets', 'exclude', 'overlays', 'runtimes')) {
         if (-not $manifest.PSObject.Properties[$propertyName]) {
             $manifest | Add-Member -NotePropertyName $propertyName -NotePropertyValue @()
         }
     }
-    $manifest.schemaVersion = 2
+    $manifest.schemaVersion = 3
     return $manifest
 }
 
@@ -504,18 +778,20 @@ function Save-ProjectManifest {
     $manifest = Get-ProjectManifest $ResolvedProjectRoot
     if (-not $manifest) {
         $manifest = [pscustomobject]@{
-            schemaVersion = 2
+            schemaVersion = 3
             profiles = @()
             assets = @()
             exclude = @()
             overlays = @()
+            runtimes = @()
         }
     }
-    Set-ObjectProperty $manifest 'schemaVersion' 2
+    Set-ObjectProperty $manifest 'schemaVersion' 3
     Set-ObjectProperty $manifest 'profiles' @($Selection.profiles)
     Set-ObjectProperty $manifest 'assets' @($Selection.assetIds)
     Set-ObjectProperty $manifest 'exclude' @($Selection.exclude)
     Set-ObjectProperty $manifest 'overlays' @($Selection.overlayIds)
+    Set-ObjectProperty $manifest 'runtimes' @($Selection.runtimeIds)
     $parent = Split-Path -Parent $path
     if (-not (Test-Path -LiteralPath $parent)) { New-Item -ItemType Directory -Path $parent | Out-Null }
     $manifest | ConvertTo-Json -Depth 20 | Set-Content -LiteralPath $path -Encoding utf8
@@ -528,7 +804,10 @@ function Get-LockPath {
     )
 
     if ($ResolvedScope -eq 'global') {
-        return Join-Path $HOME '.config\opencode\config\assets.lock.json'
+        if (-not $script:GlobalLockPath) {
+            throw 'The global lock path is not resolved yet; load the catalog first.'
+        }
+        return $script:GlobalLockPath
     }
     return Join-Path $ResolvedProjectRoot '.opencode\assets.lock.json'
 }
@@ -538,11 +817,12 @@ function Get-AssetLock {
 
     if (-not (Test-Path -LiteralPath $Path)) {
         return [pscustomobject]@{
-            schemaVersion = 2
+            schemaVersion = 3
             managerVersion = $script:ManagerVersion
             generatedAt = $null
             scope = $Scope
             projectRoot = if ($Scope -eq 'project') { $ProjectRoot } else { $null }
+            runtimeRoots = [pscustomobject]@{}
             profiles = @()
             assets = @()
             overlays = @()
@@ -551,7 +831,7 @@ function Get-AssetLock {
     }
     $lock = Get-Content -LiteralPath $Path -Raw | ConvertFrom-Json
     $schemaVersion = if ($lock.PSObject.Properties['schemaVersion']) { $lock.schemaVersion } else { '<missing>' }
-    if ($schemaVersion -notin @(1, 2)) {
+    if ($schemaVersion -notin @(1, 2, 3)) {
         throw "Unsupported asset lock schema: $schemaVersion"
     }
     $defaults = [ordered]@{
@@ -559,6 +839,7 @@ function Get-AssetLock {
         generatedAt = $null
         scope = $Scope
         projectRoot = if ($Scope -eq 'project') { $ProjectRoot } else { $null }
+        runtimeRoots = [pscustomobject]@{}
         profiles = @()
         assets = @()
         overlays = @()
@@ -569,8 +850,24 @@ function Get-AssetLock {
             $lock | Add-Member -NotePropertyName $propertyName -NotePropertyValue $defaults[$propertyName]
         }
     }
-    $lock.schemaVersion = 2
+    $lock.schemaVersion = 3
     return $lock
+}
+
+function Get-LockedRuntimeIds {
+    param(
+        [Parameter(Mandatory = $true)]$Entry,
+        [Parameter(Mandatory = $true)]$Catalog
+    )
+
+    if ($Entry.PSObject.Properties['runtimes'] -and @($Entry.runtimes).Count -gt 0) {
+        return @($Entry.runtimes | ForEach-Object { [string]$_ })
+    }
+    # Lock schema 1 and 2 predate the runtime dimension; those entries were written
+    # by a V1-only manager, so attribute them to the V1 runtime when it still exists.
+    $knownIds = @(Get-RuntimeTable $Catalog | ForEach-Object { $_.id })
+    if ($knownIds -contains 'v1') { return @('v1') }
+    return @($knownIds | Select-Object -First 1)
 }
 
 function Save-AssetLock {
@@ -585,7 +882,7 @@ function Save-AssetLock {
     }
     $Lock.generatedAt = [DateTimeOffset]::UtcNow.ToString('o')
     $Lock.managerVersion = $script:ManagerVersion
-    $Lock.schemaVersion = 2
+    $Lock.schemaVersion = 3
     $Lock | ConvertTo-Json -Depth 20 | Set-Content -LiteralPath $Path -Encoding utf8
 }
 
@@ -624,6 +921,11 @@ function Get-Selections {
     $selectedAssets = @($Assets)
     $excludedAssets = @($Exclude)
     $selectedOverlays = @($Overlays)
+    $requestedRuntimes = @($Runtimes)
+    if ($requestedRuntimes.Count -eq 0 -and $manifest -and -not $script:RuntimeSelectionExplicit) {
+        $requestedRuntimes = @($manifest.runtimes)
+    }
+    $selectedRuntimes = @(Resolve-SelectedRuntimes $Catalog $requestedRuntimes)
 
     $overlayOnlyRemoval = $Action -eq 'remove' -and $script:OverlaySelectionExplicit -and @($Assets).Count -eq 0
     $assetOnlyRemoval = $Action -eq 'remove' -and $script:AssetSelectionExplicit -and -not $script:OverlaySelectionExplicit
@@ -655,6 +957,7 @@ function Get-Selections {
     }
 
     $resolved = [Collections.Generic.List[object]]::new()
+    $requiredIds = [Collections.Generic.HashSet[string]]::new([StringComparer]::OrdinalIgnoreCase)
     foreach ($asset in @($Catalog.assets)) {
         $profileMatch = @($asset.profiles | Where-Object { $selectedProfiles -contains $_ }).Count -gt 0
         $idMatch = $selectedAssets -contains $asset.id
@@ -667,6 +970,7 @@ function Get-Selections {
             }
             continue
         }
+        if ($idMatch) { [void]$requiredIds.Add([string]$asset.id) }
         $resolved.Add($asset)
     }
 
@@ -707,6 +1011,7 @@ function Get-Selections {
         if (@($dependencyAsset.scopes) -notcontains $ResolvedScope) {
             throw "Dependency $dependency does not support $ResolvedScope scope."
         }
+        [void]$requiredIds.Add([string]$dependencyAsset.id)
         $resolved.Add($dependencyAsset)
         if ($dependencyAsset.PSObject.Properties['dependsOn']) {
             foreach ($nested in @($dependencyAsset.dependsOn)) {
@@ -721,14 +1026,62 @@ function Get-Selections {
         }
     }
 
+    $runtimeSupport = @{}
+    $installable = [Collections.Generic.List[object]]::new()
+    $blocked = [Collections.Generic.List[object]]::new()
+    # Removal targets whatever the lock already owns, so runtime support must not
+    # hide an entry from it.
+    $keepUnsupported = $Action -eq 'remove'
+    foreach ($asset in @($resolved)) {
+        $support = Get-AssetRuntimeSupport $asset $Catalog $selectedRuntimes
+        if ($support.supported.Count -gt 0 -or $keepUnsupported) {
+            $runtimeSupport[[string]$asset.id] = $support
+            $installable.Add($asset)
+            if ($support.supported.Count -gt 0) { continue }
+        }
+        $blocked.Add([pscustomobject]@{
+            id = $asset.id
+            kind = 'asset'
+            channel = $asset.channel
+            declaredRuntimes = @($support.declared)
+            blocked = @($support.blocked)
+            required = $requiredIds.Contains([string]$asset.id)
+        })
+    }
+    # Only apply mutates the runtime, so only apply has to refuse. Read-only actions
+    # report the same information through their blocked list.
+    if ($blocked.Count -gt 0 -and -not $SkipUnsupported -and $Action -eq 'apply') {
+        $required = @($blocked | Where-Object required)
+        $report = if ($required.Count -gt 0) { $required } else { @($blocked) }
+        $lines = @($report | ForEach-Object { "$($_.id): $(Get-RuntimeBlockSummary $_.blocked)" })
+        throw "These assets support none of the selected runtimes ($(@($selectedRuntimes | ForEach-Object { $_.id }) -join ', ')):`n$($lines -join "`n")`nPass -SkipUnsupported to install only what the selected runtimes support."
+    }
+
     return [pscustomobject]@{
         profiles = $selectedProfiles
         assetIds = $selectedAssets
         exclude = $excludedAssets
-        assets = @($resolved)
+        assets = @($installable)
+        blocked = @($blocked)
+        runtimeSupport = $runtimeSupport
+        runtimeIds = @($selectedRuntimes | ForEach-Object { $_.id })
+        runtimes = @($selectedRuntimes)
         overlayIds = $selectedOverlays
         overlays = @($resolvedOverlays)
     }
+}
+
+function Get-AssetTargetRuntimes {
+    param(
+        [Parameter(Mandatory = $true)]$Selection,
+        [Parameter(Mandatory = $true)]$Asset
+    )
+
+    $support = $Selection.runtimeSupport[[string]$Asset.id]
+    if (-not $support) {
+        throw "No resolved runtime support for asset $($Asset.id)."
+    }
+    return @($support.supported)
 }
 
 function Get-InstalledSkillsForSource {
@@ -868,29 +1221,77 @@ function Copy-ManagedPath {
     Copy-Item -LiteralPath $Source -Destination $Target -Recurse -Force
 }
 
+function Get-ManagedRoots {
+    param(
+        [Parameter(Mandatory = $true)]$Catalog,
+        [Parameter(Mandatory = $true)][string]$ResolvedScope,
+        [Parameter(Mandatory = $true)][string]$ResolvedProjectRoot
+    )
+
+    if ($ResolvedScope -eq 'global') {
+        return @(@(Get-RuntimeTable $Catalog | ForEach-Object { $_.canonicalConfigRoot }) + @(
+            (Get-CanonicalPath (Join-Path $HOME '.agents')),
+            (Get-CanonicalPath (Join-Path $HOME '.claude'))
+        ) | Select-Object -Unique)
+    }
+    return @(
+        (Get-CanonicalPath (Join-Path $ResolvedProjectRoot '.opencode')),
+        (Get-CanonicalPath (Join-Path $ResolvedProjectRoot '.agents'))
+    )
+}
+
+function Get-ManagedFileMappings {
+    param(
+        [Parameter(Mandatory = $true)]$Asset,
+        [Parameter(Mandatory = $true)][string]$ResolvedScope,
+        [Parameter(Mandatory = $true)][string]$ResolvedProjectRoot,
+        [Parameter(Mandatory = $true)][object[]]$TargetRuntimes
+    )
+
+    $declared = if ($Asset.PSObject.Properties['files']) {
+        @($Asset.files | ForEach-Object { [pscustomobject]@{ source = $_.source; target = $_.target } })
+    }
+    else {
+        @([pscustomobject]@{ source = $Asset.sourcePath; target = $Asset.targetPath })
+    }
+    $mappings = [Collections.Generic.List[object]]::new()
+    $seen = [Collections.Generic.Dictionary[string, object]]::new([StringComparer]::OrdinalIgnoreCase)
+    foreach ($runtime in @($TargetRuntimes)) {
+        foreach ($entry in $declared) {
+            $source = [IO.Path]::GetFullPath((Resolve-HomePath $entry.source))
+            $target = Get-CanonicalPath (Resolve-TargetPath $entry.target $ResolvedScope $ResolvedProjectRoot $runtime)
+            $existing = $null
+            if ($seen.TryGetValue($target, [ref]$existing)) {
+                if (-not [string]::Equals($existing.source, $source, [StringComparison]::OrdinalIgnoreCase)) {
+                    throw "Asset $($Asset.id) maps two different sources onto one resolved path: $target"
+                }
+                $existing.runtimes.Add($runtime.id)
+                continue
+            }
+            $runtimeIds = [Collections.Generic.List[string]]::new()
+            $runtimeIds.Add($runtime.id)
+            $mapping = [pscustomobject]@{ source = $source; target = $target; runtimes = $runtimeIds }
+            $seen[$target] = $mapping
+            $mappings.Add($mapping)
+        }
+    }
+    return @($mappings)
+}
+
 function Install-CopyTemplateAsset {
     param(
         [Parameter(Mandatory = $true)]$Asset,
         [Parameter(Mandatory = $true)][string]$ResolvedScope,
         [Parameter(Mandatory = $true)][string]$ResolvedProjectRoot,
-        [Parameter(Mandatory = $true)]$ExistingLock
+        [Parameter(Mandatory = $true)]$ExistingLock,
+        [Parameter(Mandatory = $true)][object[]]$TargetRuntimes,
+        [Parameter(Mandatory = $true)]$Catalog
     )
 
     $ownedPaths = @($ExistingLock.assets | Where-Object { $_.id -eq $Asset.id } | ForEach-Object { $_.installedPaths })
-    $mappings = [Collections.Generic.List[object]]::new()
-    if ($Asset.PSObject.Properties['files']) {
-        foreach ($file in @($Asset.files)) {
-            $source = [IO.Path]::GetFullPath((Resolve-HomePath $file.source))
-            $target = Resolve-TargetPath $file.target $ResolvedScope $ResolvedProjectRoot
-            $mappings.Add([pscustomobject]@{ source = $source; target = $target })
-        }
-    }
-    else {
-        $source = [IO.Path]::GetFullPath((Resolve-HomePath $Asset.sourcePath))
-        $target = Resolve-TargetPath $Asset.targetPath $ResolvedScope $ResolvedProjectRoot
-        $mappings.Add([pscustomobject]@{ source = $source; target = $target })
-    }
-    foreach ($mapping in @($mappings)) {
+    $mappings = @(Get-ManagedFileMappings $Asset $ResolvedScope $ResolvedProjectRoot $TargetRuntimes)
+    $newPaths = @($mappings | ForEach-Object { $_.target })
+    foreach ($mapping in $mappings) {
         if (-not (Test-Path -LiteralPath $mapping.source)) {
             throw "Managed asset source not found: $($mapping.source)"
         }
@@ -898,7 +1299,18 @@ function Install-CopyTemplateAsset {
             throw "Refusing to overwrite an unmanaged asset path: $($mapping.target)"
         }
     }
-    foreach ($mapping in @($mappings)) {
+    # Narrowing the runtime set drops targets that a previous apply owned. Remove them
+    # so a deselected runtime does not keep an orphaned copy the lock no longer tracks.
+    $managedRoots = @(Get-ManagedRoots $Catalog $ResolvedScope $ResolvedProjectRoot)
+    foreach ($stalePath in @($ownedPaths | Where-Object { $newPaths -notcontains $_ })) {
+        if (@($managedRoots | Where-Object { Test-PathWithinRoot (Get-CanonicalPath $stalePath) $_ }).Count -eq 0) {
+            throw "Refusing to remove a stale managed path outside the managed roots: $stalePath"
+        }
+        if (Test-Path -LiteralPath $stalePath) {
+            Remove-Item -LiteralPath $stalePath -Recurse -Force
+        }
+    }
+    foreach ($mapping in $mappings) {
         Copy-ManagedPath $mapping.source $mapping.target ($ownedPaths -contains $mapping.target)
     }
     return [pscustomobject]@{
@@ -906,7 +1318,7 @@ function Install-CopyTemplateAsset {
         channel = $Asset.channel
         revision = $null
         skills = @()
-        installedPaths = @($mappings.target)
+        installedPaths = @($mappings | ForEach-Object { $_.target })
     }
 }
 
@@ -1128,40 +1540,74 @@ function Get-Slim8Asset {
     return $asset
 }
 
+function Get-Slim8TargetSlug {
+    param([Parameter(Mandatory = $true)][string]$SkillsRoot)
+
+    $bytes = [Text.Encoding]::UTF8.GetBytes($SkillsRoot.ToLowerInvariant())
+    return [Convert]::ToHexString([Security.Cryptography.SHA256]::HashData($bytes)).ToLowerInvariant().Substring(0, 16)
+}
+
 function Get-Slim8Paths {
     param(
         [Parameter(Mandatory = $true)]$Asset,
-        [Parameter(Mandatory = $true)][string]$ResolvedProjectRoot
+        [Parameter(Mandatory = $true)][string]$ResolvedProjectRoot,
+        [Parameter(Mandatory = $true)]$Catalog
     )
 
-    $projectSkillsRoot = Resolve-TargetPath $Asset.projectSkillsPath 'project' $ResolvedProjectRoot
-    $globalSkillsRoot = [IO.Path]::GetFullPath((Resolve-HomePath $Asset.globalSkillsPath))
-    $manifestPath = [IO.Path]::GetFullPath((Resolve-HomePath $Asset.globalSkillsManifestPath))
+    # Global isolation is a safety invariant, not a per-selection choice: a global
+    # copy in ANY runtime config root would shadow the project skills. So this
+    # always covers every known runtime, regardless of the current -Runtimes value.
+    $runtimeTable = Get-RuntimeTable $Catalog
+    $projectSkillsRoot = Get-CanonicalPath (Resolve-TargetPath $Asset.projectSkillsPath 'project' $ResolvedProjectRoot)
     $backupRoot = [IO.Path]::GetFullPath((Resolve-HomePath $Asset.globalSkillsBackupPath))
-    $expectedProjectRoot = [IO.Path]::GetFullPath((Join-Path $ResolvedProjectRoot '.opencode\skills'))
-    $expectedGlobalRoot = [IO.Path]::GetFullPath((Join-Path $HOME '.config\opencode\skills'))
-    $expectedManifest = [IO.Path]::GetFullPath((Join-Path $HOME '.config\opencode\.oh-my-opencode-slim\skills-manifest.json'))
-    $scannedRoots = @(
-        [IO.Path]::GetFullPath((Join-Path $HOME '.config\opencode')),
-        [IO.Path]::GetFullPath((Join-Path $HOME '.agents')),
-        [IO.Path]::GetFullPath((Join-Path $HOME '.claude'))
-    )
+    $expectedProjectRoot = Get-CanonicalPath ([IO.Path]::GetFullPath((Join-Path $ResolvedProjectRoot '.opencode\skills')))
     if (-not [string]::Equals($projectSkillsRoot, $expectedProjectRoot, [StringComparison]::OrdinalIgnoreCase)) {
         throw "Slim8 project skills must target $expectedProjectRoot"
     }
-    if (-not [string]::Equals($globalSkillsRoot, $expectedGlobalRoot, [StringComparison]::OrdinalIgnoreCase)) {
-        throw "Slim8 global skills migration must target $expectedGlobalRoot"
+
+    $targets = [Collections.Generic.List[object]]::new()
+    $seen = [Collections.Generic.Dictionary[string, object]]::new([StringComparer]::OrdinalIgnoreCase)
+    foreach ($runtime in @($runtimeTable)) {
+        $skillsRoot = Get-CanonicalPath (Resolve-TargetPath $Asset.globalSkillsPath 'global' $ResolvedProjectRoot $runtime)
+        $manifestPath = Get-CanonicalPath (Resolve-TargetPath $Asset.globalSkillsManifestPath 'global' $ResolvedProjectRoot $runtime)
+        $expectedSkillsRoot = Get-CanonicalPath ([IO.Path]::GetFullPath((Join-Path $runtime.configRoot 'skills')))
+        $expectedManifest = Get-CanonicalPath ([IO.Path]::GetFullPath((Join-Path $runtime.configRoot '.oh-my-opencode-slim\skills-manifest.json')))
+        if (-not [string]::Equals($skillsRoot, $expectedSkillsRoot, [StringComparison]::OrdinalIgnoreCase)) {
+            throw "Slim8 global skills migration for $($runtime.id) must target $expectedSkillsRoot"
+        }
+        if (-not [string]::Equals($manifestPath, $expectedManifest, [StringComparison]::OrdinalIgnoreCase)) {
+            throw "Slim8 tombstones for $($runtime.id) must target $expectedManifest"
+        }
+        $existing = $null
+        if ($seen.TryGetValue($skillsRoot, [ref]$existing)) {
+            if (-not [string]::Equals($existing.manifestPath, $manifestPath, [StringComparison]::OrdinalIgnoreCase)) {
+                throw "Runtimes share the Slim8 skills root $skillsRoot but resolve different tombstone manifests."
+            }
+            $existing.runtimes.Add($runtime.id)
+            continue
+        }
+        $runtimeIds = [Collections.Generic.List[string]]::new()
+        $runtimeIds.Add($runtime.id)
+        $target = [pscustomobject]@{
+            slug = Get-Slim8TargetSlug $skillsRoot
+            runtimes = $runtimeIds
+            skillsRoot = $skillsRoot
+            manifestPath = $manifestPath
+        }
+        $seen[$skillsRoot] = $target
+        $targets.Add($target)
     }
-    if (-not [string]::Equals($manifestPath, $expectedManifest, [StringComparison]::OrdinalIgnoreCase)) {
-        throw "Slim8 tombstones must target $expectedManifest"
-    }
-    if (@($scannedRoots | Where-Object { Test-PathWithinRoot $backupRoot $_ }).Count -gt 0) {
-        throw "Slim8 migration backups must be outside OpenCode skill scan roots: $backupRoot"
+
+    $scannedRoots = @(@($runtimeTable | ForEach-Object { $_.canonicalConfigRoot }) + @(
+        (Get-CanonicalPath ([IO.Path]::GetFullPath((Join-Path $HOME '.agents')))),
+        (Get-CanonicalPath ([IO.Path]::GetFullPath((Join-Path $HOME '.claude'))))
+    ) | Select-Object -Unique)
+    if (@($scannedRoots | Where-Object { Test-PathWithinRoot (Get-CanonicalPath $backupRoot) $_ }).Count -gt 0) {
+        throw "Slim8 migration backups must be outside every OpenCode skill scan root: $backupRoot"
     }
     return [pscustomobject]@{
         projectSkillsRoot = $projectSkillsRoot
-        globalSkillsRoot = $globalSkillsRoot
-        manifestPath = $manifestPath
+        targets = @($targets)
         backupRoot = $backupRoot
     }
 }
@@ -1252,56 +1698,68 @@ function Get-Slim8GlobalMigrationPlan {
     param(
         [Parameter(Mandatory = $true)]$Asset,
         [Parameter(Mandatory = $true)][string]$RepositoryPath,
-        [Parameter(Mandatory = $true)][string]$ResolvedProjectRoot
+        [Parameter(Mandatory = $true)][string]$ResolvedProjectRoot,
+        [Parameter(Mandatory = $true)]$Catalog
     )
 
-    $paths = Get-Slim8Paths $Asset $ResolvedProjectRoot
-    $manifest = Get-Slim8Manifest $paths.manifestPath
+    $paths = Get-Slim8Paths $Asset $ResolvedProjectRoot $Catalog
     $sourceRoot = [IO.Path]::GetFullPath((Join-Path $RepositoryPath $Asset.bundledSkillsPath))
-    $items = foreach ($name in $script:Slim8SkillNames) {
-        $sourcePath = [IO.Path]::GetFullPath((Join-Path $sourceRoot $name))
-        $targetPath = [IO.Path]::GetFullPath((Join-Path $paths.globalSkillsRoot $name))
-        if (-not (Test-Path -LiteralPath (Join-Path $sourcePath 'SKILL.md') -PathType Leaf)) {
-            throw "Pinned Slim8 skill source is missing SKILL.md: $sourcePath"
-        }
-        $entryProperty = if ($manifest) { $manifest.skills.PSObject.Properties[$name] } else { $null }
-        $entry = if ($entryProperty) { $entryProperty.Value } else { $null }
-        $state = 'absent'
-        if (Test-Path -LiteralPath $targetPath) {
-            $target = Get-Item -LiteralPath $targetPath -Force
-            if (-not $target.PSIsContainer -or ($target.Attributes -band [IO.FileAttributes]::ReparsePoint)) {
-                $state = 'conflict'
+    $targets = foreach ($target in @($paths.targets)) {
+        $manifest = Get-Slim8Manifest $target.manifestPath
+        $items = foreach ($name in $script:Slim8SkillNames) {
+            $sourcePath = [IO.Path]::GetFullPath((Join-Path $sourceRoot $name))
+            $targetPath = [IO.Path]::GetFullPath((Join-Path $target.skillsRoot $name))
+            if (-not (Test-Path -LiteralPath (Join-Path $sourcePath 'SKILL.md') -PathType Leaf)) {
+                throw "Pinned Slim8 skill source is missing SKILL.md: $sourcePath"
             }
-            else {
-                $matchesSource = (Get-DirectoryContentFingerprint $targetPath) -eq (Get-DirectoryContentFingerprint $sourcePath)
-                if ($entry -and $entry.status -eq 'managed' -and $matchesSource) {
-                    $state = 'managed-unchanged'
-                }
-                elseif ($entry) {
-                    $state = 'customized'
+            $entryProperty = if ($manifest) { $manifest.skills.PSObject.Properties[$name] } else { $null }
+            $entry = if ($entryProperty) { $entryProperty.Value } else { $null }
+            $state = 'absent'
+            if (Test-Path -LiteralPath $targetPath) {
+                $existing = Get-Item -LiteralPath $targetPath -Force
+                if (-not $existing.PSIsContainer -or ($existing.Attributes -band [IO.FileAttributes]::ReparsePoint)) {
+                    $state = 'conflict'
                 }
                 else {
-                    $state = 'unowned'
+                    $matchesSource = (Get-DirectoryContentFingerprint $targetPath) -eq (Get-DirectoryContentFingerprint $sourcePath)
+                    if ($entry -and $entry.status -eq 'managed' -and $matchesSource) {
+                        $state = 'managed-unchanged'
+                    }
+                    elseif ($entry) {
+                        $state = 'customized'
+                    }
+                    else {
+                        $state = 'unowned'
+                    }
                 }
             }
+            [pscustomobject]@{
+                name = $name
+                state = $state
+                sourcePath = $sourcePath
+                targetPath = $targetPath
+            }
+        }
+        $targetTombstonesReady = $null -ne $manifest
+        foreach ($name in $script:Slim8SkillNames) {
+            $property = if ($manifest) { $manifest.skills.PSObject.Properties[$name] } else { $null }
+            if (-not $property -or $property.Value.status -ne 'deleted') { $targetTombstonesReady = $false }
         }
         [pscustomobject]@{
-            name = $name
-            state = $state
-            sourcePath = $sourcePath
-            targetPath = $targetPath
+            slug = $target.slug
+            runtimes = @($target.runtimes)
+            skillsRoot = $target.skillsRoot
+            manifestPath = $target.manifestPath
+            tombstonesReady = $targetTombstonesReady
+            items = @($items)
         }
     }
-    $tombstonesReady = $null -ne $manifest
-    foreach ($name in $script:Slim8SkillNames) {
-        $property = if ($manifest) { $manifest.skills.PSObject.Properties[$name] } else { $null }
-        if (-not $property -or $property.Value.status -ne 'deleted') { $tombstonesReady = $false }
-    }
+    $resolvedTargets = @($targets)
     return [pscustomobject]@{
-        manifestPath = $paths.manifestPath
         backupRoot = $paths.backupRoot
-        tombstonesReady = $tombstonesReady
-        items = @($items)
+        tombstonesReady = @($resolvedTargets | Where-Object { -not $_.tombstonesReady }).Count -eq 0
+        targets = $resolvedTargets
+        items = @($resolvedTargets | ForEach-Object { $_.items })
     }
 }
 
@@ -1361,60 +1819,109 @@ function Invoke-Slim8MigrationApply {
     }
 
     $backupPath = Join-Path $Plan.backupRoot "$([DateTimeOffset]::UtcNow.ToString('yyyyMMddTHHmmssfffZ'))-$([guid]::NewGuid().ToString('N'))"
-    $backupSkillsRoot = Join-Path $backupPath 'skills'
-    New-Item -ItemType Directory -Path $backupSkillsRoot -Force | Out-Null
-    $manifestExisted = Test-Path -LiteralPath $Plan.manifestPath
-    if ($manifestExisted) {
-        Copy-Item -LiteralPath $Plan.manifestPath -Destination (Join-Path $backupPath 'skills-manifest.json') -Force
-    }
-    $backupItems = [Collections.Generic.List[object]]::new()
-    foreach ($item in $existingItems) {
-        $skillBackup = Join-Path $backupSkillsRoot $item.name
-        Copy-Item -LiteralPath $item.targetPath -Destination $skillBackup -Recurse -Force
-        $sourceHash = Get-DirectoryContentFingerprint $item.targetPath
-        if ((Get-DirectoryContentFingerprint $skillBackup) -ne $sourceHash) {
-            throw "Slim8 migration backup verification failed for $($item.name): $skillBackup"
+    $metadataPath = Join-Path $backupPath 'backup.json'
+    $targetRecords = [Collections.Generic.List[object]]::new()
+    foreach ($target in @($Plan.targets)) {
+        $targetBackupRoot = Join-Path $backupPath $target.slug
+        $backupSkillsRoot = Join-Path $targetBackupRoot 'skills'
+        New-Item -ItemType Directory -Path $backupSkillsRoot -Force | Out-Null
+        $manifestExisted = Test-Path -LiteralPath $target.manifestPath
+        if ($manifestExisted) {
+            Copy-Item -LiteralPath $target.manifestPath -Destination (Join-Path $targetBackupRoot 'skills-manifest.json') -Force
         }
-        $backupItems.Add([pscustomobject]@{
-            name = $item.name
-            state = $item.state
-            originalPath = $item.targetPath
-            backupPath = $skillBackup
-            contentHash = $sourceHash
+        $backupItems = [Collections.Generic.List[object]]::new()
+        foreach ($item in @($target.items | Where-Object state -ne 'absent')) {
+            $skillBackup = Join-Path $backupSkillsRoot $item.name
+            Copy-Item -LiteralPath $item.targetPath -Destination $skillBackup -Recurse -Force
+            $sourceHash = Get-DirectoryContentFingerprint $item.targetPath
+            if ((Get-DirectoryContentFingerprint $skillBackup) -ne $sourceHash) {
+                throw "Slim8 migration backup verification failed for $($item.name): $skillBackup"
+            }
+            $backupItems.Add([pscustomobject]@{
+                name = $item.name
+                state = $item.state
+                originalPath = $item.targetPath
+                backupPath = $skillBackup
+                contentHash = $sourceHash
+            })
+        }
+        $targetRecords.Add([pscustomobject]@{
+            slug = $target.slug
+            runtimes = @($target.runtimes)
+            skillsRoot = $target.skillsRoot
+            manifestPath = $target.manifestPath
+            manifestExisted = $manifestExisted
+            manifestAfterHash = ''
+            skills = @($backupItems)
         })
     }
-    $metadataPath = Join-Path $backupPath 'backup.json'
     $metadata = [pscustomobject]@{
-        schemaVersion = 1
+        schemaVersion = 2
         createdAt = [DateTimeOffset]::UtcNow.ToString('o')
-        manifestPath = $Plan.manifestPath
-        manifestExisted = $manifestExisted
-        manifestAfterHash = ''
-        skills = @($backupItems)
+        targets = @($targetRecords)
     }
     Save-JsonAtomic $metadataPath $metadata
 
-    foreach ($item in $existingItems) {
-        Remove-Item -LiteralPath $item.targetPath -Recurse -Force
+    foreach ($record in $targetRecords) {
+        foreach ($item in @($record.skills)) {
+            Remove-Item -LiteralPath $item.originalPath -Recurse -Force
+        }
+        Set-Slim8DeletedTombstones $Asset $record.manifestPath
+        $record.manifestAfterHash = (Get-FileHash -LiteralPath $record.manifestPath -Algorithm SHA256).Hash.ToLowerInvariant()
     }
-    Set-Slim8DeletedTombstones $Asset $Plan.manifestPath
-    $metadata.manifestAfterHash = (Get-FileHash -LiteralPath $Plan.manifestPath -Algorithm SHA256).Hash.ToLowerInvariant()
     Save-JsonAtomic $metadataPath $metadata
     return [pscustomobject]@{
         changed = $true
         backupPath = $backupPath
-        migrated = @($backupItems | Select-Object name, state, originalPath)
+        migrated = @($targetRecords | ForEach-Object {
+            $runtimes = @($_.runtimes)
+            $_.skills | Select-Object name, state, originalPath, @{ Name = 'runtimes'; Expression = { $runtimes } }
+        })
     }
+}
+
+function Get-Slim8BackupTargets {
+    param(
+        [Parameter(Mandatory = $true)]$Metadata,
+        [Parameter(Mandatory = $true)][string]$BackupPath
+    )
+
+    if ($Metadata.schemaVersion -eq 2) {
+        return @($Metadata.targets | ForEach-Object {
+            [pscustomobject]@{
+                root = [IO.Path]::GetFullPath((Join-Path $BackupPath $_.slug))
+                skillsRoot = [string]$_.skillsRoot
+                manifestPath = [string]$_.manifestPath
+                manifestExisted = [bool]$_.manifestExisted
+                manifestAfterHash = [string]$_.manifestAfterHash
+                skills = @($_.skills)
+            }
+        })
+    }
+    # Backup schema 1 predates multi-runtime isolation and holds one target at the
+    # backup root, identified by its recorded manifest path.
+    if ($Metadata.schemaVersion -eq 1) {
+        return @([pscustomobject]@{
+            root = [IO.Path]::GetFullPath($BackupPath)
+            skillsRoot = $null
+            manifestPath = [string]$Metadata.manifestPath
+            manifestExisted = [bool]$Metadata.manifestExisted
+            manifestAfterHash = [string]$Metadata.manifestAfterHash
+            skills = @($Metadata.skills)
+        })
+    }
+    throw "Unsupported Slim8 migration backup schema: $($Metadata.schemaVersion)"
 }
 
 function Invoke-Slim8MigrationRestore {
     param(
         [Parameter(Mandatory = $true)]$Asset,
         [Parameter(Mandatory = $true)][string]$ResolvedProjectRoot,
-        [Parameter(Mandatory = $true)][string]$ResolvedBackupPath
+        [Parameter(Mandatory = $true)][string]$ResolvedBackupPath,
+        [Parameter(Mandatory = $true)]$Catalog
     )
 
-    $paths = Get-Slim8Paths $Asset $ResolvedProjectRoot
+    $paths = Get-Slim8Paths $Asset $ResolvedProjectRoot $Catalog
     $fullBackupPath = [IO.Path]::GetFullPath($ResolvedBackupPath)
     if (-not (Test-PathWithinRoot $fullBackupPath $paths.backupRoot)) {
         throw "Slim8 restore path must be inside $($paths.backupRoot)"
@@ -1424,47 +1931,63 @@ function Invoke-Slim8MigrationRestore {
         throw "Slim8 migration backup metadata not found: $metadataPath"
     }
     $metadata = Get-Content -LiteralPath $metadataPath -Raw | ConvertFrom-Json
-    if ($metadata.schemaVersion -ne 1 -or $metadata.manifestPath -ne $paths.manifestPath) {
-        throw "Invalid Slim8 migration backup metadata: $metadataPath"
-    }
-    if (-not (Test-Path -LiteralPath $paths.manifestPath -PathType Leaf) -or
-        (Get-FileHash -LiteralPath $paths.manifestPath -Algorithm SHA256).Hash.ToLowerInvariant() -ne $metadata.manifestAfterHash) {
-        throw "Refusing to restore over a changed Slim8 skills manifest: $($paths.manifestPath)"
-    }
-    if ($metadata.manifestExisted -and -not (Test-Path -LiteralPath (Join-Path $fullBackupPath 'skills-manifest.json') -PathType Leaf)) {
-        throw "Slim8 migration manifest backup is missing: $fullBackupPath"
-    }
-    foreach ($item in @($metadata.skills)) {
-        $expectedOriginalPath = [IO.Path]::GetFullPath((Join-Path $paths.globalSkillsRoot $item.name))
-        $expectedBackupPath = [IO.Path]::GetFullPath((Join-Path (Join-Path $fullBackupPath 'skills') $item.name))
-        if (@($script:Slim8SkillNames) -notcontains $item.name -or
-            -not [string]::Equals([IO.Path]::GetFullPath($item.originalPath), $expectedOriginalPath, [StringComparison]::OrdinalIgnoreCase) -or
-            -not [string]::Equals([IO.Path]::GetFullPath($item.backupPath), $expectedBackupPath, [StringComparison]::OrdinalIgnoreCase)) {
-            throw "Invalid skill path in Slim8 migration backup: $($item.originalPath)"
+    $backupTargets = @(Get-Slim8BackupTargets $metadata $fullBackupPath)
+    $restorePlan = [Collections.Generic.List[object]]::new()
+    foreach ($backupTarget in $backupTargets) {
+        $current = @($paths.targets | Where-Object {
+            [string]::Equals($_.manifestPath, $backupTarget.manifestPath, [StringComparison]::OrdinalIgnoreCase)
+        }) | Select-Object -First 1
+        if (-not $current) {
+            throw "Slim8 migration backup targets a manifest that no runtime resolves to: $($backupTarget.manifestPath)"
         }
-        if (Test-Path -LiteralPath $item.originalPath) {
-            throw "Refusing to restore over an existing global skill: $($item.originalPath)"
+        if (-not (Test-Path -LiteralPath $current.manifestPath -PathType Leaf) -or
+            (Get-FileHash -LiteralPath $current.manifestPath -Algorithm SHA256).Hash.ToLowerInvariant() -ne $backupTarget.manifestAfterHash) {
+            throw "Refusing to restore over a changed Slim8 skills manifest: $($current.manifestPath)"
         }
-        if (-not (Test-Path -LiteralPath $item.backupPath -PathType Container) -or
-            (Get-DirectoryContentFingerprint $item.backupPath) -ne $item.contentHash) {
-            throw "Slim8 migration backup is missing or changed: $($item.backupPath)"
+        if ($backupTarget.manifestExisted -and -not (Test-Path -LiteralPath (Join-Path $backupTarget.root 'skills-manifest.json') -PathType Leaf)) {
+            throw "Slim8 migration manifest backup is missing: $($backupTarget.root)"
         }
+        foreach ($item in @($backupTarget.skills)) {
+            $expectedOriginalPath = [IO.Path]::GetFullPath((Join-Path $current.skillsRoot $item.name))
+            $expectedBackupPath = [IO.Path]::GetFullPath((Join-Path (Join-Path $backupTarget.root 'skills') $item.name))
+            if (@($script:Slim8SkillNames) -notcontains $item.name -or
+                -not [string]::Equals([IO.Path]::GetFullPath($item.originalPath), $expectedOriginalPath, [StringComparison]::OrdinalIgnoreCase) -or
+                -not [string]::Equals([IO.Path]::GetFullPath($item.backupPath), $expectedBackupPath, [StringComparison]::OrdinalIgnoreCase)) {
+                throw "Invalid skill path in Slim8 migration backup: $($item.originalPath)"
+            }
+            if (Test-Path -LiteralPath $item.originalPath) {
+                throw "Refusing to restore over an existing global skill: $($item.originalPath)"
+            }
+            if (-not (Test-Path -LiteralPath $item.backupPath -PathType Container) -or
+                (Get-DirectoryContentFingerprint $item.backupPath) -ne $item.contentHash) {
+                throw "Slim8 migration backup is missing or changed: $($item.backupPath)"
+            }
+        }
+        $restorePlan.Add([pscustomobject]@{ backup = $backupTarget; current = $current })
     }
-    foreach ($item in @($metadata.skills)) {
-        $parent = Split-Path -Parent $item.originalPath
-        if (-not (Test-Path -LiteralPath $parent)) { New-Item -ItemType Directory -Path $parent | Out-Null }
-        Copy-Item -LiteralPath $item.backupPath -Destination $item.originalPath -Recurse -Force
-    }
-    if ($metadata.manifestExisted) {
-        Copy-Item -LiteralPath (Join-Path $fullBackupPath 'skills-manifest.json') -Destination $paths.manifestPath -Force
-    }
-    else {
-        Remove-Item -LiteralPath $paths.manifestPath -Force
+    foreach ($step in $restorePlan) {
+        foreach ($item in @($step.backup.skills)) {
+            $parent = Split-Path -Parent $item.originalPath
+            if (-not (Test-Path -LiteralPath $parent)) { New-Item -ItemType Directory -Path $parent | Out-Null }
+            Copy-Item -LiteralPath $item.backupPath -Destination $item.originalPath -Recurse -Force
+        }
+        if ($step.backup.manifestExisted) {
+            Copy-Item -LiteralPath (Join-Path $step.backup.root 'skills-manifest.json') -Destination $step.current.manifestPath -Force
+        }
+        else {
+            Remove-Item -LiteralPath $step.current.manifestPath -Force
+        }
     }
     return [pscustomobject]@{
-        restored = @($metadata.skills | ForEach-Object { $_.name })
         backupPath = $fullBackupPath
-        manifestPath = $paths.manifestPath
+        targets = @($restorePlan | ForEach-Object {
+            [pscustomobject]@{
+                runtimes = @($_.current.runtimes)
+                skillsRoot = $_.current.skillsRoot
+                manifestPath = $_.current.manifestPath
+                restored = @($_.backup.skills | ForEach-Object { $_.name })
+            }
+        })
     }
 }
 
@@ -1548,27 +2071,75 @@ function Test-NpmFrameworkConfigOwnership {
     }
 }
 
+function Get-LockedPluginConfig {
+    param([AllowNull()]$PreviousEntry)
+
+    if (-not $PreviousEntry) {
+        return @()
+    }
+    if ($PreviousEntry.PSObject.Properties['pluginConfig'] -and @($PreviousEntry.pluginConfig).Count -gt 0) {
+        return @($PreviousEntry.pluginConfig | ForEach-Object {
+            [pscustomobject]@{ key = [string]$_.key; specs = @($_.specs | ForEach-Object { [string]$_ }) }
+        })
+    }
+    # Lock schema 1 and 2 recorded only the V1-shaped `plugin` array.
+    if ($PreviousEntry.PSObject.Properties['pluginSpecs'] -and @($PreviousEntry.pluginSpecs).Count -gt 0) {
+        return @([pscustomobject]@{
+            key = 'plugin'
+            specs = @($PreviousEntry.pluginSpecs | ForEach-Object { [string]$_ })
+        })
+    }
+    return @()
+}
+
 function Set-ManagedPluginSpec {
     param(
         [Parameter(Mandatory = $true)]$Config,
         [Parameter(Mandatory = $true)][string]$PluginSpec,
         [AllowNull()]$PreviousEntry,
-        [Parameter(Mandatory = $true)][string]$ConfigPath
+        [Parameter(Mandatory = $true)][string]$ConfigPath,
+        [Parameter(Mandatory = $true)][object[]]$TargetRuntimes
     )
 
-    # OpenCode V1 and V2 both read the V1-shaped `plugin` array from the shared
-    # project config. When a native V2 `plugins` key is present, V2 prefers it and
-    # silently ignores `plugin`, so the manager would not actually install anything.
-    if ($Config.PSObject.Properties['plugins']) {
-        throw "Refusing to manage plugins in $ConfigPath because it already uses the V2-native 'plugins' key; the manager writes the V1-compatible 'plugin' array shared by both runtimes."
+    # V1 reads the singular `plugin` array and ignores `plugins`. V2 reads the
+    # native `plugins` array and prefers it over a normalized `plugin` value.
+    # Writing the spec under each selected runtime's own key is therefore the only
+    # shape that installs on both runtimes from one shared project config.
+    $previous = @(Get-LockedPluginConfig $PreviousEntry)
+    $desiredKeys = @($TargetRuntimes | ForEach-Object { $_.pluginConfigKey } | Select-Object -Unique)
+    if ($desiredKeys.Count -eq 0) {
+        throw "No runtime plugin config key resolved for $ConfigPath."
     }
-    [string[]]$plugins = if ($Config.PSObject.Properties['plugin']) { @($Config.plugin) } else { @() }
-    [string[]]$stale = if ($PreviousEntry -and $PreviousEntry.PSObject.Properties['pluginSpecs']) {
-        @($PreviousEntry.pluginSpecs | Where-Object { $_ -ne $PluginSpec })
-    } else { @() }
-    $plugins = @($plugins | Where-Object { $stale -notcontains $_ })
-    if ($plugins -notcontains $PluginSpec) { $plugins += $PluginSpec }
-    Set-ObjectProperty $Config 'plugin' @($plugins)
+    foreach ($key in $desiredKeys) {
+        $entries = if ($Config.PSObject.Properties[$key]) { @($Config.PSObject.Properties[$key].Value) } else { @() }
+        $owned = @($previous | Where-Object { $_.key -eq $key } | ForEach-Object { $_.specs })
+        # Object entries belong to hand-written V2 `{ package, options }` values; keep them untouched.
+        $kept = @($entries | Where-Object {
+            -not (($_ -is [string]) -and ($owned -contains $_) -and ($_ -ne $PluginSpec))
+        })
+        if (@($kept | Where-Object { ($_ -is [string]) -and ($_ -eq $PluginSpec) }).Count -eq 0) {
+            $kept += $PluginSpec
+        }
+        Set-ObjectProperty $Config $key @($kept)
+    }
+    foreach ($staleKey in @($previous | Where-Object { $desiredKeys -notcontains $_.key })) {
+        if (-not $Config.PSObject.Properties[$staleKey.key]) {
+            continue
+        }
+        $specs = @($staleKey.specs)
+        $kept = @(@($Config.PSObject.Properties[$staleKey.key].Value) | Where-Object {
+            -not (($_ -is [string]) -and ($specs -contains $_))
+        })
+        if ($kept.Count -eq 0) {
+            $Config.PSObject.Properties.Remove($staleKey.key)
+        }
+        else {
+            Set-ObjectProperty $Config $staleKey.key @($kept)
+        }
+    }
+    return @($desiredKeys | ForEach-Object {
+        [pscustomobject]@{ key = $_; specs = @($PluginSpec) }
+    })
 }
 
 function Install-OpenCodePluginAsset {
@@ -1576,17 +2147,19 @@ function Install-OpenCodePluginAsset {
         [Parameter(Mandatory = $true)]$Asset,
         [Parameter(Mandatory = $true)][string]$ResolvedScope,
         [Parameter(Mandatory = $true)][string]$ResolvedProjectRoot,
-        [Parameter(Mandatory = $true)]$ExistingLock
+        [Parameter(Mandatory = $true)]$ExistingLock,
+        [Parameter(Mandatory = $true)][object[]]$TargetRuntimes,
+        [Parameter(Mandatory = $true)]$Catalog
     )
 
     if ($ResolvedScope -ne 'project') {
         throw "OpenCode plugin asset $($Asset.id) is project-only."
     }
-    $previousPluginEntry = @($ExistingLock.assets | Where-Object id -eq $Asset.id) | Select-Object -First 1
+    $previousEntry = @($ExistingLock.assets | Where-Object id -eq $Asset.id) | Select-Object -First 1
     if ($Asset.id -ne 'oh-my-opencode-slim') {
         $configPath = Resolve-TargetPath $Asset.configPath $ResolvedScope $ResolvedProjectRoot
         $config = Get-JsonConfig $configPath
-        Set-ManagedPluginSpec $config $Asset.pluginSpec $previousPluginEntry $configPath
+        $pluginConfig = Set-ManagedPluginSpec $config $Asset.pluginSpec $previousEntry $configPath $TargetRuntimes
         Save-JsonConfig $configPath $config
         return [pscustomobject]@{
             id = $Asset.id
@@ -1597,15 +2170,14 @@ function Install-OpenCodePluginAsset {
             installedPaths = @()
             installedPathHashes = @()
             configPath = $configPath
-            pluginSpecs = @($Asset.pluginSpec)
+            pluginConfig = @($pluginConfig)
         }
     }
 
     $checkout = New-PinnedRepositoryCheckout $Asset
     try {
-        $paths = Get-Slim8Paths $Asset $ResolvedProjectRoot
+        $paths = Get-Slim8Paths $Asset $ResolvedProjectRoot $Catalog
         $sourceRoot = [IO.Path]::GetFullPath((Join-Path $checkout.repositoryPath $Asset.bundledSkillsPath))
-        $previousEntry = @($ExistingLock.assets | Where-Object id -eq $Asset.id) | Select-Object -First 1
         $ownedPaths = if ($previousEntry) { @($previousEntry.installedPaths) } else { @() }
         if ($previousEntry) { Assert-LockedPathsUnchanged $previousEntry }
         $mappings = [Collections.Generic.List[object]]::new()
@@ -1623,7 +2195,7 @@ function Install-OpenCodePluginAsset {
             $mappings.Add([pscustomobject]@{ name = $name; source = $source; target = $target })
         }
 
-        $migrationPlan = Get-Slim8GlobalMigrationPlan $Asset $checkout.repositoryPath $ResolvedProjectRoot
+        $migrationPlan = Get-Slim8GlobalMigrationPlan $Asset $checkout.repositoryPath $ResolvedProjectRoot $Catalog
         $migration = Invoke-Slim8MigrationApply $Asset $migrationPlan -RejectUnsafe
         foreach ($mapping in @($mappings)) {
             Copy-ManagedPath $mapping.source $mapping.target ($ownedPaths -contains $mapping.target)
@@ -1631,7 +2203,7 @@ function Install-OpenCodePluginAsset {
 
         $configPath = Resolve-TargetPath $Asset.configPath $ResolvedScope $ResolvedProjectRoot
         $config = Get-JsonConfig $configPath
-        Set-ManagedPluginSpec $config $Asset.pluginSpec $previousPluginEntry $configPath
+        $pluginConfig = Set-ManagedPluginSpec $config $Asset.pluginSpec $previousEntry $configPath $TargetRuntimes
         Save-JsonConfig $configPath $config
         $installedPaths = @($mappings | ForEach-Object { $_.target })
 
@@ -1644,7 +2216,7 @@ function Install-OpenCodePluginAsset {
             installedPaths = $installedPaths
             installedPathHashes = (Get-InstalledPathHashes $installedPaths)
             configPath = $configPath
-            pluginSpecs = @($Asset.pluginSpec)
+            pluginConfig = @($pluginConfig)
             globalMigrationBackupPath = $migration.backupPath
         }
     }
@@ -2025,11 +2597,21 @@ function Remove-LockedAsset {
             }
         }
         $config = Get-JsonConfig $Entry.configPath
-        [string[]]$plugins = @()
-        if ($config.PSObject.Properties['plugin']) {
-            $plugins = @($config.plugin)
+        foreach ($pluginKey in @(Get-LockedPluginConfig $Entry)) {
+            if (-not $config.PSObject.Properties[$pluginKey.key]) {
+                continue
+            }
+            $specs = @($pluginKey.specs)
+            $kept = @(@($config.PSObject.Properties[$pluginKey.key].Value) | Where-Object {
+                -not (($_ -is [string]) -and ($specs -contains $_))
+            })
+            if ($kept.Count -eq 0) {
+                $config.PSObject.Properties.Remove($pluginKey.key)
+            }
+            else {
+                Set-ObjectProperty $config $pluginKey.key @($kept)
+            }
         }
-        $config.plugin = @($plugins | Where-Object { @($Entry.pluginSpecs) -notcontains $_ })
         Save-JsonConfig $Entry.configPath $config
         foreach ($path in @($Entry.installedPaths)) {
             if (Test-Path -LiteralPath $path) {
@@ -2073,14 +2655,9 @@ function Remove-LockedAsset {
         return
     }
 
-    $allowedRoots = if ($ResolvedScope -eq 'global') {
-        @((Join-Path $HOME '.config\opencode'), (Join-Path $HOME '.agents'))
-    }
-    else {
-        @((Join-Path $ResolvedProjectRoot '.opencode'), (Join-Path $ResolvedProjectRoot '.agents'))
-    }
+    $allowedRoots = @(Get-ManagedRoots $Catalog $ResolvedScope $ResolvedProjectRoot)
     foreach ($path in @($Entry.installedPaths)) {
-        if (-not (@($allowedRoots | Where-Object { Test-PathWithinRoot $path $_ }).Count -gt 0)) {
+        if (-not (@($allowedRoots | Where-Object { Test-PathWithinRoot (Get-CanonicalPath $path) $_ }).Count -gt 0)) {
             throw "Refusing to remove locked path outside managed roots: $path"
         }
         if (Test-Path -LiteralPath $path) {
@@ -2095,6 +2672,12 @@ function Test-Catalog {
     $errors = [Collections.Generic.List[string]]::new()
     $warnings = [Collections.Generic.List[string]]::new()
     $ids = @($Catalog.assets.id)
+    $runtimeIds = @(Get-RuntimeTable $Catalog | ForEach-Object { $_.id })
+    foreach ($defaultRuntime in @($Catalog.defaultRuntimes)) {
+        if ($runtimeIds -notcontains $defaultRuntime) {
+            $errors.Add("defaultRuntimes references unknown runtime $defaultRuntime")
+        }
+    }
     foreach ($duplicate in @($ids | Group-Object | Where-Object Count -gt 1)) {
         $errors.Add("Duplicate asset id: $($duplicate.Name)")
     }
@@ -2106,6 +2689,39 @@ function Test-Catalog {
         foreach ($profile in @($asset.profiles)) {
             if (-not $Catalog.profiles.PSObject.Properties[$profile]) {
                 $errors.Add("Asset $($asset.id) references unknown profile $profile")
+            }
+        }
+        $assetRuntimes = @(Get-AssetRuntimeIds $asset $Catalog)
+        if ($assetRuntimes.Count -eq 0) {
+            $errors.Add("Asset $($asset.id) must support at least one runtime.")
+        }
+        foreach ($runtimeId in $assetRuntimes) {
+            if ($runtimeIds -notcontains $runtimeId) {
+                $errors.Add("Asset $($asset.id) references unknown runtime $runtimeId")
+            }
+        }
+        if ($asset.PSObject.Properties['runtimeBlocked']) {
+            foreach ($property in $asset.runtimeBlocked.PSObject.Properties) {
+                if ($runtimeIds -notcontains $property.Name) {
+                    $errors.Add("Asset $($asset.id) blocks unknown runtime $($property.Name)")
+                }
+                elseif ($assetRuntimes -contains $property.Name) {
+                    $errors.Add("Asset $($asset.id) both supports and blocks runtime $($property.Name)")
+                }
+                elseif ([string]::IsNullOrWhiteSpace([string]$property.Value)) {
+                    $errors.Add("Asset $($asset.id) needs a non-empty reason for blocked runtime $($property.Name)")
+                }
+            }
+        }
+        foreach ($runtimeId in @($runtimeIds | Where-Object { $assetRuntimes -notcontains $_ })) {
+            if (-not (Get-AssetRuntimeBlockReason $asset $runtimeId)) {
+                $warnings.Add("Asset $($asset.id) excludes runtime $runtimeId without a runtimeBlocked reason.")
+            }
+        }
+        foreach ($sourceField in @('sourcePath', 'repositoryRoot')) {
+            if ($asset.PSObject.Properties[$sourceField] -and
+                (Test-RuntimeToken ([string]$asset.PSObject.Properties[$sourceField].Value))) {
+                $errors.Add("Asset $($asset.id) must not use the {configRoot} token in $sourceField")
             }
         }
         if ($asset.channel -in @('skills-cli', 'git-allowlist', 'opencode-plugin', 'opencode-mcp', 'npm-framework') -and [string]::IsNullOrWhiteSpace($asset.revision)) {
@@ -2188,7 +2804,7 @@ function Test-Catalog {
             $warnings.Add("Asset $($asset.id) is provenance-only and cannot be applied.")
         }
     }
-    $overlayIds = @($Catalog.overlays.id)
+    $overlayIds = @($Catalog.overlays | ForEach-Object { $_.id })
     foreach ($duplicate in @($overlayIds | Group-Object | Where-Object Count -gt 1)) {
         $errors.Add("Duplicate overlay id: $($duplicate.Name)")
     }
@@ -2225,7 +2841,8 @@ function Test-Catalog {
 function Get-Status {
     param(
         [Parameter(Mandatory = $true)]$Selection,
-        [Parameter(Mandatory = $true)]$Lock
+        [Parameter(Mandatory = $true)]$Lock,
+        [Parameter(Mandatory = $true)]$Catalog
     )
 
     $rows = foreach ($asset in @($Selection.assets)) {
@@ -2239,12 +2856,16 @@ function Get-Status {
         $isolationChanged = $false
         if ($entry -and $entry.channel -eq 'opencode-plugin') {
             try {
-                $pluginConfig = Get-JsonConfig $entry.configPath
-                [string[]]$configuredPlugins = @()
-                if ($pluginConfig.PSObject.Properties['plugin']) {
-                    $configuredPlugins = @($pluginConfig.plugin)
+                $projectConfig = Get-JsonConfig $entry.configPath
+                foreach ($pluginKey in @(Get-LockedPluginConfig $entry)) {
+                    $configuredPlugins = if ($projectConfig.PSObject.Properties[$pluginKey.key]) {
+                        @($projectConfig.PSObject.Properties[$pluginKey.key].Value)
+                    }
+                    else { @() }
+                    if (@($pluginKey.specs | Where-Object { $configuredPlugins -notcontains $_ }).Count -gt 0) {
+                        $pluginChanged = $true
+                    }
                 }
-                $pluginChanged = @($entry.pluginSpecs | Where-Object { $configuredPlugins -notcontains $_ }).Count -gt 0
             }
             catch {
                 $pluginChanged = $true
@@ -2294,15 +2915,19 @@ function Get-Status {
         }
         if ($entry -and $asset.id -eq 'oh-my-opencode-slim') {
             try {
-                $slim8Paths = Get-Slim8Paths $asset ([IO.Path]::GetFullPath($ProjectRoot))
-                $slim8Manifest = Get-Slim8Manifest $slim8Paths.manifestPath
-                $isolationChanged = $null -eq $slim8Manifest -or
-                    @($script:Slim8SkillNames | Where-Object {
-                        Test-Path -LiteralPath (Join-Path $slim8Paths.globalSkillsRoot $_)
-                    }).Count -gt 0
-                foreach ($name in $script:Slim8SkillNames) {
-                    $property = if ($slim8Manifest) { $slim8Manifest.skills.PSObject.Properties[$name] } else { $null }
-                    if (-not $property -or $property.Value.status -ne 'deleted') { $isolationChanged = $true }
+                $slim8Paths = Get-Slim8Paths $asset ([IO.Path]::GetFullPath($ProjectRoot)) $Catalog
+                foreach ($slim8Target in @($slim8Paths.targets)) {
+                    $slim8Manifest = Get-Slim8Manifest $slim8Target.manifestPath
+                    if ($null -eq $slim8Manifest -or
+                        @($script:Slim8SkillNames | Where-Object {
+                            Test-Path -LiteralPath (Join-Path $slim8Target.skillsRoot $_)
+                        }).Count -gt 0) {
+                        $isolationChanged = $true
+                    }
+                    foreach ($name in $script:Slim8SkillNames) {
+                        $property = if ($slim8Manifest) { $slim8Manifest.skills.PSObject.Properties[$name] } else { $null }
+                        if (-not $property -or $property.Value.status -ne 'deleted') { $isolationChanged = $true }
+                    }
                 }
             }
             catch {
@@ -2312,14 +2937,85 @@ function Get-Status {
         if ($entry -and $missing.Count -eq 0 -and $entry.PSObject.Properties['contentHash'] -and $entry.contentHash) {
             $fingerprintChanged = (Get-PathsFingerprint $paths) -ne $entry.contentHash
         }
+        $targetRuntimeIds = @(Get-AssetTargetRuntimes $Selection $asset | ForEach-Object { $_.id })
+        $lockedRuntimeIds = if ($entry) { @(Get-LockedRuntimeIds $entry $Catalog) } else { @() }
+        $missingRuntimes = @($targetRuntimeIds | Where-Object { $lockedRuntimeIds -notcontains $_ })
+        $runtimeChanged = $entry -and $missingRuntimes.Count -gt 0
+        $driftReasons = [Collections.Generic.List[string]]::new()
+        if ($missing.Count -gt 0) { $driftReasons.Add('missing-paths') }
+        if ($fingerprintChanged) { $driftReasons.Add('content') }
+        if ($pluginChanged) { $driftReasons.Add('plugin-config') }
+        if ($mcpChanged) { $driftReasons.Add('mcp-config') }
+        if ($frameworkConfigChanged) { $driftReasons.Add('framework-config') }
+        if ($isolationChanged) { $driftReasons.Add('global-skill-isolation') }
+        if ($runtimeChanged) { $driftReasons.Add('runtime-coverage') }
         [pscustomobject]@{
             id = $asset.id
             kind = 'asset'
             channel = $asset.channel
-            state = if (-not $entry) { 'not-managed' } elseif ($missing.Count -gt 0 -or $fingerprintChanged -or $pluginChanged -or $mcpChanged -or $frameworkConfigChanged -or $isolationChanged) { 'drifted' } else { 'installed' }
+            state = if (-not $entry) { 'not-managed' } elseif ($driftReasons.Count -gt 0) { 'drifted' } else { 'installed' }
+            driftReasons = @($driftReasons)
+            runtimes = $targetRuntimeIds
+            lockedRuntimes = $lockedRuntimeIds
+            missingRuntimes = $missingRuntimes
             missingPaths = $missing
             contentChanged = $fingerprintChanged -or $pluginChanged -or $mcpChanged -or $frameworkConfigChanged -or $isolationChanged
             isolationChanged = $isolationChanged
+        }
+    }
+    return @($rows)
+}
+
+function Get-RuntimeEnvironmentReport {
+    param([Parameter(Mandatory = $true)]$Catalog)
+
+    $table = @(Get-RuntimeTable $Catalog)
+    $rows = foreach ($runtime in $table) {
+        $shared = foreach ($other in @($table | Where-Object { $_.id -ne $runtime.id })) {
+            if ([string]::Equals($runtime.canonicalConfigRoot, $other.canonicalConfigRoot, [StringComparison]::OrdinalIgnoreCase)) {
+                $other.id
+            }
+        }
+        [pscustomobject]@{
+            id = $runtime.id
+            name = $runtime.name
+            command = $runtime.command
+            commandAvailable = $runtime.commandAvailable
+            configRoot = $runtime.configRoot
+            canonicalConfigRoot = $runtime.canonicalConfigRoot
+            configRootExists = $runtime.configRootExists
+            pluginConfigKey = $runtime.pluginConfigKey
+            sharesConfigRootWith = @($shared)
+        }
+    }
+    return @($rows)
+}
+
+function Get-RuntimeSharedPathReport {
+    param([Parameter(Mandatory = $true)]$Catalog)
+
+    $table = @(Get-RuntimeTable $Catalog)
+    $names = @('agent', 'agents', 'commands', 'command', 'skills', 'plugins', 'plugin', '.oh-my-opencode-slim', 'opencode.json')
+    $rows = foreach ($name in $names) {
+        $resolved = foreach ($runtime in $table) {
+            $path = Join-Path $runtime.configRoot $name
+            [pscustomobject]@{
+                runtime = $runtime.id
+                path = $path
+                exists = Test-Path -LiteralPath $path
+                canonicalPath = Get-CanonicalPath $path
+            }
+        }
+        $present = @($resolved | Where-Object exists)
+        if ($present.Count -eq 0) {
+            continue
+        }
+        $canonicalPaths = @($present | ForEach-Object { $_.canonicalPath.ToLowerInvariant() } | Select-Object -Unique)
+        [pscustomobject]@{
+            name = $name
+            shared = $present.Count -gt 1 -and $canonicalPaths.Count -eq 1
+            runtimes = @($present | ForEach-Object { $_.runtime })
+            paths = @($present | ForEach-Object { $_.canonicalPath } | Select-Object -Unique)
         }
     }
     return @($rows)
@@ -2352,7 +3048,23 @@ if ($Action -eq 'profiles') {
 }
 
 if ($Action -eq 'list') {
-    $assetRows = @($catalog.assets | Select-Object id, @{ Name = 'kind'; Expression = { 'asset' } }, type, channel, profiles, scopes, defaultScope, revision, description, recommendation, prerequisites)
+    $runtimeIds = @(Get-RuntimeTable $catalog | ForEach-Object { $_.id })
+    $assetRows = @($catalog.assets | ForEach-Object {
+        $asset = $_
+        $supported = @(Get-AssetRuntimeIds $asset $catalog)
+        $_ | Select-Object id, @{ Name = 'kind'; Expression = { 'asset' } }, type, channel, profiles, scopes, defaultScope, revision,
+            @{ Name = 'runtimes'; Expression = { $supported } },
+            @{ Name = 'unsupportedRuntimes'; Expression = {
+                @($runtimeIds | Where-Object { $supported -notcontains $_ } | ForEach-Object {
+                    $reason = Get-AssetRuntimeBlockReason $asset $_
+                    [pscustomobject]@{
+                        runtime = $_
+                        reason = if ($reason) { $reason } else { "$($asset.id) does not declare support for $_." }
+                    }
+                })
+            } },
+            description, recommendation, prerequisites
+    })
     $overlayRows = @($catalog.overlays | Select-Object id, @{ Name = 'kind'; Expression = { 'overlay' } }, targetKind, targetAssetId, targetName, profiles, scopes, priority)
     Write-Result @($assetRows + $overlayRows)
     return
@@ -2368,12 +3080,12 @@ if ($Action -eq 'slim8-migration') {
         if ([string]::IsNullOrWhiteSpace($BackupPath)) {
             throw 'slim8-migration restore requires -BackupPath.'
         }
-        Write-Result (Invoke-Slim8MigrationRestore $slim8Asset $projectRootResolved $BackupPath)
+        Write-Result (Invoke-Slim8MigrationRestore $slim8Asset $projectRootResolved $BackupPath $catalog)
         return
     }
     $checkout = New-PinnedRepositoryCheckout $slim8Asset
     try {
-        $migrationPlan = Get-Slim8GlobalMigrationPlan $slim8Asset $checkout.repositoryPath $projectRootResolved
+        $migrationPlan = Get-Slim8GlobalMigrationPlan $slim8Asset $checkout.repositoryPath $projectRootResolved $catalog
         if ($MigrationMode -eq 'plan') {
             Write-Result $migrationPlan
         }
@@ -2401,9 +3113,14 @@ if ($Action -eq 'plan') {
     Write-Result ([pscustomobject]@{
         action = 'apply'
         scope = $Scope
+        runtimes = $selection.runtimeIds
         projectRoot = if ($Scope -eq 'project') { $projectRootResolved } else { $null }
         profiles = $selection.profiles
-        assets = @($selection.assets | Select-Object id, type, channel, revision, description, recommendation, prerequisites)
+        assets = @($selection.assets | ForEach-Object {
+            $_ | Select-Object id, type, channel, revision, description, recommendation, prerequisites,
+                @{ Name = 'runtimes'; Expression = { @(Get-AssetTargetRuntimes $selection $_ | ForEach-Object { $_.id }) } }
+        })
+        blocked = @($selection.blocked)
         overlays = @($selection.overlays | ForEach-Object {
             [pscustomobject]@{
                 id = $_.id
@@ -2418,18 +3135,49 @@ if ($Action -eq 'plan') {
 }
 
 if ($Action -eq 'status') {
-    Write-Result @(@(Get-Status $selection $lock) + @(Get-OverlayStatus $selection $lock))
+    $unsupportedRows = @($selection.blocked | ForEach-Object {
+        [pscustomobject]@{
+            id = $_.id
+            kind = 'asset'
+            channel = $_.channel
+            state = 'unsupported'
+            runtimes = @()
+            lockedRuntimes = @()
+            missingRuntimes = @()
+            missingPaths = @()
+            contentChanged = $false
+            isolationChanged = $false
+            blocked = @($_.blocked)
+        }
+    })
+    Write-Result @(@(Get-Status $selection $lock $catalog) + $unsupportedRows + @(Get-OverlayStatus $selection $lock))
     return
 }
 
 if ($Action -eq 'doctor') {
-    $status = @(@(Get-Status $selection $lock) + @(Get-OverlayStatus $selection $lock))
+    $status = @(@(Get-Status $selection $lock $catalog) + @(Get-OverlayStatus $selection $lock))
     $drift = @($status | Where-Object state -eq 'drifted')
+    $runtimeReport = @(Get-RuntimeEnvironmentReport $catalog)
+    $doctorWarnings = [Collections.Generic.List[string]]::new()
+    foreach ($warning in @($catalogCheck.warnings)) { $doctorWarnings.Add([string]$warning) }
+    foreach ($runtime in @($runtimeReport | Where-Object { -not $_.configRootExists })) {
+        $doctorWarnings.Add("Runtime $($runtime.id) config root does not exist: $($runtime.configRoot)")
+    }
+    foreach ($runtime in @($runtimeReport | Where-Object { -not $_.commandAvailable })) {
+        $doctorWarnings.Add("Runtime $($runtime.id) command is not on PATH: $($runtime.command)")
+    }
+    foreach ($blockedAsset in @($selection.blocked)) {
+        $doctorWarnings.Add("Asset $($blockedAsset.id) supports none of the selected runtimes: $(Get-RuntimeBlockSummary $blockedAsset.blocked)")
+    }
     $result = [pscustomobject]@{
         valid = $catalogCheck.errors.Count -eq 0 -and $drift.Count -eq 0
         errors = $catalogCheck.errors
-        warnings = $catalogCheck.warnings
+        warnings = @($doctorWarnings)
         drift = $drift
+        selectedRuntimes = $selection.runtimeIds
+        runtimes = $runtimeReport
+        sharedPaths = @(Get-RuntimeSharedPathReport $catalog)
+        blocked = @($selection.blocked)
         catalog = $CatalogPath
         lock = $lockPath
     }
@@ -2490,6 +3238,7 @@ if ($Action -eq 'remove') {
                 assetIds = @($manifest.assets | Where-Object { $selectedIds -notcontains $_ })
                 exclude = @($manifestExclude | Select-Object -Unique)
                 overlayIds = @($manifest.overlays | Where-Object { $selectedOverlayIds -notcontains $_ })
+                runtimeIds = @($manifest.runtimes)
             })
         }
     }
@@ -2533,27 +3282,35 @@ foreach ($entry in @($lock.assets)) {
 }
 
 foreach ($asset in @($selection.assets)) {
-    Write-Host "Applying asset: $($asset.id) [$($asset.channel)]"
+    $targetRuntimes = @(Get-AssetTargetRuntimes $selection $asset)
+    $targetRuntimeIds = @($targetRuntimes | ForEach-Object { $_.id })
+    Write-Host "Applying asset: $($asset.id) [$($asset.channel)] -> runtimes: $($targetRuntimeIds -join ', ')"
     $entry = switch ($asset.channel) {
         'skills-cli' { Install-SkillsCliAsset $catalog $asset $Scope $projectRootResolved; break }
-        'copy-template' { Install-CopyTemplateAsset $asset $Scope $projectRootResolved $lock; break }
+        'copy-template' { Install-CopyTemplateAsset $asset $Scope $projectRootResolved $lock $targetRuntimes $catalog; break }
         'junction' { Install-JunctionAsset $asset $projectRootResolved $lock; break }
         'git-allowlist' { Install-GitAllowlistAsset $asset $projectRootResolved $lock; break }
-        'opencode-plugin' { Install-OpenCodePluginAsset $asset $Scope $projectRootResolved $lock; break }
+        'opencode-plugin' { Install-OpenCodePluginAsset $asset $Scope $projectRootResolved $lock $targetRuntimes $catalog; break }
         'opencode-mcp' { Install-OpenCodeMcpAsset $asset $Scope $projectRootResolved $lock; break }
         'npm-framework' { Install-NpmFrameworkAsset $asset $Scope $projectRootResolved $lock; break }
         'claude-marketplace' { Install-MarketplaceAsset $catalog $asset; break }
         'provenance-only' { throw "Asset $($asset.id) is provenance-only and cannot be applied." }
         default { throw "Unsupported asset channel: $($asset.channel)" }
     }
+    $entry | Add-Member -NotePropertyName runtimes -NotePropertyValue $targetRuntimeIds -Force
     $entry | Add-Member -NotePropertyName contentHash -NotePropertyValue (Get-PathsFingerprint @($entry.installedPaths)) -Force
     $updatedEntries.Add($entry)
 }
 
 $overlayResult = Install-SelectedOverlays $catalog @($selection.overlays) $projectRootResolved $lock
 
+$runtimeRoots = [pscustomobject]@{}
+foreach ($runtime in @(Get-RuntimeTable $catalog)) {
+    Set-ObjectProperty $runtimeRoots $runtime.id $runtime.configRoot
+}
 $lock.scope = $Scope
 $lock.projectRoot = if ($Scope -eq 'project') { $projectRootResolved } else { $null }
+$lock.runtimeRoots = $runtimeRoots
 $lock.profiles = @($selection.profiles)
 $lock.assets = @($updatedEntries)
 $lock.overlays = @($overlayResult.overlays)
@@ -2565,6 +3322,10 @@ Write-Result ([pscustomobject]@{
     profiles = $selection.profiles
     overlays = @($selection.overlays | ForEach-Object { $_.id })
     scope = $Scope
+    runtimes = $selection.runtimeIds
+    skipped = @($selection.blocked | ForEach-Object {
+        [pscustomobject]@{ id = $_.id; reason = Get-RuntimeBlockSummary $_.blocked }
+    })
     lockPath = $lockPath
 })
 }

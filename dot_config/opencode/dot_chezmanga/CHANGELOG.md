@@ -1,5 +1,112 @@
 # OpenCode Chezmoi Changelog
 
+## 2026-09-22T11:29:16+08:00 - Give the Asset Manager a V1/V2 runtime dimension
+
+- Status: Completed
+- Machine: TC-TSENG
+- Platform: Windows 10.0.26200 amd64
+- Scope: `scripts/opencode-assets.ps1`, `config/external-assets.json`,
+  `config/skills-registry.md`, and the repository-root
+  `run_onchange_after_install-opencode-external-assets.ps1.tmpl`
+- Summary: The Asset Manager now installs for OpenCode V1, V2, or both, and
+  refuses assets whose payload cannot run on a selected runtime instead of
+  silently installing a broken one. Catalog schema moved to 5, the lock to 3,
+  and the project manifest to 3.
+- Important records:
+  - New `runtimes` catalog block declares each runtime's command, config root,
+    and plugin config key. `{configRoot}` in a target path is expanded per
+    runtime. `OPENCODE_ASSETS_V1_CONFIG_ROOT` and
+    `OPENCODE_ASSETS_V2_CONFIG_ROOT` override the root on a machine that does
+    not isolate V2.
+  - `Get-CanonicalPath` resolves every path segment through reparse points. When
+    two runtimes resolve one target to the same real path, the manager installs
+    once and records both runtime IDs. `agent/`, `commands/`, `skills/`, and
+    `.oh-my-opencode-slim/` are junctions, so they install once; `plugins/` and
+    `opencode.json` are separate, so they install once per runtime. Narrowing
+    the runtime set now deletes the orphaned copy instead of leaking it.
+  - `Set-ManagedPluginSpec` no longer refuses a config that already has the
+    V2-native `plugins` key. It writes the spec under each selected runtime's own
+    key, preserves hand-written `{ package, options }` entries, and strips the
+    spec from a deselected key. The lock records `pluginConfig` as key/spec
+    pairs; legacy `pluginSpecs` entries are read as the V1 `plugin` key.
+  - Slim8 global tombstones are written for every known runtime config root, not
+    only the selected ones, because a global copy in any root would shadow the
+    project skills. Backup metadata moved to schema 2 with one record per target;
+    restore still accepts schema 1.
+  - Per-asset `runtimes` and `runtimeBlocked` drive the refusal. Default is every
+    known runtime. `apply` throws unless `-SkipUnsupported` is passed; `list`,
+    `plan`, `status`, and `doctor` report the reason; the TUI renders the item as
+    `[-]` and cannot select it. A new TUI page picks runtimes after scope.
+  - Runtime compatibility was verified against upstream code, not assumed:
+    `oh-my-opencode-slim@2.2.22` exports both `server` and `setup`;
+    `@dietrichgebert/ponytail` 4.9.0 and 4.10.0 default-export a V1 plugin
+    function; `@opengsd/gsd-core` 1.10.0 and 1.14.0 deploy
+    `.opencode/plugins/gsd-core.js`, which exports `{ server }` only. `gsd` and
+    `ponytail` are now declared V1-only with those reasons.
+  - V2 normalizes supported V1 config, so `mcp.<name>` and `permission.<key>`
+    stay in V1 shape and work on both runtimes. Only the plugin key needed to
+    diverge.
+  - Fixed two latent bugs found while testing: `Test-Catalog` threw on an empty
+    `overlays` array, and the removal manifest rebuild lacked `runtimeIds`.
+  - `doctor` gained a runtime report, a shared-path report that proves which
+    junctions really collapse, and `driftReasons` on each row.
+  - The global lock path now comes from `managerPaths.globalLock` instead of a
+    hardcoded V1 path. It stays one file, with runtime ownership per entry.
+- Portability: All catalog paths stay `~`-relative. The V2 root matches the
+  convention already hardcoded in `run_onchange_after_setup-opencode-v2.ps1.tmpl`
+  and is overridable by environment variable for other machines.
+- Chezmoi: Updated four existing managed files and applied the three under
+  `dot_config/opencode`. The lock files and `.agents/skills` payloads remain
+  outside chezmoi by design.
+- Verification: `pwsh` parsed the script cleanly and `chezmoi status` for the
+  three applied targets is clean and LF-only. Throwaway catalogs in `%TEMP%`
+  exercised shared-target dedupe, per-runtime splitting, stale-path pruning on
+  narrowing, the explicit-asset refusal, `status` reporting `unsupported`, the
+  plugin key matrix across v1/v2/v1+v2 transitions with a hand-written V2 entry
+  present, and removal cleanup; all probe fixtures were deleted afterwards.
+  `slim8-migration -MigrationMode plan` against the pinned revision reported one
+  deduplicated target covering both runtimes with tombstones ready.
+  `apply -Scope global -Profiles core -Runtimes v1,v2` re-recorded the 16 core
+  assets, and `doctor -Scope global` now reports `valid=True` with zero drift.
+  The interactive TUI was not launched. The two legacy `claude-marketplace`
+  entries still carry no runtime IDs and will show `runtime-coverage` drift until
+  the `claude` profile is re-applied.
+  `run_onchange_after_install-opencode-external-assets.ps1` remains pending in
+  `chezmoi status`; its only effect is the global apply already performed.
+
+## 2026-09-22T11:05:00+08:00 - Drop three v1 plugins that builtins or skills already cover
+
+- Status: Completed
+- Machine: TC-TSENG
+- Platform: Microsoft Windows 10.0.26200 / AMD64
+- Scope: `opencode.json`
+- Summary: Removed `opencode-large-image-optimizer`, `opencode-chrome-devtools`, and `opencode-command-inject` from the v1 `plugin` array, and added an `attachment.image` block so image downscaling keeps the behavior the removed plugin provided.
+- Important records:
+  - `opencode-large-image-optimizer` duplicated a builtin. V1 already resizes image attachments through `attachment.image`, and v2 renamed the same settings to `media.image`. The plugin targeted 1568px, Anthropic's internal downscale target, while the builtin defaults to 2000px, so the new block pins 1568px to preserve behavior. The builtin covers prompt attachments and the `read` tool; images returned by MCP or other plugin tools are the one case the plugin also caught.
+  - `opencode-chrome-devtools` shipped only 7 basic CDP tools. A string scan of its bundle found no `Performance.`, `Network.enable`, `Runtime.consoleAPICalled`, `Profiler.`, or `Tracing.` usage, so it never provided the DevTools capabilities its name suggests. The `playwright`, `playwright-cli`, `playwright-trace`, and `agent-browser` skills already cover v1 browser work. Its only unique ability was attaching to an arbitrary external CDP endpoint, such as an Electron app.
+  - `opencode-command-inject` auto-generated `/make:<target>`, `/<runner>:<script>`, and `/skill:<name>` commands. Skills and argument substitution are native in both versions, so only Makefile and package-script discovery was lost. Restore it by putting `"opencode-command-inject@1.3.0"` back in the array.
+  - None of the three can run in v2 anyway: all are v1 implementations with no `Plugin.define` or `setup()` export.
+- Portability: The `attachment.image` block contains only numeric limits. No machine path was added.
+- Chezmoi: Updated `dot_config/opencode/opencode.json.tmpl`.
+- Verification: `chezmoi diff` showed only the three removals, the removal comment, and the new `attachment` block; `chezmoi apply` and a follow-up scoped `chezmoi status` both exited clean. The file keeps its existing JSONC comment style. Runtime behavior is unverified until v1 restarts.
+
+## 2026-09-22T10:12:00+08:00 - Correct the V1 and V2 boundaries in AGENTS.md
+
+- Status: Completed
+- Machine: TC-TSENG
+- Platform: Microsoft Windows 10.0.26200 / AMD64
+- Scope: `AGENTS.md`
+- Summary: Replaced the "V1 and V2 boundaries" section with the layout that the two installations actually use. The old text claimed that V1 reads `command/` and V2 reads `commands/`, and that the two versions share one configuration tree.
+- Important records:
+  - `~/.config/opencode/command/` does not exist. Both versions read `commands/`. V1 documents plural subdirectory names with singular names kept for backwards compatibility, so the old rule had no basis.
+  - The versions do not share one configuration tree. V1 uses `~/.config/opencode`; V2 uses `~/.config/opencodev2/opencode`, because `opencode2.cmd` sets `XDG_CONFIG_HOME` to `~/.config/opencodev2`. Only `agent/`, `commands/`, `skills/`, `.oh-my-opencode-slim/`, and `AGENTS.md` are linked back to the v1 tree.
+  - `opencode.json`, `plugins/`, terminal preferences, and data directories are separate per version. V1 uses the singular `plugin` array and `tui.json`; V2 uses the plural `plugins` array and `cli.json`. `tools/` reaches V1 only, because V2 removed file-based custom tools.
+  - Verified against the running v2 service rather than documentation alone: `opencode2 api get /api/agent` returns path-derived IDs such as `selfmade/subagents/CodeInvestigator` while the v2 `opencode.json` defines no `agents`, which proves v2 loads the shared `agent/` directory. `api get /api/command` matches `~/.config/opencode/commands/` exactly.
+  - The path-derived agent ID rule and the shared-`skills/` installation rule were correct and were kept.
+- Portability: The section names `~/.config/opencodev2` and `~/.opencode-v2`, which exist only on this machine, inside a paragraph that already declares them machine-specific. No other file gained a machine path.
+- Chezmoi: Updated `dot_config/opencode/AGENTS.md.tmpl` and applied it.
+- Verification: `chezmoi diff` showed only the intended section; `chezmoi apply` and a follow-up scoped `chezmoi status` both exited clean. The template remains LF-only.
+
 ## 2026-09-21T22:49:19+08:00 - Templatize MCP server paths and repair them on this machine
 
 - Status: Completed

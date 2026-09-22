@@ -143,13 +143,35 @@ All of the following are a coherent but non-universal learning catalogue. They a
 
 Project repositories may commit `.opencode/assets.json`; the generated `.opencode/assets.lock.json` records only manager-owned paths and pinned revisions. The manager never stores credentials and never runs a repository-provided installer.
 
+### Runtime Targeting
+
+Catalog schema 5 adds a runtime dimension next to scope. `-Runtimes v1`, `-Runtimes v2`, or `-Runtimes v1,v2` selects the target runtimes; the default is `defaultRuntimes` in the catalog. The TUI asks for runtimes right after scope.
+
+| Behavior | Rule |
+| --- | --- |
+| Runtime roots | `runtimes.<id>.configRoot` resolves the `{configRoot}` token in target paths. `OPENCODE_ASSETS_V1_CONFIG_ROOT` and `OPENCODE_ASSETS_V2_CONFIG_ROOT` override it per machine. |
+| Shared targets | Target paths are canonicalized through reparse points. When two runtimes resolve to one real path, the manager installs once and records both runtime IDs. `agent/`, `commands/`, `skills/`, and `.oh-my-opencode-slim/` are junctions, so they install once. |
+| Split targets | `plugins/` and `opencode.json` are separate per runtime, so those targets install once per runtime. |
+| Plugin config | The spec is written under each selected runtime's own key: `plugin` for V1, `plugins` for V2. Hand-written V2 `{ package, options }` entries are preserved. Narrowing the runtime set removes the spec from the deselected key. |
+| Unsupported assets | `runtimes` and `runtimeBlocked` declare support. `list`, `plan`, `status`, and `doctor` report the blocked runtime and its reason; the TUI renders the item as `[-]` and cannot select it. `apply` refuses unless `-SkipUnsupported` is passed. |
+| Global skill isolation | Slim8 tombstones are written for every known runtime config root, not only the selected ones, because a global copy in any root would shadow the project skills. |
+| Lock | One global lock (`managerPaths.globalLock`) and one project lock. Each entry records the runtime IDs it serves. Schema 1 and 2 entries are attributed to V1 and show `runtime-coverage` drift until re-applied. |
+
+Runtime compatibility is a property of the payload, not of the config key. V2 reads normalized V1 config, so V1-shaped `mcp.<name>` and `permission.<key>` entries keep working, but a V1 plugin implementation does not run in V2.
+
+| Asset | V1 | V2 | Evidence |
+| --- | --- | --- | --- |
+| `oh-my-opencode-slim@2.2.22` | yes | yes | Default export carries both `server` (V1) and `setup` (V2). |
+| `@dietrichgebert/ponytail@4.9.0` | yes | no | Entrypoint default-exports a V1 plugin function with no `id` or `setup`; unchanged in 4.10.0. |
+| `@opengsd/gsd-core@1.10.0` | yes | no | The generated file manifest deploys `.opencode/plugins/gsd-core.js`, which exports `{ server }` only; unchanged in 1.14.0. |
+
 ### Optional Frameworks
 
 | Profile | Package | Managed behavior |
 | --- | --- | --- |
-| `oh-my-opencode-slim` | `oh-my-opencode-slim@2.2.22` | Adds only the pinned plugin spec to project `.opencode/opencode.json`; the upstream global installer is not run. The package is dual-host (V1 `server()` and V2 `setup()`), so the same project config works under `opencode` (>=1.18.29) and `opencode2` (>=2.0.7). |
-| `gsd` | `@opengsd/gsd-core@1.10.0` | Runs the pinned official OpenCode installer with the `standard` profile and an isolated HOME; deploys only its generated file manifest and safely merges its project permission/MCP entries. |
-| `ponytail` | `@dietrichgebert/ponytail@4.9.0` | Adds only the pinned plugin spec to project `.opencode/opencode.json`. |
+| `oh-my-opencode-slim` | `oh-my-opencode-slim@2.2.22` | Adds only the pinned plugin spec to project `.opencode/opencode.json`; the upstream global installer is not run. The package is dual-host (V1 `server()` and V2 `setup()`), so the manager writes the spec under `plugin` for `opencode` (>=1.18.29) and under `plugins` for `opencode2` (>=2.0.7). |
+| `gsd` | `@opengsd/gsd-core@1.10.0` | Runs the pinned official OpenCode installer with the `standard` profile and an isolated HOME; deploys only its generated file manifest and safely merges its project permission/MCP entries. V1 only. |
+| `ponytail` | `@dietrichgebert/ponytail@4.9.0` | Adds only the pinned plugin spec to project `.opencode/opencode.json`. V1 only. |
 
 These profiles are project-only. `oh-my-opencode-slim` and `ponytail` may coexist; `gsd` remains mutually exclusive with both. Network credentials and framework-generated project planning data are never recorded in the asset catalog.
 

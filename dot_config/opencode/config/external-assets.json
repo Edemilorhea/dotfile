@@ -1,7 +1,30 @@
 {
-  "schemaVersion": 4,
-  "managerVersion": "1.7.0",
+  "schemaVersion": 5,
+  "managerVersion": "2.0.0",
   "defaultProfiles": ["core"],
+  "defaultRuntimes": ["v1", "v2"],
+  "managerPaths": {
+    "globalLock": "~/.config/opencode/config/assets.lock.json"
+  },
+  "runtimes": {
+    "v1": {
+      "name": "OpenCode V1",
+      "command": "opencode",
+      "configRoot": "~/.config/opencode",
+      "configRootEnv": "OPENCODE_ASSETS_V1_CONFIG_ROOT",
+      "pluginConfigKey": "plugin",
+      "capabilities": ["plugin-api-v1", "custom-tools", "lsp"]
+    },
+    "v2": {
+      "name": "OpenCode V2",
+      "command": "opencode2",
+      "configRoot": "~/.config/opencodev2/opencode",
+      "configRootEnv": "OPENCODE_ASSETS_V2_CONFIG_ROOT",
+      "pluginConfigKey": "plugins",
+      "capabilities": ["plugin-api-v2"],
+      "notes": "This machine isolates V2 through opencode2.cmd, which sets XDG_CONFIG_HOME to ~/.config/opencodev2. agent/, commands/, skills/, and .oh-my-opencode-slim/ are junctions back to the V1 root, so the manager resolves reparse points and installs a shared target once for both runtimes. Set OPENCODE_ASSETS_V2_CONFIG_ROOT on a machine that does not isolate V2."
+    }
+  },
   "installers": {
     "skillsCli": {
       "package": "skills",
@@ -334,10 +357,10 @@
       "scopes": ["global"],
       "defaultScope": "global",
       "sourcePath": "~/.config/opencode/config/assets/agents/research-curator/ResearchCurator.md",
-      "targetPath": "~/.config/opencode/agent/selfmade/subagents/learning/ResearchCurator.md",
+      "targetPath": "{configRoot}/agent/selfmade/subagents/learning/ResearchCurator.md",
       "upstreamRepository": "https://github.com/stanford-oval/storm.git",
       "upstreamRevision": "fb951af7744dab086e34962e9bc6fe878e145f83",
-      "notes": "Methodology-only STORM and Co-STORM adaptation; no knowledge-storm Python runtime, credentials, or external service is installed."
+      "notes": "Methodology-only STORM and Co-STORM adaptation; no knowledge-storm Python runtime, credentials, or external service is installed. V1 honors the frontmatter name; V2 derives the agent ID from the path, so V2 exposes it as selfmade/subagents/learning/ResearchCurator."
     },
     {
       "id": "eli5-explainer",
@@ -554,12 +577,13 @@
       ],
       "bundledSkillsPath": "src/skills",
       "projectSkillsPath": ".opencode/skills",
-      "globalSkillsPath": "~/.config/opencode/skills",
-      "globalSkillsManifestPath": "~/.config/opencode/.oh-my-opencode-slim/skills-manifest.json",
+      "globalSkillsPath": "{configRoot}/skills",
+      "globalSkillsManifestPath": "{configRoot}/.oh-my-opencode-slim/skills-manifest.json",
       "globalSkillsBackupPath": "~/.local/state/opencode/slim8-skills-isolation-backups",
       "configPath": ".opencode/opencode.json",
       "conflictsWith": ["gsd"],
-      "notes": "Dual-host package: the default export carries server() for OpenCode V1 (>=1.18.29) and setup() for OpenCode V2 (>=2.0.7), so one plugin spec serves both runtimes. The Asset Manager installs the pinned bundled skills only in the selected project and writes upstream-supported global deletion tombstones before the plugin can start; the V2 sandbox junctions ~/.config/opencode/.oh-my-opencode-slim so both hosts read the same tombstones."
+      "runtimes": ["v1", "v2"],
+      "notes": "Dual-host package verified at 2.2.22: the default export carries server() for OpenCode V1 (>=1.18.29) and setup() for OpenCode V2 (>=2.0.7), so one package serves both runtimes. The Asset Manager writes the spec to each selected runtime's plugin config key and installs the pinned bundled skills only in the selected project. Global deletion tombstones are written for every known runtime config root, deduplicated by reparse-point resolution, so an isolated V2 root cannot shadow the project copies."
     },
     {
       "id": "adversarial-review-pack",
@@ -619,6 +643,10 @@
         "mcpKey": "gsd"
       },
       "conflictsWith": ["oh-my-opencode-slim", "ponytail"],
+      "runtimes": ["v1"],
+      "runtimeBlocked": {
+        "v2": "gsd-file-manifest.json deploys .opencode/plugins/gsd-core.js, which exports { server: GsdCorePlugin } and implements only the V1 plugin API. V2 discovers .opencode/plugins/ and cannot load it, so every guard the adapter spawns becomes a silent no-op. Verified against 1.10.0 and the current 1.14.0 release."
+      },
       "notes": "The pinned official installer runs with an isolated HOME in a temporary project. Only its generated file manifest and explicit metadata are deployed; project OpenCode permissions and MCP config are merged by the Asset Manager."
     },
     {
@@ -635,6 +663,10 @@
       "pluginSpec": "@dietrichgebert/ponytail@4.9.0",
       "configPath": ".opencode/opencode.json",
       "conflictsWith": ["gsd"],
+      "runtimes": ["v1"],
+      "runtimeBlocked": {
+        "v2": "The package entrypoint .opencode/plugins/ponytail.mjs default-exports a V1 plugin function (async ({ client }) => ...) with no id or setup(ctx). V1 plugin implementations do not run in V2. Verified against 4.9.0 and the current 4.10.0 release."
+      },
       "notes": "The Asset Manager adds only the pinned OpenCode plugin spec."
     },
     {
