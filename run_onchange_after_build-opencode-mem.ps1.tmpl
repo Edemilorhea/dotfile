@@ -1,26 +1,49 @@
 {{- if eq .chezmoi.os "windows" -}}
-# package-hash: {{ include "dot_config/opencode/plugins/opencode-mem/package.json" | sha256sum }}
-# lock-hash: {{ include "dot_config/opencode/plugins/opencode-mem/bun.lock" | sha256sum }}
-# local-patch-revision: 2026-09-04-embedding-loader-1
+# opencode-mem is a third-party repository, so chezmoi pins a commit instead of
+# tracking its sources. Change $commit to upgrade; chezmoi reruns this script.
+# The clone lives outside both OpenCode config roots and serves V1 and V2.
 $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version Latest
 
-$plugin = Join-Path $env:USERPROFILE '.config\opencode\plugins\opencode-mem'
-if (-not (Test-Path -LiteralPath $plugin -PathType Container)) {
-    throw "OpenCode memory plugin source not found: $plugin"
+$repo = 'https://github.com/tickernelz/opencode-mem.git'
+$commit = 'cec1de4834567f9fca9970942712ab7559ede142'
+$plugin = Join-Path $env:USERPROFILE '.local\share\opencode-plugins\opencode-mem'
+
+function Invoke-Checked([string]$label, [scriptblock]$command) {
+    & $command
+    if ($LASTEXITCODE -ne 0) {
+        throw "opencode-mem $label failed (exit code $LASTEXITCODE)"
+    }
 }
+
+if (-not (Test-Path -LiteralPath (Join-Path $plugin '.git') -PathType Container)) {
+    if (Test-Path -LiteralPath $plugin) {
+        throw "opencode-mem path exists but is not a git clone: $plugin"
+    }
+    Invoke-Checked 'clone' { git clone --quiet $repo $plugin }
+}
+
+$dirty = git -C $plugin status --porcelain --untracked-files=no
+if ($dirty) {
+    throw "opencode-mem clone has local changes; resolve them first: $plugin"
+}
+
+git -C $plugin cat-file -e "$commit^{commit}" 2>$null
+if ($LASTEXITCODE -ne 0) {
+    Invoke-Checked 'fetch' { git -C $plugin fetch --quiet origin }
+}
+Invoke-Checked 'checkout' { git -C $plugin -c advice.detachedHead=false checkout --quiet $commit }
 
 Push-Location $plugin
 try {
-    & bun install --ignore-scripts --frozen-lockfile
-    if ($LASTEXITCODE -ne 0) {
-        throw "OpenCode memory dependency install failed (exit code $LASTEXITCODE)"
+    Invoke-Checked 'dependency install' { bun install --ignore-scripts --frozen-lockfile }
+    Push-Location web
+    try {
+        Invoke-Checked 'web dependency install' { bun install --ignore-scripts --frozen-lockfile }
+    } finally {
+        Pop-Location
     }
-
-    & bun run build
-    if ($LASTEXITCODE -ne 0) {
-        throw "OpenCode memory build failed (exit code $LASTEXITCODE)"
-    }
+    Invoke-Checked 'build' { bun run build }
 } finally {
     Pop-Location
 }

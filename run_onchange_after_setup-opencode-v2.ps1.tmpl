@@ -4,7 +4,7 @@ $ErrorActionPreference = 'Stop'
 # OpenCode v2 sandbox. Runs beside the v1 install that owns ~/.config/opencode
 # and ~/.local/share/opencode. Bump $version to reinstall the binary: chezmoi
 # reruns this script whenever its rendered content changes.
-$version = '2.0.11'
+$version = '2.0.13'
 
 $root = Join-Path $HOME '.opencode-v2'
 $binDir = Join-Path $root 'bin'
@@ -14,6 +14,13 @@ $v1Config = Join-Path $HOME '.config/opencode'
 # Configuration lives under ~/.config so chezmoi manages every OpenCode config
 # in one place. Only the binary and runtime state stay in ~/.opencode-v2.
 $v2ConfigHome = Join-Path $HOME '.config/opencodev2'
+
+# RTK (Rust Token Killer) shrinks verbose command output before it reaches the
+# model. Bump $rtkVersion to upgrade; the same rerun rule as $version applies.
+$rtkVersion = '0.49.0'
+$rtkBinDir = Join-Path $HOME '.local/bin'
+$rtkExe = Join-Path $rtkBinDir 'rtk.exe'
+$rtkStamp = Join-Path $rtkBinDir '.rtk-version'
 
 function Get-Target {
     $arch = if ([System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture -eq 'Arm64') { 'arm64' } else { 'x64' }
@@ -47,13 +54,60 @@ function Install-Binary {
         # live processes keep their mapped image and the next launch gets $version.
         $previous = "$exe.previous"
         Remove-Item -LiteralPath $previous -Force -ErrorAction SilentlyContinue
-        if (Test-Path -LiteralPath $exe) { Rename-Item -LiteralPath $exe -NewName (Split-Path -Leaf $previous) }
+        if (Test-Path -LiteralPath $exe) {
+            try {
+                Rename-Item -LiteralPath $exe -NewName (Split-Path -Leaf $previous)
+            }
+            catch {
+                # A previous backup may still be mapped by an older client.
+                # Keep it and use a versioned backup for this replacement.
+                $previous = "$exe.previous.$version"
+                Remove-Item -LiteralPath $previous -Force -ErrorAction SilentlyContinue
+                Rename-Item -LiteralPath $exe -NewName (Split-Path -Leaf $previous)
+            }
+        }
         Move-Item (Join-Path $work 'package/bin/opencode.exe') $exe -Force
         Set-Content -LiteralPath $stamp -Value $version -NoNewline
         Write-Host "[OpenCode v2] Installed $version to $exe"
         if (Get-Process opencode -ErrorAction SilentlyContinue) {
             Write-Host "[OpenCode v2] Running opencode processes still use the previous binary. Run 'opencode2 service restart' when convenient."
         }
+    }
+    finally {
+        Remove-Item -Recurse -Force $work -ErrorAction SilentlyContinue
+    }
+}
+
+function Install-Rtk {
+    # Deliberately not added to PATH. opencode/plugins/rtk/index.ts resolves
+    # this exact path and injects the directory into the PATH of the one shell
+    # it rewrites, so nothing else on the machine has to know rtk exists and
+    # removing it never requires an environment-variable edit.
+    $asset = 'rtk-x86_64-pc-windows-msvc.zip'
+    $base = "https://github.com/rtk-ai/rtk/releases/download/v$rtkVersion"
+    $work = Join-Path ([System.IO.Path]::GetTempPath()) "rtk-setup-$PID"
+
+    Write-Host "[OpenCode v2] Downloading rtk $rtkVersion"
+    New-Item -ItemType Directory -Path $work -Force | Out-Null
+    try {
+        $zip = Join-Path $work $asset
+        Invoke-WebRequest -Uri "$base/$asset" -OutFile $zip -UseBasicParsing
+
+        # checksums.txt holds one "<sha256>  <asset>" line per artifact, so a
+        # version bump stays a one-line edit instead of a hardcoded hash.
+        $checksums = Join-Path $work 'checksums.txt'
+        Invoke-WebRequest -Uri "$base/checksums.txt" -OutFile $checksums -UseBasicParsing
+        $line = Get-Content -LiteralPath $checksums | Where-Object { $_ -match "\s$([regex]::Escape($asset))\s*$" } | Select-Object -First 1
+        if (-not $line) { throw "checksums.txt has no entry for $asset" }
+        $expected = ($line -split '\s+')[0]
+        $actual = (Get-FileHash -LiteralPath $zip -Algorithm SHA256).Hash
+        if ($actual -ne $expected) { throw "sha256 mismatch for ${asset}: expected $expected, got $actual" }
+
+        Expand-Archive -LiteralPath $zip -DestinationPath $work -Force
+        New-Item -ItemType Directory -Path $rtkBinDir -Force | Out-Null
+        Move-Item (Join-Path $work 'rtk.exe') $rtkExe -Force
+        Set-Content -LiteralPath $rtkStamp -Value $rtkVersion -NoNewline
+        Write-Host "[OpenCode v2] Installed rtk $rtkVersion to $rtkExe"
     }
     finally {
         Remove-Item -Recurse -Force $work -ErrorAction SilentlyContinue
@@ -118,8 +172,9 @@ function Set-FileLink {
 
 Write-Host '[OpenCode v2] Starting sandbox setup...'
 
-# Runtime directories. Only xdg/config is managed by chezmoi; the rest holds the
-# database, credentials, and cache, and is excluded in .chezmoiignore.
+# Runtime directories. XDG_CONFIG_HOME points at ~/.config/opencodev2, not here,
+# so xdg/ holds only the database, credentials, and cache. All of xdg/** is
+# excluded in .chezmoiignore.
 foreach ($name in 'xdg/data', 'xdg/state', 'xdg/cache') {
     New-Item -ItemType Directory -Path (Join-Path $root $name) -Force | Out-Null
 }
@@ -130,6 +185,16 @@ if (-not (Test-Path -LiteralPath $exe) -or $installed -ne $version) {
     Install-Binary
 } else {
     Write-Host "[OpenCode v2] Binary $version already installed"
+}
+
+$rtkInstalled = if (Test-Path -LiteralPath $rtkStamp) { (Get-Content -LiteralPath $rtkStamp -Raw).Trim() } else { '' }
+if (-not (Test-Path -LiteralPath $rtkExe) -or $rtkInstalled -ne $rtkVersion) {
+    # rtk only makes output smaller, so a download failure must not fail the
+    # setup. The plugin no-ops while the binary is missing.
+    try { Install-Rtk }
+    catch { Write-Warning "[OpenCode v2] rtk $rtkVersion install failed: $($_.Exception.Message)" }
+} else {
+    Write-Host "[OpenCode v2] rtk $rtkVersion already installed"
 }
 
 Add-UserPath -Entry $root

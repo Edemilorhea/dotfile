@@ -69,13 +69,20 @@ Shared instructions for coding agents.
 
 ## V1 and V2 boundaries
 
-This machine runs OpenCode V1 as `opencode` and V2 as `opencode2`. They share one
-configuration tree through junctions, so respect these boundaries.
+This machine runs OpenCode V1 as `opencode` and V2 as `opencode2`. Each version
+has its own config root. They share only the asset directories listed below,
+through junctions. Respect these boundaries.
 
-- V1 reads `command/` and V2 reads `commands/`. Add a new V2 command to `commands/` only, and never assume an edit reaches both.
+- V1 uses `~/.config/opencode` as its config root. V2 uses `~/.config/opencodev2/opencode`, because `opencode2.cmd` sets `XDG_CONFIG_HOME` to `~/.config/opencodev2`.
+- `agent/`, `commands/`, and `skills/` are shared. Both versions read the copies under `~/.config/opencode`, so one edit reaches both. Use these exact directory names; do not create a parallel `agents/`, `command/`, or `skill/` directory.
+- `opencode.json` is not shared. V1 reads `~/.config/opencode/opencode.json` and uses the singular `plugin` array. V2 reads `~/.config/opencodev2/opencode/opencode.json` and uses the plural `plugins` array.
+- Plugins are not shared. V1 loads `~/.config/opencode/plugins/`; V2 loads `~/.config/opencodev2/opencode/plugins/`. The V2 plugin API is a breaking change, so confirm V2 support before you add a V1 plugin to V2.
+- `~/.config/opencode/tools/` reaches V1 only. V2 gets custom tools from plugins.
+- Terminal preferences are separate: V1 uses `~/.config/opencode/tui.json`; V2 uses `~/.config/opencodev2/opencode/cli.json`.
+- Data, state, and cache are separate: V1 uses `~/.local/share/opencode`; V2 uses `~/.opencode-v2/xdg/data`, `.../state`, and `.../cache`.
 - V2 derives an agent ID from the agent file path and ignores the frontmatter `name:` field, which V1 honors. `agent/selfmade/fable-agent.md` is `FableAgent` on V1 and `selfmade/fable-agent` on V2. A V2 command must name the full path-derived ID.
-- The global `skills/` directory is shared. Install a third-party or plugin-bundled skill through the project-scoped asset manager instead, so it never lands in the shared global tree.
-- Never write a runtime-specific absolute path into a shared file. Paths under `~/.opencode-v2/` exist only for V2 on this machine.
+- Install a third-party or plugin-bundled skill through the project-scoped asset manager, so it never lands in the shared global `skills/` tree.
+- Never write a runtime-specific absolute path into a shared file. Paths under `~/.opencode-v2/` and `~/.config/opencodev2/` exist only for V2 on this machine.
 
 ## Command-only Fable payloads
 

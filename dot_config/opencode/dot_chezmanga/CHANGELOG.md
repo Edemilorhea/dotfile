@@ -1,5 +1,20 @@
 # OpenCode Chezmoi Changelog
 
+## 2026-09-22T09:25:00+08:00 - Allow Magic Context in the ESG project
+
+- Status: Partial
+- Machine: TC-TSENG
+- Platform: Windows 10.0.26200 amd64
+- Scope: `opencode.json.tmpl`
+- Summary: Removed the V1 global DCP registration so Magic Context no longer detects a global V1 DCP conflict. The V2 global DCP registration remains available for ordinary V2 projects; this project requests a project-level DCP exclusion.
+- Important records:
+  - The project historian uses `anthropic/claude-sonnet-5`.
+  - OpenCode's official V2 documentation does not document a project-level inherited-plugin exclusion syntax; the project uses the V2 negative entry as an experimental compatibility attempt.
+- Portability: No machine-specific path or credential was added.
+- Chezmoi: Updated the managed V1 template and applied it to the runtime target.
+- Verification: Source and target synchronization and plugin startup logs remain to be checked after service restart.
+- Remaining: Confirm whether the V2 negative plugin entry prevents `@tarquinen/opencode-dcp@3.2.0` from loading for this project.
+
 ## 2026-09-22T11:29:16+08:00 - Give the Asset Manager a V1/V2 runtime dimension
 
 - Status: Completed

@@ -6,6 +6,81 @@ Since 2026-09-21 this tree holds only the launcher and runtime state. The v2
 configuration moved to `~/.config/opencodev2`, which has its own `.chezmanga`
 changelog.
 
+## 2026-09-23T09:41:09+08:00 - Report Claude Code 2.1.280 to Anthropic from the launcher
+
+- Status: Completed
+- Machine: TC-TSENG
+- Platform: Microsoft Windows 10.0.26200 / AMD64
+- Scope: `opencode2.cmd`
+- Summary: The launcher now sets `ANTHROPIC_CLAUDE_CODE_VERSION=2.1.280`. Anthropic had begun rejecting the session model with `Claude Code 2.1.275 does not support this model; version 2.1.280 or newer is required`.
+- Important records:
+  - The rejected version is not the locally installed Claude Code CLI. `@ex-machina/opencode-anthropic-auth` hardcodes `CLAUDE_CODE_VERSION = '2.1.275'` in `dist/constants.js` and reports it through both the `user-agent` header and the billing header's `cc_version`. Upgrading the local `@anthropic-ai/claude-code` has no effect on OpenCode.
+  - No plugin release carries a newer value yet: npm dist-tags are `latest` 1.8.5 and `next` 2.0.0-next.2, and 2.0.0-next.2 is the installed build with the 2.1.275 constant. `@anthropic-ai/claude-code` `latest` is 2.1.280, matching the gate.
+  - `dist/config.js` documents `ANTHROPIC_CLAUDE_CODE_VERSION` as the supported escape hatch for exactly this case. It accepts `major.minor.patch` without leading zeros, warns when the override is older than the bundled constant, and never throws.
+  - Remove the override once a plugin release bundles 2.1.280 or newer. Leaving a stale value behind would pin the reported version below a future gate.
+  - The V1 install is unaffected and was not changed. It uses `opencode-anthropic-oauth`, which reads a different variable, `ANTHROPIC_CLI_VERSION`.
+- Portability: The value is a literal Anthropic release number with no machine-specific path. `setlocal` keeps it out of the calling shell.
+- Chezmoi: Updated the managed source `executable_opencode2.cmd` and applied only that target.
+- Verification: Scoped `chezmoi diff` showed only the four added lines; scoped `chezmoi status` is clean after apply; the rendered `opencode2.cmd` contains the new `set` line and remains CRLF-only. A live request against the gated model is unverified because OpenCode must restart to pick up the variable.
+
+## 2026-09-22T18:10:19+08:00 - Upgrade OpenCode v2 to 2.0.13
+
+- Status: Completed
+- Machine: TC-TSENG
+- Platform: windows/x64
+- Scope: `run_onchange_after_setup-opencode-v2.ps1.tmpl`
+- Summary: Updated the pinned OpenCode v2 binary from 2.0.12 to 2.0.13 after an existing session reported `Schema validation failed` during `SessionModelRequest.prepare`. The updater now falls back to a versioned backup name when an older backup is still locked by a running client.
+- Important records:
+  - The service was healthy and the error was isolated to an existing session drain. DCP remained disabled.
+- Portability: The setup script still selects the platform package from the detected architecture.
+- Chezmoi: Updated the managed source template and applied the scoped script.
+- Verification: `opencode2 --version`, `bin/.version`, and `/api/info` all report 2.0.13 after service restart.
+
+## 2026-09-22T18:02:02+08:00 - Upgrade OpenCode v2 to 2.0.12
+
+- Status: Completed
+- Machine: TC-TSENG
+- Platform: windows/x64
+- Scope: `run_onchange_after_setup-opencode-v2.ps1.tmpl`
+- Summary: Updated the pinned OpenCode v2 binary from 2.0.11 to 2.0.12. The setup script downloads the platform tarball `@opencode/cli-windows-x64@2.0.12` and installs it under `~/.opencode-v2/bin`.
+- Important records:
+  - Existing V2 configuration, data, state, cache, credentials, and launcher were preserved.
+- Portability: The setup script still selects the platform package from the detected architecture.
+- Chezmoi: Updated the managed source template and applied the scoped script.
+- Verification: `opencode2 --version` and `bin/.version` report 2.0.12 after service restart.
+
+## 2026-09-22T10:48:00+08:00 - Provision the rtk binary from the setup script
+
+- Status: Completed
+- Machine: TC-TSENG
+- Platform: Microsoft Windows 11 10.0.26200.0 / AMD64
+- Scope: `run_onchange_after_setup-opencode-v2.ps1.tmpl`
+- Summary: The setup script now installs rtk 0.49.0 to `~/.local/bin/rtk.exe`. `~/.config/opencodev2/opencode/plugins/rtk/index.ts` resolves that exact path, so a fresh machine gets a working RTK integration from one `chezmoi apply` instead of a manual download.
+- Important records:
+  - `Install-Rtk` copies the existing `Install-Binary` pattern: `$rtkVersion` drives a `.rtk-version` stamp in the install directory, and bumping the version changes the rendered script so `run_onchange_` reruns it. A matching stamp skips the download.
+  - Integrity is checked against the release `checksums.txt` rather than a hash pasted into the script, so a version bump stays a one-line edit. A mismatch throws before anything is written.
+  - The install is wrapped in `try`/`catch` and downgraded to a warning, unlike `Install-Binary`. rtk only makes command output smaller, and the plugin no-ops when the binary is missing, so a network failure must not fail the whole sandbox setup.
+  - The directory is deliberately left off the user PATH. `Add-UserPath` is not called for it. The plugin injects the directory into the PATH of the single shell it rewrote, which keeps removal to deleting two paths.
+  - The asset name `rtk-x86_64-pc-windows-msvc.zip` is hardcoded because the whole script is already inside `{{ if eq .chezmoi.os "windows" }}`.
+- Portability: Windows-only, matching the rest of the script. `$HOME/.local/bin` is derived from `$HOME`, so no machine path is written into the source.
+- Verification: Rendered the template with `chezmoi execute-template`, confirmed it parses with `PSParser::Tokenize`, and ran it twice. The first run downloaded the archive, matched the published SHA-256, installed `rtk.exe`, and wrote the stamp; the second run reported "rtk 0.49.0 already installed". `rtk --version` reports 0.49.0. Every other step stayed idempotent and reported no change. The template remains LF-only.
+
+## 2026-09-22T10:10:00+08:00 - Remove the dead xdg/config junction tree
+
+- Status: Completed
+- Machine: TC-TSENG
+- Platform: Microsoft Windows 10.0.26200 / AMD64
+- Scope: `xdg/config` (removed), `removed-dead-shims/xdg-config-20260922`, `run_onchange_after_setup-opencode-v2.ps1.tmpl`
+- Summary: Deleted `~/.opencode-v2/xdg/config`, which no process reads. `opencode2.cmd` sets `XDG_CONFIG_HOME` to `~/.config/opencodev2`, so the `agent`, `commands`, `skills`, `.oh-my-opencode-slim`, `git`, `scoop`, and `tuios` junctions under `xdg/config` were leftovers from the pre-2026-09-21 layout and had no effect on v2.
+- Important records:
+  - The current setup script already targets `$v2ConfigHome` (`~/.config/opencodev2`) and never recreates `xdg/config`, so the deletion is final. Only its stale header comment still claimed that `xdg/config` was the managed directory; that comment now states that all of `xdg/**` is ignored.
+  - Each junction was removed with `cmd /c rmdir` before any recursive delete, so no target content was touched. `~/.config/opencode/{agent,commands,skills,.oh-my-opencode-slim}`, `~/.config/git`, `~/.config/scoop`, and `~/.config/tuios` were confirmed intact afterwards.
+  - `xdg/config` also held three real files that were not junction content: `scoop_backup_20260921_103935/config.json`, `tuios_backup_20260921_103935/config.toml`, and a stale `opencode/service.json`. The two backups differ from the live `~/.config/scoop/config.json` and `~/.config/tuios/config.toml`, so all three were moved to `removed-dead-shims/xdg-config-20260922/` instead of being deleted.
+  - The stale `service.json` held a v2 service password that predates the config-root move. The live one is `~/.config/opencodev2/opencode/service.json`.
+- Portability: No change. `.opencode-v2/xdg/**` and `.opencode-v2/removed-dead-shims/**` remain ignored in `.chezmoiignore`, so this is runtime-only cleanup on this machine.
+- Chezmoi: Updated the managed setup script comment. The removed directory was never managed.
+- Verification: `chezmoi source-path` reported `not managed` for `xdg` and `xdg/config` before the deletion. After the deletion `Test-Path xdg/config` is `False`, `xdg/` contains only `cache`, `data`, and `state`, and all seven former junction targets still resolve. The setup script remains LF-only. Editing it changes the `run_onchange_` hash, so it will re-run once on the next `chezmoi apply --include=scripts`; that run is idempotent because `bin/.version` already reports 2.0.11.
+
 ## 2026-09-21T19:40:00+08:00 - Keep only the launcher and runtime state here
 
 - Status: Completed

@@ -10,17 +10,32 @@
         "@ex-machina/opencode-anthropic-auth",
         "@franlol/opencode-md-table-formatter@latest",
         // "@different-ai/opencode-browser",
-        "@tarquinen/opencode-dcp@3.1.15",
         "./plugins/selfmade/mandatory-format.ts",
-        "./plugins/opencode-mem/dist/plugin.js",
+        "{{ .chezmoi.homeDir }}/.local/share/opencode-plugins/opencode-mem/dist/plugin.js",
         "opencode-handoff@0.5.0",
-        "opencode-command-inject@1.3.0",
         "@tarquinen/opencode-smart-title@0.1.7",
-        "opencode-large-image-optimizer@latest",
-        "opencode-chrome-devtools",
         "opencode-openai-codex-auth",
         "./plugins/openai-usage.ts"
+        // Removed 2026-09-22:
+        //   opencode-large-image-optimizer  builtin attachment.image below does the
+        //                                   same downscaling
+        //   opencode-chrome-devtools        7 basic CDP tools, no performance,
+        //                                   network, console, or CPU profiling;
+        //                                   the playwright and agent-browser
+        //                                   skills cover this better
+        //   opencode-command-inject         only /make:* and /<runner>:* discovery
+        //                                   was unique; $ARGUMENTS and skills are
+        //                                   native
     ],
+    // Replaces opencode-large-image-optimizer. The plugin targeted 1568px, which
+    // is Anthropic's internal downscale target; the builtin defaults to 2000px.
+    "attachment": {
+        "image": {
+            "auto_resize": true,
+            "max_width": 1568,
+            "max_height": 1568
+        }
+    },
     "default_agent": "plan",
     "disabled_providers": [
         "google",

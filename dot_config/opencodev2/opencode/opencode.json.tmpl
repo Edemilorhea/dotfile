@@ -264,7 +264,6 @@
     //
     //   dropped on purpose:
     //     opencode-auto-fallback            upstream stale, not ported
-    //     ./plugins/opencode-mem/...        not needed for now
     //     ./plugins/openai-usage.ts         monkey-patches a v1 build, use "stats"
     //     opencode2-todo                    0.2.1 registers todowrite server-side,
     //                                       but its src/tui.tsx has no
@@ -282,13 +281,35 @@
     //
     //   v2-capable, enabled below:
     //     @tarquinen/opencode-dcp           3.2.0 ships lib/v2 setup() for @opencode/plugin
+    //     opencode-usage-stat               2.4.5 uses v2 Plugin.define with tui: true
+    //     opencode-mem                      local clone pinned to upstream cec1de4
+    //                                       (PR #311 v2 adapter; npm 2.26.0 is v1-only)
     //
     // Install plugins from npm, not from a git specifier. OpenCode installs with
     // npm, and npm cannot select a subdirectory of a repository: the
     // "github:...::path:" form is pnpm syntax.
     "plugins": [
         "@ex-machina/opencode-anthropic-auth@next",
-        "@tarquinen/opencode-dcp@3.2.0"
+        // Magic Context is not loaded: its V2 lane is still unreliable, and it
+        // conflicts with DCP. Remove this entry before enabling Magic Context.
+        "@tarquinen/opencode-dcp@3.2.0",
+        // Shared with V1: the clone is built by run_onchange_after_build-opencode-mem,
+        // and both runtimes read ~/.config/opencode/opencode-mem.jsonc and ~/.opencode-mem.
+        // Do not run V1 and V2 at the same time.
+        "{{ .chezmoi.homeDir }}/.local/share/opencode-plugins/opencode-mem",
+        // Subscription quota in the TUI sidebar and /usage. Every provider check
+        // is off by default; only the ones set to true here are queried, and the
+        // plugin resolves credentials at runtime from the v2 SQLite store.
+        {
+            "package": "opencode-usage-stat",
+            "options": {
+                "providerUsage": {
+                    "claude": true,
+                    "codex": true
+                },
+                "providerUsageDisplay": "remaining"
+            }
+        }
     ],
     // Replaces the v1 mandatory-format.ts plugin. The builtins already detect a
     // project-local prettier dependency and a biome.json; dprint is not a v2

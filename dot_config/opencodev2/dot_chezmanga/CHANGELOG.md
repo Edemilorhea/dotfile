@@ -7,6 +7,42 @@ This tree holds every OpenCode v2 configuration file. `opencode2.cmd` points
 The v2 binary, database, credentials, and other runtime state stay in
 `~/.opencode-v2` and are excluded from chezmoi.
 
+## 2026-09-22T10:41:00+08:00 - Add a local v2 plugin that routes shell commands through RTK
+
+- Status: Completed
+- Machine: TC-TSENG
+- Platform: Microsoft Windows 11 10.0.26200.0 / AMD64
+- Scope: `opencode/plugins/rtk/index.ts`
+- Summary: Shell commands are now passed to `rtk rewrite` before they run, so `git status` executes as `rtk git status` and returns RTK's compact output instead of the raw output. Measured savings on the first two commands were about 50% of output tokens.
+- Important records:
+  - RTK ships no v2 integration. `rtk init --global --opencode` emits a v1 plugin that imports `@opencode-ai/plugin`, destructures the `$` Bun shell helper, and returns a `tool.execute.before` hook object. V2 loads that shape with no id and it does nothing, so the delegation was reimplemented locally. The rewrite logic itself stays in the Rust binary.
+  - `shell.create.before` was chosen over `tool.execute.before` because the v2 event exposes `command` and `env` as plain fields. It also runs after the permission decision, which is the important property: `permission.bash` still matches the original `git status`, not the rewritten `rtk git status`. No `rtk`-prefixed allow entries were needed, and a rewritten command can never escape an `ask` or `deny` rule.
+  - `rtk rewrite` signals its result through stdout, not the exit code: exit 3 means rewritten, exit 1 means passed through. The plugin therefore ignores the exit code and reads stdout, and treats any spawn failure as a pass-through.
+  - The binary is installed at `~/.local/bin/rtk.exe`, which is deliberately not on the user PATH. The hook prepends that directory to the per-shell `env.PATH` only when it actually rewrote a command, so a rewritten `rtk ...` can resolve while the machine PATH stays untouched. `RTK_BIN` overrides the location.
+  - Removal is three independent deletions: this plugin directory (plugins are auto-discovered, so `opencode.json` never references it), `~/.local/bin/rtk.exe`, and nothing else. The file header repeats these steps for whoever retires the shim once upstream ships a v2 plugin.
+  - `rtk init -g --opencode` was deliberately not run. It would write a v1 plugin into `~/.config/opencode/plugins/`, which belongs to the v1 runtime.
+  - The binary is not managed by chezmoi. It is a 4 MB release artifact; another machine must download `rtk-x86_64-pc-windows-msvc.zip` from the rtk-ai/rtk releases and place `rtk.exe` at the same path. The plugin no-ops when it is absent, so an unprovisioned machine degrades silently instead of failing.
+- Portability: The install path is derived from `os.homedir()` and the executable name switches on `process.platform`, so the same file works on a non-Windows machine. `path.delimiter` is used for PATH joining. No absolute machine path is written into the source.
+- Chezmoi: Added `dot_config/opencodev2/opencode/plugins/rtk/index.ts`.
+- Verification: `rtk --version` reports 0.49.0 and the downloaded archive matched the published SHA-256. Running `git status` from an OpenCode shell returned RTK's compact format with no permission prompt, and `rtk gain` advanced from 1 to 2 tracked commands, confirming the hook fires inside OpenCode. `chezmoi status ~/.config/opencodev2` exits clean.
+
+## 2026-09-22T10:40:00+08:00 - Add subscription quota display with opencode-usage-stat
+
+- Status: Completed
+- Machine: TC-TSENG
+- Platform: Microsoft Windows 10.0.26200 / AMD64
+- Scope: `opencode/opencode.json`
+- Summary: Added `opencode-usage-stat` 2.4.5 to `plugins`, with `providerUsage` enabled for `claude` and `codex` and `providerUsageDisplay` set to `remaining`. It shows how much of each subscription's rolling quota window is left, in the TUI sidebar and under `/usage`.
+- Important records:
+  - It is the only usage plugin that covers both Claude Pro/Max and Codex. Of roughly 20 OpenCode usage packages on npm, only three use the v2 plugin API; `opencode-usage-bars` reads Codex only, and `@mynameistito/opencode-usage-limits` has no Claude support.
+  - Claude quota comes from `api.anthropic.com/api/oauth/usage`, the same endpoint Claude Code uses, and requires an OAuth token rather than an API key. Codex quota uses the v2 OAuth access token.
+  - Credentials resolve at runtime and respect `XDG_DATA_HOME`, so the plugin reads v2's own credential store at `~/.opencode-v2/xdg/data/opencode/opencode.db`. No wrapper is needed, unlike the v1 `openai-usage.ts` shim.
+  - The package was installed with `opencode2 plugin add opencode-usage-stat`, which wrote a plain string entry directly into the managed target. The entry was then rewritten in the chezmoi source as an object with `options`, and the target was reconciled with `chezmoi apply --force`.
+  - Every provider check is off by default. Only `claude` and `codex` are enabled, so no other provider endpoint is contacted.
+- Portability: The entry is a plain npm package name with no machine path. Credential resolution is environment-driven, so it stays portable.
+- Chezmoi: Updated `dot_config/opencodev2/opencode/opencode.json.tmpl`.
+- Verification: `opencode2 plugin list` reports `opencode-usage-stat 2.4.5` as loaded both before and after the object-form rewrite. `chezmoi status` for the target exits clean. The sidebar rendering and the quota values are unverified until the v2 TUI is restarted and the two providers are signed in.
+
 ## 2026-09-21T23:10:00+08:00 - Capture the cli.json prompt block and diagnose the two failing MCP servers
 
 - Status: Partial
@@ -200,3 +236,30 @@ The v2 binary, database, credentials, and other runtime state stay in
 - Portability: Existing machine-specific MCP command paths were preserved because they point to installed local runtimes.
 - Chezmoi: Updated source and applied the single V2 configuration target.
 - Verification: JSON parsing passed; scoped chezmoi dry-run showed only the intended V2 configuration update; target apply completed.
+## 2026-09-22T17:36:00+08:00 - Disable v2 global DCP plugin loading
+
+- Status: Completed
+- Machine: TC-TSENG
+- Platform: windows/x64
+- Scope: `opencode/opencode.json.tmpl`
+- Summary: Commented out the global `@tarquinen/opencode-dcp@3.2.0` plugin entry for OpenCode V2. The existing `dcp.jsonc` settings remain preserved but are no longer loaded through the global plugin list.
+- Important records:
+  - This avoids the DCP `magic` conflict where the plugin is treated as conflicting even when its setting is disabled or loading fails.
+- Portability: The change is in the shared chezmoi source template and contains no machine-specific path.
+- Chezmoi: Updated the existing managed source template; runtime target will be applied below.
+- Verification: Scoped chezmoi diff and JSONC parsing will be checked after applying the source change.
+
+## 2026-09-23T10:18:23+08:00 - Re-enable global DCP; keep Magic Context off
+
+- Status: Completed
+- Machine: TC-TSENG
+- Platform: Microsoft Windows 10.0.26200 / AMD64
+- Scope: `opencode/opencode.json.tmpl`
+- Summary: Uncommented `@tarquinen/opencode-dcp@3.2.0` in the V2 global `plugins` array, reversing the 2026-09-22T17:36 entry. The existing `dcp.jsonc` is loaded again unchanged.
+- Important records:
+  - Magic Context (`@cortexkit/opencode-magic-context@0.42.6`, latest on 2026-09-23) ships a `dist/v2` lane but is not usable on V2 yet. Upstream issue #493 reports V2 prompts that hang forever; the maintainer confirmed a 0.42.6 bug where a V1 store migrated in place (legacy `message`/`part` tables kept beside `session_message`) is classified as V1 and every prompt is interrupted. #492 and #488 list further open V2 gaps: stale state reconciliation, 10 of 12 Dreamer tasks filtered out, partial commands, and tool-transform accumulation. This machine's V2 store was migrated from V1, so it is exposed to #493.
+  - DCP 3.2.0 contains no Magic Context detection; the extracted package has no `magic` string. The earlier conflict came from the Magic Context side, and no V2 config file references Magic Context, so DCP loads without it.
+  - DCP and Magic Context both rewrite session context and must not be loaded together. The new inline comment next to the plugin entry records that DCP must be removed before Magic Context is enabled.
+- Portability: The change is a plugin spec and comments, with no machine-specific path.
+- Chezmoi: Updated the managed source template and applied only the `opencode.json` target.
+- Verification: Scoped `chezmoi diff` showed only the uncommented entry and two comment edits; scoped `chezmoi status` is clean after apply; the source stays LF-only. `opencode2 plugin list` resolves `opencode-dcp 3.2.0` from `@tarquinen/opencode-dcp@3.2.0`. `dcp.jsonc` validates against the DCP schema and matches the active V1 settings (the V1 file differs only by a commented-out alternative block). Behavior in a live session is unverified until OpenCode V2 restarts.
