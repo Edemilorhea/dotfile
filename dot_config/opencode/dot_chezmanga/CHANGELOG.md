@@ -1154,3 +1154,30 @@
   both projects. The `sippos-pre` MCP block in `invoice-service` survived the
   apply unchanged. Running the slim orchestrator in a live session was not
   exercised.
+
+## 2026-09-23T11:07:46+08:00 - Move opencode-mem to a pinned shared clone
+
+- Status: Partial
+- Machine: TC-TSENG
+- Platform: Windows 10.0.26200 amd64
+- Scope: `opencode.json.tmpl` (V1 and V2), `run_onchange_after_build-opencode-mem.ps1.tmpl`
+- Summary: opencode-mem now loads from one clone at
+  `~/.local/share/opencode-plugins/opencode-mem`, pinned to upstream commit
+  `cec1de4` (PR #311, native V2 adapter). V1 loads `dist/plugin.js`; V2 loads
+  the package directory.
+- Important records:
+  - The chezmoi-managed copy under `~/.config/opencode/plugins/opencode-mem`
+    was forgotten (107 files). The old clone was moved to
+    `~/.local/share/opencode-plugins/opencode-mem.bak-20260923`.
+  - The build script now clones, checks out the pinned commit, installs root and
+    `web/` dependencies, and builds. Change `$commit` to upgrade.
+  - Both runtimes share `~/.config/opencode/opencode-mem.jsonc` and
+    `~/.opencode-mem` (hardcoded upstream). Do not run V1 and V2 together.
+- Portability: Paths use `.chezmoi.homeDir` in a `file:///` URL; the script is
+  Windows-only, as before.
+- Chezmoi: `chezmoi forget` auto-committed and pushed all pending source changes
+  as `dd6fd07`.
+- Verification: Build succeeded; `dist/plugin.js` exports `id`, `setup`, and
+  `server`. After `opencode2 reload`, `opencode2 plugin list` did not show
+  opencode-mem yet; a V2 service restart is required to confirm. V1 loading was
+  not exercised.
