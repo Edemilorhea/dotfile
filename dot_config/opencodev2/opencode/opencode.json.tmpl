@@ -273,8 +273,11 @@
     //                                       runtime and fails every reconciliation with
     //                                       "Cannot find package 'react'".
     //
+    //   reimplemented locally, see plugins/:
+    //     opencode-handoff                  plugins/handoff, minus the prompt
+    //                                       draft: v2 has no appendPrompt
+    //
     //   waiting for upstream to publish a v2 build:
-    //     opencode-handoff
     //     opencode-command-inject
     //     @franlol/opencode-md-table-formatter
     //     oh-my-tokens                      entry is v1-only (no v2 setup export)
@@ -296,7 +299,7 @@
         // Shared with V1: the clone is built by run_onchange_after_build-opencode-mem,
         // and both runtimes read ~/.config/opencode/opencode-mem.jsonc and ~/.opencode-mem.
         // Do not run V1 and V2 at the same time.
-        "{{ .chezmoi.homeDir }}/.local/share/opencode-plugins/opencode-mem",
+        "file:///{{ .chezmoi.homeDir }}/.local/share/opencode-plugins/opencode-mem",
         // Subscription quota in the TUI sidebar and /usage. Every provider check
         // is off by default; only the ones set to true here are queried, and the
         // plugin resolves credentials at runtime from the v2 SQLite store.

@@ -263,3 +263,84 @@ The v2 binary, database, credentials, and other runtime state stay in
 - Portability: The change is a plugin spec and comments, with no machine-specific path.
 - Chezmoi: Updated the managed source template and applied only the `opencode.json` target.
 - Verification: Scoped `chezmoi diff` showed only the uncommented entry and two comment edits; scoped `chezmoi status` is clean after apply; the source stays LF-only. `opencode2 plugin list` resolves `opencode-dcp 3.2.0` from `@tarquinen/opencode-dcp@3.2.0`. `dcp.jsonc` validates against the DCP schema and matches the active V1 settings (the V1 file differs only by a commented-out alternative block). Behavior in a live session is unverified until OpenCode V2 restarts.
+
+## 2026-09-23T11:07:46+08:00 - Move opencode-mem to a pinned shared clone
+
+- Status: Partial
+- Machine: TC-TSENG
+- Platform: Windows 10.0.26200 amd64
+- Scope: `opencode.json.tmpl` (V1 and V2), `run_onchange_after_build-opencode-mem.ps1.tmpl`
+- Summary: opencode-mem now loads from one clone at
+  `~/.local/share/opencode-plugins/opencode-mem`, pinned to upstream commit
+  `cec1de4` (PR #311, native V2 adapter). V1 loads `dist/plugin.js`; V2 loads
+  the package directory.
+- Important records:
+  - The chezmoi-managed copy under `~/.config/opencode/plugins/opencode-mem`
+    was forgotten (107 files). The old clone was moved to
+    `~/.local/share/opencode-plugins/opencode-mem.bak-20260923`.
+  - The build script now clones, checks out the pinned commit, installs root and
+    `web/` dependencies, and builds. Change `$commit` to upgrade.
+  - Both runtimes share `~/.config/opencode/opencode-mem.jsonc` and
+    `~/.opencode-mem` (hardcoded upstream). Do not run V1 and V2 together.
+- Portability: Paths use `.chezmoi.homeDir` in a `file:///` URL; the script is
+  Windows-only, as before.
+- Chezmoi: `chezmoi forget` auto-committed and pushed all pending source changes
+  as `dd6fd07`.
+- Verification: Build succeeded; `dist/plugin.js` exports `id`, `setup`, and
+  `server`. After `opencode2 reload`, `opencode2 plugin list` did not show
+  opencode-mem yet; a V2 service restart is required to confirm. V1 loading was
+  not exercised.
+## 2026-09-23T19:51:47+08:00 - Port handoff to V2 and surface DCP compression
+
+- Status: Completed
+- Machine: TC-TSENG
+- Platform: Windows 10.0.26200 AMD64
+- Scope: `opencode/plugins/handoff/`, `opencode/plugins/dcp-notify/`, `opencode/dcp.jsonc`, `opencode/opencode.json.tmpl`
+- Summary: V2 now has a local `/handoff` command with `handoff_session` and
+  `read_session` tools, and shows a toast whenever DCP compresses the context.
+- Important records:
+  - `opencode-handoff` (npm 0.5.0) is v1-only. `plugins/handoff/index.ts`
+    reimplements it against the v2 plugin context: `command.transform` for
+    `/handoff`, `tool.transform` for both tools, `session.create` plus
+    `session.synthetic` for the new session.
+  - The v1 editable prompt draft cannot be ported. `client.tui.appendPrompt` has
+    no v2 equivalent: `tui.prompt.append` exists in `@opencode/protocol` and the
+    CLI listens for it, but nothing on the server publishes it, there is no HTTP
+    or RPC route for it, and the CLI plugin context exposes no prompt writer. The
+    handoff text is attached with `session.synthetic` instead, so it is context
+    rather than an editable draft. The user chose this over a clipboard plus
+    `prompt.paste` workaround.
+  - v1 preloaded `@file` references into the new session. Synthetic text is not
+    scanned for attachments, so files are listed as a reading list instead.
+  - `plugins/handoff/tui.ts` navigates to the new session. The server half sets
+    `metadata.handoff` on `session.create`; the CLI half matches it on
+    `session.created` and calls `ui.router.navigate`.
+  - DCP 3.2.0 never shows a V2 notification: `lib/v2/index.ts` wires both
+    `session.prompt` and `tui.showToast` to `report()`, which only writes a
+    debug log ("V2 report (display pending)"). `pruneNotificationType` and
+    `compress.showCompression` have no effect on V2. npm `latest` is 3.2.0, so
+    there is nothing to upgrade to.
+  - `plugins/dcp-notify/tui.ts` rebuilds the notification from the `compress`
+    tool's own events: `session.tool.input.started` for the name,
+    `session.tool.called` for `input.topic`, and `session.tool.success` or
+    `session.tool.failed` for the outcome. Delete the whole directory once DCP
+    implements V2 display.
+  - Each plugin directory carries an `index.ts` and a `tui.ts`, the documented
+    discovery layout. `dcp-notify/index.ts` registers nothing and exists only so
+    the directory is discovered and its CLI half loads.
+  - Both plugins export a plain `{ id, setup }` object instead of importing
+    `@opencode/plugin`, matching `plugins/locu/index.ts`.
+- Portability: No machine-specific path. Both plugins are V2-only by location;
+  V1 keeps the npm `opencode-handoff` plugin unchanged.
+- Chezmoi: Added `plugins/handoff/{index,tui}.ts` and
+  `plugins/dcp-notify/{index,tui}.ts`; updated `dcp.jsonc` and
+  `opencode.json.tmpl`; applied only those four targets.
+- Verification: Scoped `chezmoi diff` showed only the intended changes and
+  scoped `chezmoi status` is clean for every touched target (`cli.json` was
+  already `MM` before this task and was left alone). All six files are LF-only.
+  `opencode2 plugin list` shows `selfmade.handoff` and `selfmade.dcp-notify`,
+  and the service log records no plugin error. The live tool catalog of the
+  running session now offers `handoff_session` and `read_session` with the new
+  schemas, which confirms the tool transform. The `/handoff` command, the DCP
+  toast, and the handoff navigation run in the CLI process and stay unverified
+  until OpenCode V2 restarts.
