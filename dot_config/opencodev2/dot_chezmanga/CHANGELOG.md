@@ -7,6 +7,19 @@ This tree holds every OpenCode v2 configuration file. `opencode2.cmd` points
 The v2 binary, database, credentials, and other runtime state stay in
 `~/.opencode-v2` and are excluded from chezmoi.
 
+## 2026-09-24T01:05:04+08:00 - Keep compact paste mode in the V2 CLI
+
+- Status: Completed
+- Machine: TC-TSENG
+- Platform: Microsoft Windows 10.0.26200 / AMD64
+- Scope: `opencode/cli.json`
+- Summary: `prompt.paste` is now `compact` in the managed source, matching the local target. Pasted text collapses into a summary in the prompt instead of being shown in full.
+- Important records:
+  - The target had drifted to `compact` while the source still said `full` (`chezmoi status` reported `MM`). The local value was chosen as authoritative, so the source was updated with `chezmoi re-add` rather than overwriting the target with `chezmoi apply`.
+- Portability: A literal UI preference with no machine-specific path.
+- Chezmoi: Re-added the already-managed target. The auto-commit `6128975` also carried the pending OpenCode 2.0.15 upgrade in the sandbox tree.
+- Verification: Scoped `chezmoi status` for `cli.json` is clean after the re-add, and the committed diff changes only `"paste": "full"` to `"paste": "compact"`.
+
 ## 2026-09-22T10:41:00+08:00 - Add a local v2 plugin that routes shell commands through RTK
 
 - Status: Completed
