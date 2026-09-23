@@ -6,6 +6,22 @@ Since 2026-09-21 this tree holds only the launcher and runtime state. The v2
 configuration moved to `~/.config/opencodev2`, which has its own `.chezmanga`
 changelog.
 
+## 2026-09-24T01:00:00+08:00 - Upgrade OpenCode v2 to 2.0.15
+
+- Status: Completed
+- Machine: TC-TSENG
+- Platform: Microsoft Windows 10.0.26200 / AMD64
+- Scope: `run_onchange_after_setup-opencode-v2.ps1.tmpl`
+- Summary: Updated the pinned OpenCode v2 binary from 2.0.13 to 2.0.15. The built-in updater cannot do this: it reports `update skipped: installation method not found` because the binary comes from the platform tarball rather than a package manager.
+- Important records:
+  - `@opencode/cli-windows-x64` dist-tag `latest` is 2.0.15.
+  - The replacement used the versioned-backup fallback again. `bin/` now holds `opencode.exe.previous` (2.0.13, released by the still-running service) and `opencode.exe.previous.2.0.13` from the earlier upgrade.
+  - Two unrelated `run_onchange` scripts were already pending and ran in the same `chezmoi apply --include=scripts`: the opencode-mem build (clone already at the pinned commit `cec1de4`) and the external-assets installer (reinstalled the same skill set).
+  - The Claude Code version gate is unchanged by this upgrade. `@ex-machina/opencode-anthropic-auth` still has no V2 release carrying 2.1.280: dist-tags are `latest` 1.8.5 and `next` 2.0.0-next.2, and 2.0.0-next.2 remains the installed build with the 2.1.275 constant. The V1-only 1.8.5 does bundle 2.1.280, so the `ANTHROPIC_CLAUDE_CODE_VERSION` override in `opencode2.cmd` must stay until a V2 build follows.
+- Portability: The setup script still derives the platform package from the detected architecture and AVX2 support; only the literal version string changed.
+- Chezmoi: Updated the managed source template and applied the scoped scripts.
+- Verification: `bin/.version` and `bin/opencode.exe --version` both report 2.0.15, and `chezmoi status` reports no pending script. Running clients still map the previous image until the service restarts, so the live version served to sessions is unverified.
+
 ## 2026-09-23T09:41:09+08:00 - Report Claude Code 2.1.280 to Anthropic from the launcher
 
 - Status: Completed
