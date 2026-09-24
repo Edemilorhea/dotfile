@@ -7,6 +7,25 @@ This tree holds every OpenCode v2 configuration file. `opencode2.cmd` points
 The v2 binary, database, credentials, and other runtime state stay in
 `~/.opencode-v2` and are excluded from chezmoi.
 
+## 2026-09-24T10:35:00+08:00 - Retire the V1 install and move MCP servers out of its data directory
+
+- Status: Completed (stage 1 of the V1 retirement)
+- Machine: TC-TSENG
+- Platform: Microsoft Windows 10.0.26200 / AMD64
+- Scope: `opencode/opencode.json` (source `opencode.json.tmpl`); chezmoi root script `run_once_before_windows_config_junctions.ps1.tmpl`; unmanaged runtime paths listed below
+- Summary: OpenCode V1 is removed from this machine. The `office-mcp` and `jev-review` MCP servers moved from the V1 data directory to `~/.local/share/mcp-servers/`, and `office-mcp` is enabled again.
+- Important records:
+  - Backup: `~/backup/opencode-v1-config-20260924.zip` holds `~/.config/opencode` without `node_modules` (313 files, 1.2 MB).
+  - Removed `opencode-ai@1.18.32` with `bun remove -g`, plus the leftover `opencode-windows-x64{,-baseline}` packages and the `~/.bun/bin/opencode.{exe,bunx}` shims. Other bun globals (`opencode-helicone-session`, `opencode-marketplace`) were kept.
+  - Deleted V1 runtime data: `~/.local/share/opencode` (10.3 GB: sessions, V1 credentials, logs), `~/.cache/opencode` (2.9 GB), `~/.local/state/opencode`, and the `%APPDATA%\opencode` junction that bridged V1 `auth.json` for the V1-only `opencode-claude-usage` plugin. The junction script no longer creates it.
+  - `office-mcp` and `jev-review` were never V1 data; they had been cloned next to each other in the V1 data directory. `office-mcp` upstream is https://github.com/gawirable/office-mcp at `cf210cb6581f33cf3ceb57cf1defff4fc58d050b`; `jev-review` is https://github.com/NiazMorshed2007/jev-review at `57690af54ef7d862c2483342c1e61c14dffcf727`.
+  - `office-mcp` had been disabled on every machine because the shared template was edited on DESKTOP-3JHKCAP, where its sources were missing. `enabled` now renders from `stat` on `~/.local/share/mcp-servers/office-mcp/server.py`, so each machine enables it only when the server exists.
+  - `~/.config/opencode` stays: V2 reads `agent/`, `commands/`, `skills/`, `.oh-my-opencode-slim/`, `AGENTS.md`, and `tools/locu` through junctions. The V1 `opencode.json.tmpl` still names the old MCP paths and is left for stage 2.
+  - Stage 2 (not done): move V2 config and data to the default XDG paths, drop `opencode2.cmd`, set `ANTHROPIC_CLAUDE_CODE_VERSION` as a user environment variable, and remove the V1/V2 junctions. It requires OpenCode V2 to be stopped.
+- Portability: MCP paths render from `{{ .chezmoi.homeDir }}`. `~/.local/share/mcp-servers/` is unmanaged; a new machine must clone both servers (and create the `office-mcp` `.venv`) before `chezmoi apply`.
+- Chezmoi: Updated the V2 `opencode.json.tmpl` and applied only that target. Edited the root `run_once` junction script; its changed hash makes it rerun once, and every remaining step skips existing junctions. Not committed or pushed.
+- Verification: Copies matched source file counts and byte totals. A stdio `initialize` + `tools/list` probe from the new paths returned `jev_review` and 47 `office-mcp` tools. After apply, V2 reloaded the config, restarted both servers from `~/.local/share/mcp-servers/`, and exposed the `office-mcp` namespace in this session. `opencode` no longer resolves; `opencode2` still resolves to `~/.opencode-v2/opencode2.cmd`. Scoped `chezmoi status` is clean and both edited sources are LF-only.
+
 ## 2026-09-24T01:05:04+08:00 - Keep compact paste mode in the V2 CLI
 
 - Status: Completed

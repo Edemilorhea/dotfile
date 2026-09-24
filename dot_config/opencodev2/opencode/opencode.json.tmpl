@@ -42,16 +42,16 @@
             ],
             "enabled": true
         },
-        // Disabled: the server sources under ~/.local/share/opencode/office-mcp
-        // are unmanaged and exist only on the machine that built them. Restore
-        // that directory, then set "enabled" back to true.
+        // Unmanaged clone of https://github.com/gawirable/office-mcp under
+        // ~/.local/share/mcp-servers/office-mcp. Enabled only on machines where
+        // server.py exists; re-run chezmoi apply after installing it.
         "office-mcp": {
             "type": "local",
             "command": [
-                "{{ .chezmoi.homeDir }}/.local/share/opencode/office-mcp/.venv/Scripts/python.exe",
-                "{{ .chezmoi.homeDir }}/.local/share/opencode/office-mcp/server.py"
+                "{{ .chezmoi.homeDir }}/.local/share/mcp-servers/office-mcp/.venv/Scripts/python.exe",
+                "{{ .chezmoi.homeDir }}/.local/share/mcp-servers/office-mcp/server.py"
             ],
-            "enabled": false,
+            "enabled": {{ if stat (joinPath .chezmoi.homeDir ".local/share/mcp-servers/office-mcp/server.py") }}true{{ else }}false{{ end }},
             "environment": {
                 "PYTHONUTF8": "1",
                 "PYTHONIOENCODING": "utf-8",
@@ -62,7 +62,7 @@
             "type": "local",
             "command": [
                 "node",
-                "{{ .chezmoi.homeDir }}/.local/share/opencode/jev-review/dist/server.js"
+                "{{ .chezmoi.homeDir }}/.local/share/mcp-servers/jev-review/dist/server.js"
             ],
             "enabled": true,
             "environment": {

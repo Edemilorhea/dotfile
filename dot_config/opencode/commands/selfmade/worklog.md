@@ -23,7 +23,7 @@ Arguments: `$ARGUMENTS`
 
 1. 驗證 source range，並先確認該範圍的日曆日期與星期。
 2. 使用 Linear tools 查詢範圍內 current/planned GSS issues。
-3. 使用唯讀 `locu_sessions`，設定 `includeActivities=true`。只有顯示名稱需要時才使用 `locu_tasks`；若 tool 不可用，明確標示缺少的 tool，不得捏造 Locu 資料。
+3. 使用唯讀 `locu_sessions`（V2 Code Mode：`locu.sessions`），設定 `includeActivities=true`。只有顯示名稱需要時才使用 `locu_tasks`（V2：`locu.tasks`）；若 tool 不可用，明確標示缺少的 tool，不得捏造 Locu 資料。
 4. 從目前工作目錄執行 `git rev-parse --show-toplevel`。若找到 repository，使用唯讀 Git 指令取得 short hash、author time、subject、changed-file summary 與 diff statistics，並排除 merge commits；Git 證據須依日期分組整理。
 5. Jira direct mode 的 branch 預設為所有分支，author 預設為 `TC|TC_Tseng`；有參數時使用指定值。`preview` 與 `sync` 保留所有作者的事實資料，但需清楚顯示作者。
 6. 可選擇使用已安裝且已驗證登入的 `gh` 或 `glab` 補充既有 commit 的 PR/MR metadata。Git 仍是 source of truth；缺少 CLI 不算錯誤。
@@ -80,7 +80,7 @@ Jira 內容只寫給人看的值：不得放 commit hash、Locu session/task ID�
 - Vault：`Notes`
 - 新 note：`50 Worklogs/GSS/YYYY/YYYY-MM/YYYY-MM-DD.md`
 - Mapping：`50 Worklogs/GSS/_config/task-mapping.yaml`
-- CLI：`C:\Users\tc_tseng\AppData\Local\Programs\Obsidian\Obsidian.com`
+- CLI：`$env:LOCALAPPDATA/Programs/Obsidian/Obsidian.com`
 
 `sync` 前先讀取 note；不存在才建立。既有 note 必須同時包含 `<!-- worklog:managed:start -->` 與 `<!-- worklog:managed:end -->`，否則停止並詢問。只替換 markers 之間的事實性區段，保留所有人工內容；不得覆寫舊 flat layout 歷史 notes。Jira allocation 不得寫入 managed section。
 

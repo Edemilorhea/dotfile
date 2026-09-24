@@ -9,7 +9,7 @@ Use the local `office-mcp` tools for `.docx`, `.xlsx`, and `.pptx` work.
 
 ## Workflow
 
-1. Confirm the input and output paths. Relative paths resolve under `C:/Users/tc_tseng/Documents` unless the tool call supplies a folder.
+1. Confirm the input and output paths. Relative paths resolve under `~/Documents` unless the tool call supplies a folder.
 2. Inspect an existing document before changing it with `get_document_info` and the format-specific read/list tool.
 3. For new documents, use a new explicit output path. Creation tools refuse overwrites; do not delete or overwrite a file to work around that safeguard.
 4. Apply the smallest set of format-specific changes. Validate the result by reading its relevant paragraphs, cells, or slides.

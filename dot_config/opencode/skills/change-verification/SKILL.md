@@ -137,7 +137,7 @@ Scope: <baseline and affected behavior>
 <reproduction and evidence, or "None">
 
 ## Automated Checks
-<exact commands and results>
+<exact commands and results; label pre-existing failures UNRELATED>
 
 ## Coverage Gaps
 <untested behavior, environmental limits, and assumptions>

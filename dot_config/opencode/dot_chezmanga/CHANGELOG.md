@@ -1,5 +1,27 @@
 # OpenCode Chezmoi Changelog
 
+## 2026-09-24T01:13:30+08:00 - Tighten shared commands and skills
+
+- Status: Completed
+- Machine: TC-TSENG
+- Platform: Microsoft Windows 10.0.26200 / AMD64
+- Scope: `commands/{discord-bot-sdk,fallback-status,message-next,message-steer}.md`,
+  `commands/selfmade/{review,adv-review,worklog}.md`, `skills/{change-verification,feature-flow-explainer,linear-workflow,office-documents,vibe-coding-tutor}/SKILL.md`,
+  and `config/assets/skills/implementation-understanding-quality-contract/SKILL.md`
+- Summary: Removed redundancy and fixed inconsistent logic while keeping each command's and skill's behavior.
+- Important records:
+  - `review.md` keeps the `validate-agents.ps1` contract (`agent: build`, `subtask: false`, "Review the supplied diff/files directly", no numbered "Load the ... skill" step) and now calls `jev_review` per the `jev-review` skill.
+  - `adv-review.md` maps each lens to its V1 name and V2 path-derived agent ID.
+  - `message-next.md` and `message-steer.md` no longer force verification beyond what the active task requires.
+  - `fallback-status.md` gained frontmatter and states that the tool is V1-only.
+  - `feature-flow-explainer` replaced the missing `understand-explain` routing row with `implementation-understanding-tutor`.
+  - `vibe-coding-tutor` output shape now follows all Teaching Framework sections; `change-verification` reports pre-existing failures as `UNRELATED`.
+  - `AGENTS.md.tmpl`: once `jev-review` runs, its skill governs rescoring and per-round validation; the data-leak rule still applies. Removed the empty `skills/browser-automation/` directory (never managed).
+  - The quality-contract checklist edit was applied to the Asset Manager source and its `~/.agents/skills` copy, so a reinstall keeps it.
+- Portability: Replaced user-specific absolute paths with `~/.config/opencode/...`, `~/Documents`, and `$env:LOCALAPPDATA/...`.
+- Chezmoi: Already managed; targets edited, then copied to source. Not committed or pushed.
+- Verification: `chezmoi status ~/.config/opencode` is clean; edited files are LF-only. Functional behavior not executed.
+
 ## 2026-09-22T09:25:00+08:00 - Allow Magic Context in the ESG project
 
 - Status: Partial

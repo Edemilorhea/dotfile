@@ -61,7 +61,7 @@ description: Plan, create, rewrite, prioritize, and review Linear work. Use when
 1. 使用 `linear_get_user("me")` 取得目前使用者。
 2. 有明確 team key/name、project、issue identifier 時，先精確驗證。
 3. 沒有明確 team 時：
-   - 若目前對話或唯一 active work 可可靠指向一個 team，使用該 team並在摘要中說明依據。
+   - 若目前對話或唯一 active work 能可靠指向一個 team，使用該 team，並在摘要中說明依據。
    - 否則列出可用 teams，以 `question` tool 要求選擇，不得任選第一個。
 4. Project 或 issue scope 不明確且存在多個候選時，同樣要求選擇。
 

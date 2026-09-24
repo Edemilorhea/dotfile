@@ -26,7 +26,7 @@ description: Use whenever the user wants to understand how an implemented or par
 | `change-understanding-review` | 解釋某個 diff、commit 或已完成變更：改了什麼、為何改、前後差異。 | 不以「完整執行生命週期」為主要輸出。 |
 | `vibe-coding-tutor` | 對已完成的多檔功能提供教學、架構導覽、延伸練習或 onboarding。 | 不要求逐一追蹤 transaction、Worker 與方法呼叫時機。 |
 | 一般程式碼審查 | 評估 correctness、security、performance、maintainability 或是否可核准。 | 不以流程解釋取代審查。 |
-| `understand-explain` | 深入解釋特定檔案、函式或模組。 | 不必追蹤跨系統的端到端功能流程。 |
+| `implementation-understanding-tutor` | 看完變更或流程仍串不起來，要從需求、逐段 code 到設計理由完整教懂。 | 不取代本 Skill 的端到端事實追蹤。 |
 
 若使用者同時要求流程解釋與 code review，先完成本 Skill 的事實流程報告，再以獨立段落或流程處理審查；不得把推測性的缺陷混入流程事實。
 

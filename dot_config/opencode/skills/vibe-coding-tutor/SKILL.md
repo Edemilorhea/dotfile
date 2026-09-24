@@ -38,20 +38,6 @@ Create a focused tutorial with these sections, omitting irrelevant ones rather t
 
 ## Output Shape
 
-```markdown
-# [Project or Feature] Tutorial
-
-## Project Map
-...
-
-## Architecture Walkthrough
-...
-
-## Key Patterns
-...
-
-## Try It Yourself
-...
-```
+Title the tutorial `# [Project or Feature] Tutorial` and use the applicable Teaching Framework section names as `##` headings, in the same order.
 
 Use Traditional Chinese for explanations. Keep code identifiers, paths, and commands in English.

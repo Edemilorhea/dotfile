@@ -79,11 +79,6 @@ Ensure-Junction -Source "$env:USERPROFILE\.config\nushell" -Target "$env:APPDATA
 Ensure-Junction -Source "$env:USERPROFILE\.config\zellij" -Target "$env:APPDATA\zellij"
 Ensure-Junction -Source "$env:USERPROFILE\.config\tabby" -Target "$env:APPDATA\tabby"
 
-# opencode stores auth.json under ~/.local/share/opencode on every OS, but the
-# opencode-claude-usage plugin looks for %APPDATA%\opencode\auth.json on Windows.
-# Bridge the two so the plugin can read the auto-refreshing Anthropic OAuth token.
-Ensure-Junction -Source "$env:USERPROFILE\.local\share\opencode" -Target "$env:APPDATA\opencode"
-
 Ensure-Symlink -Source "$env:USERPROFILE\.config\yazi\yazi.toml" -Target "$env:APPDATA\yazi\config\yazi.toml"
 
 Write-Host '[Config Junction Setup] Complete!'

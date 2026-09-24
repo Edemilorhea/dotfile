@@ -58,6 +58,7 @@ Shared instructions for coding agents.
 ## Code quality review with Jev
 
 - Whenever the task reviews code, load `jev-review` and call the `jev_review` MCP tool (OpenCode lists it as `jev-review_jev_review`). This applies to `/review`, `/adv-review` on an implementation or fix, `change-verification`, any user request to review, audit, or score code quality, and the final handoff of a nontrivial implementation when the user asked for review or quality checks.
+- Once `jev-review` runs, the `jev-review` skill governs its loop: rescoring, improvements between scores, and the validation each round requires. The Scope And Verification limits above do not restrict that loop. The data rule below still applies.
 - Send only the task, the focused diff, and the minimum surrounding files. The context leaves this machine for TypeSafe's Jev API: never send secrets, `.env` files, credentials, vendored code, or unrelated repository content.
 - Report per-dimension scores and deltas next to your own findings. Scores are evidence, not objectives; correctness and the user's requirements outrank score improvement.
 - If `jev_review` is unavailable or `JEV_API_KEY` is missing, state that in one line and finish the review without it.

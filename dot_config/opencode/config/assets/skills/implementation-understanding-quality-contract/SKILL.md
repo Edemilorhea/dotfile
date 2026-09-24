@@ -40,7 +40,7 @@ Tests Present、Verification Plan、Actual Execution Evidence 必須分開。不
 
 ## 輸出前 Checklist
 
-- 模式符合使用者範圍；`auto` 未任意縮成 Focused。
+- 模式符合使用者範圍；完整請求未任意縮成 Focused。
 - Report 使用六層；guided/teach-back 使用四視角 learning units，沒有把內部六層 ledger 整份倒給讀者。
 - 明確 Code Teach 已優先於「完整／所有修改」等範圍詞；沒有錯誤落回純 report。
 - 明確 Code Teach 的第一個實質回覆已包含 bounded actual code walkthrough，不只包含 inventory、flow、mechanism 或導航表。
