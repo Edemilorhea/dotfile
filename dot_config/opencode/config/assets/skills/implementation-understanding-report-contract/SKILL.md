@@ -1,6 +1,8 @@
 ---
 name: implementation-understanding-report-contract
 description: Use ONLY when implementation-understanding-tutor explicitly delegates report composition or six-layer coverage. Do not trigger independently for general explanations, code review, or repository analysis.
+metadata:
+  opencode/autoinvoke: false
 ---
 
 # Implementation Understanding Report Contract

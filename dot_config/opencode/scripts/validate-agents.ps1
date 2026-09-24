@@ -29,8 +29,8 @@
     opencode config root. Defaults to the current directory.
 
 .EXAMPLE
-    pwsh agent/selfmade/scripts/validate-agents.ps1
-    pwsh agent/selfmade/scripts/validate-agents.ps1 -Root ~/.config/opencode
+    pwsh scripts/validate-agents.ps1
+    pwsh scripts/validate-agents.ps1 -Root ~/.config/opencode
 #>
 
 param(

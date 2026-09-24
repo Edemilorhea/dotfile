@@ -1,6 +1,8 @@
 ---
 name: feature-flow-explainer
 description: Use whenever the user wants to understand how an implemented or partially implemented feature runs end-to-end, including request lifecycle, data flow, method call flow, state transitions, transaction boundaries, background workers, and current versus target wiring. Trigger on questions such as「這個功能完整怎麼跑」、「一次操作經過哪些方法」、「這些方法什麼時候被呼叫」、「說明資料流、程式流、方法流」or requests to trace a feature from API to database, events, queues, workers, and external systems.
+metadata:
+  opencode/autoinvoke: false
 ---
 
 # Feature Flow Explainer

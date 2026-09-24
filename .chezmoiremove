@@ -48,3 +48,31 @@ dot_AppData_Local_nvim_blink.lua
 .config/opencode/tests/model-fallback-patch.test.mjs
 .config/opencode/tests/openai-usage-groups.test.mjs
 .config/opencode/commands/fallback-status.md
+
+# Moved 2026-09-25: every global skill now lives in ~/.agents/skills, which
+# OpenCode and Codex both read. Fable commands moved into commands/selfmade/,
+# validate-agents.ps1 moved out of the agent scan root into scripts/, and
+# /verify-change was removed as a duplicate of the change-verification skill.
+.config/opencode/skills/change-understanding-review
+.config/opencode/skills/change-verification
+.config/opencode/skills/chezmoi-management
+.config/opencode/skills/feature-flow-explainer
+.config/opencode/skills/jev-review
+.config/opencode/skills/linear-workflow
+.config/opencode/skills/office-documents
+.config/opencode/skills/typesafe-ai
+.config/opencode/skills/vibe-coding-tutor
+.config/opencode/commands/fable-method.md
+.config/opencode/commands/fable-loop.md
+.config/opencode/commands/fable-judge.md
+.config/opencode/commands/verify-change.md
+.config/opencode/agent/selfmade/scripts/validate-agents.ps1
+
+# Moved 2026-09-25: Discord bot plan and command are project-only; they now live
+# in the opencode-remote repository under .opencode/.
+.config/opencode/DISCORD_BOT_SDK_PLAN.md
+.config/opencode/commands/discord-bot-sdk.md
+
+# Removed 2026-09-25: cross-review is unused; the user does not review with a
+# separately named model.
+.agents/skills/cross-review

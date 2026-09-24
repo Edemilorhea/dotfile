@@ -1,6 +1,8 @@
 ---
 name: vibe-coding-tutor
 description: Use when the user asks to explain a completed multi-file feature, generate a project walkthrough, or create a tutorial from existing code. Produces an architecture-focused learning guide and safe hands-on experiments.
+metadata:
+  opencode/autoinvoke: false
 ---
 
 # Vibe-Coding Tutor

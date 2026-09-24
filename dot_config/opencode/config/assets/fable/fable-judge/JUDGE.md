@@ -1,6 +1,6 @@
 ---
 name: fable-judge
-description: Command-only Fable Judge payload. Read only after explicit `/selfmade/fable` or `/fable-judge` command entry; never auto-discover or load as a skill.
+description: Command-only Fable Judge payload. Read only after explicit `/selfmade/fable` or `/selfmade/fable-judge` command entry; never auto-discover or load as a skill.
 ---
 
 # fable-judge
@@ -33,6 +33,6 @@ Standing rules: judging changes nothing (read and run only; fixes happen only if
 
 ## suite mode: judge a skill or a model
 
-`/fable-judge suite <target>` runs the fable-method trap suite against a target configuration: a newly installed skill, a different model, a modified prompt. It needs the repo's `eval/` directory. If this payload was installed with the plugin, `eval/` is already in the plugin's install directory (the plugin source is the repo itself); locate it relative to this `JUDGE.md` (`../../eval/`). Only standalone installs need a separate clone of `https://github.com/Sahir619/fable-method`.
+`/selfmade/fable-judge suite <target>` runs the fable-method trap suite against a target configuration: a newly installed skill, a different model, a modified prompt. It needs the repo's `eval/` directory. If this payload was installed with the plugin, `eval/` is already in the plugin's install directory (the plugin source is the repo itself); locate it relative to this `JUDGE.md` (`../../eval/`). Only standalone installs need a separate clone of `https://github.com/Sahir619/fable-method`.
 
 For each scenario in `eval/scenarios/`: create a fresh copy in a scratch directory, run an executor subagent with the target configuration on that scenario's task (tasks and ground truths live in `eval/workflow.js` and `eval/README.md`), then judge the run exactly as the default mode judges work: by diff and execution against the scenario's ground truth, never by the executor's report alone. Deliver per-scenario scores and which traps triggered. One seed per scenario is a smoke test, not a benchmark; multiply seeds for confidence, and say which was done.

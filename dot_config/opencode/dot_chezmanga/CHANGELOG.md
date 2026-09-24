@@ -1,5 +1,21 @@
 # OpenCode Chezmoi Changelog
 
+## 2026-09-25T02:05:11+08:00 - Give skills, agents, and commands one home each
+
+- Status: Completed
+- Machine: TC-TSENG
+- Platform: Microsoft Windows 10.0.26200 / AMD64
+- Scope: `skills/` (retired), `commands/{selfmade/consult,selfmade/fable-method,selfmade/fable-loop,selfmade/fable-judge,selfmade/adv-review,verify-change}.md`, `agent/selfmade/fable-agent.md`, `scripts/validate-agents.ps1`, `AGENTS.md.tmpl`, `config/skills-registry.md`, `config/assets/fable/**`, `config/assets/skills/{init,implementation-understanding-*-contract}/SKILL.md`; chezmoi root `.chezmoiremove`
+- Summary: Moved all nine chezmoi-managed global skills to `~/.agents/skills`, so OpenCode and Codex read one skill root. Moved the Fable commands into `commands/selfmade/`, removed `/verify-change`, added `/selfmade/consult`, and made `/selfmade/adv-review` call `jev_review` for code fixes and implementations.
+- Important records:
+  - Fable commands are now `/selfmade/fable-method`, `/selfmade/fable-loop`, and `/selfmade/fable-judge`. Their `FABLE_COMMAND_ENTRY` markers, `fable-agent.md`, `AGENTS.md`, the registry, and the vendored payload text use the new names.
+  - `validate-agents.ps1` moved from `agent/selfmade/scripts/` to `scripts/` so the agent scan root holds only agent files.
+  - Only the four implementation-understanding contract skills set `metadata.opencode/autoinvoke: false`; the tutor loads them by ID. Every skill the user may need directly stays advertised, because the user does not memorize skill names. `opencode-assets apply -Scope global -Profiles core` redeployed the copy-template skills.
+  - `DISCORD_BOT_SDK_PLAN.md` and `/discord-bot-sdk` moved out of the global config into the `opencode-remote` repository as `.opencode/DISCORD_BOT_SDK_PLAN.md` and `.opencode/commands/discord-bot-sdk.md` (uncommitted there). The command now reads the plan by its project-relative path.
+  - Outside chezmoi: deleted the `~/.claude/skills` junctions, `~/.claude/commands`, seven orphan `~/.agents/skills/source-command-*` skills, and the unused CIF rule in `~/AGENTS.md`.
+- Portability: No new machine-specific paths. `.chezmoiremove` removes the old targets on other machines.
+- Chezmoi: Renamed source paths with `git mv`; added `commands/selfmade/consult.md`; removed `commands/verify-change.md`; appended removals to `.chezmoiremove`.
+- Verification: Scoped `chezmoi apply` exited 0. The nine old skill copies matched the new ones before deletion, and `~/.config/opencode/skills` is gone. `opencode-assets apply` exited 0. Manually edited source files contain no CR bytes. OpenCode was not restarted in this session.
 ## 2026-09-24T11:00:59+08:00 - Run V2 as the only OpenCode at its default paths
 
 - Status: Partial

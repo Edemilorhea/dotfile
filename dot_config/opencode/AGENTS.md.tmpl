@@ -72,16 +72,18 @@ Shared instructions for coding agents.
 
 This machine runs only OpenCode V2, as `opencode`, at its default paths. V1 was retired on 2026-09-24.
 
-- Config root: `~/.config/opencode` (`opencode.json`, `cli.json`, `dcp.jsonc`, `agent/`, `commands/`, `skills/`, `plugins/`). Use these exact directory names; do not create a parallel `agents/`, `command/`, or `skill/` directory.
+- Config root: `~/.config/opencode` (`opencode.json`, `cli.json`, `dcp.jsonc`, `agent/`, `commands/`, `plugins/`, `scripts/`). Use these exact directory names; do not create a parallel `agents/`, `command/`, or `skill/` directory.
+- Global skills live only in `~/.agents/skills`, which OpenCode and Codex both read. Do not add skills to `~/.config/opencode/skills` or `~/.claude/skills`. Keep every skill the user may need directly advertised; the user does not memorize skill names. Set `metadata.opencode/autoinvoke: false` only on a sub-component that another skill loads by ID.
+- Keep one home per kind: agents in `agent/`, commands in `commands/` (personal ones in `commands/selfmade/`), helper scripts in `scripts/`, and command-only payloads or project templates in `config/assets/`.
 - `opencode.json` uses the plural `plugins` array. V1 plugins (`@opencode-ai/plugin`) do not run on V2 (`@opencode/plugin`); confirm V2 support before you add a plugin.
 - Custom tools come from plugins. V2 does not load a `tools/` directory.
 - Data, state, and cache: `~/.local/share/opencode`, `~/.local/state/opencode`, and `~/.cache/opencode`. Credentials are stored in the data database.
 - V2 derives an agent ID from the agent file path and ignores the frontmatter `name:` field. `agent/selfmade/fable-agent.md` is `selfmade/fable-agent`. A command must name the full path-derived ID.
-- Install a third-party or plugin-bundled skill through the project-scoped asset manager, so it never lands in the global `skills/` tree.
+- Install a third-party or plugin-bundled skill through the project-scoped asset manager, so it never lands in the global `~/.agents/skills` tree.
 
 ## Command-only Fable payloads
 
-- Do not discover, read, or run `~/.config/opencode/config/assets/fable/` outside an explicit `/selfmade/fable`, `/fable-method`, `/fable-loop`, or `/fable-judge` command. During those commands, follow the command body and use `Read`, never the `skill` tool, for Fable payloads and nested references.
+- Do not discover, read, or run `~/.config/opencode/config/assets/fable/` outside an explicit `/selfmade/fable`, `/selfmade/fable-method`, `/selfmade/fable-loop`, or `/selfmade/fable-judge` command. During those commands, follow the command body and use `Read`, never the `skill` tool, for Fable payloads and nested references.
 
 ## Chezmoi-managed scopes
 

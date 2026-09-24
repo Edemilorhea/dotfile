@@ -1,6 +1,8 @@
 ---
 name: implementation-understanding-mechanism-contract
 description: Use ONLY when implementation-understanding-tutor explicitly delegates a mechanism, primitive bridge, ELI5 gate, or comprehension repair. Do not trigger independently for general framework explanations.
+metadata:
+  opencode/autoinvoke: false
 ---
 
 # Implementation Understanding Mechanism Contract

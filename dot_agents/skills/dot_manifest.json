@@ -37,16 +37,6 @@
       ],
       "installedAt": "2026-05-23T07:54:59.565Z"
     },
-    "cross-review": {
-      "name": "cross-review",
-      "version": "1.2.1",
-      "source": "zencoderai/skills@main:cross-review",
-      "contentHash": "a7c433742b2931d274cdc2a14b7f54d8be36c5db4607d7b47b9a50449dbb89f0",
-      "files": [
-        "SKILL.md"
-      ],
-      "installedAt": "2026-05-23T07:54:59.565Z"
-    },
     "frontend-design": {
       "name": "frontend-design",
       "version": "6bb927d9b72cca7b9eebb776230a788f4a666217",

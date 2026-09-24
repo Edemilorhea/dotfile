@@ -1,6 +1,8 @@
 ---
 name: implementation-understanding-quality-contract
 description: Use ONLY when implementation-understanding-tutor explicitly delegates evidence routing, communication gates, verification separation, or final quality checks. Do not trigger independently for ordinary code review.
+metadata:
+  opencode/autoinvoke: false
 ---
 
 # Implementation Understanding Quality Contract

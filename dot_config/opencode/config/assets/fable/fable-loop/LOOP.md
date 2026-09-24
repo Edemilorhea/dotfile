@@ -1,6 +1,6 @@
 ---
 name: fable-loop
-description: Command-only Fable Loop payload. Read only after explicit `/selfmade/fable` or `/fable-loop` command entry; never auto-discover or load as a skill.
+description: Command-only Fable Loop payload. Read only after explicit `/selfmade/fable` or `/selfmade/fable-loop` command entry; never auto-discover or load as a skill.
 ---
 
 # The Fable Loop

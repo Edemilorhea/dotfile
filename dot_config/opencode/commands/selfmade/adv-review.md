@@ -75,6 +75,8 @@ Agent verdict 是線索，不是票數。主代理必須以 Read、Grep、測試
 
 單一 Agent 失敗時可降級完成，但必須標示 `coverage: degraded`。`NOT_APPLICABLE` 若有具體理由，視為有效完成，不視為支持票。
 
+`object_type` 為 `fix` 或 `implementation` 且待審對象含程式碼時，主代理另外載入 `jev-review` skill，並以 focused diff 呼叫一次 `jev_review`。Jev 分數是品質證據，不是鏡頭票數，不得單獨決定終態；不得為了分數在本命令內修改程式碼。`jev_review` 不可用或缺少 `JEV_API_KEY` 時，用一行說明後照常裁決。
+
 ### 4. 終止與版本規則
 
 完成一輪、找到已驗證 blocker、關鍵證據不足、兩個以上 Agent 失敗、需要超出 scope、需要改寫命題或達到預算時立即停止。不得自動修改或重跑。
@@ -90,7 +92,8 @@ Agent verdict 是線索，不是票數。主代理必須以 Read、Grep、測試
 1. 三鏡頭簡表：鏡頭、verdict、一句關鍵理由。
 2. `BLOCKER`：最多 3 條，每條用一句白話說明「哪裡會壞、為什麼」，附主代理驗證結果與 file:line。超過 3 條時只列影響最大的 3 條，其餘以一行計數帶過。
 3. `QUALIFIER` 與 `OUT_OF_SCOPE`：只列數量與一行摘要，不逐條展開；使用者要求時再列。
-4. 一行：實際使用的 calls/budget，以及是否值得建立 v2（不得自動重審）。
+4. 有執行 `jev_review` 時：一行列出各維度分數。
+5. 一行：實際使用的 calls/budget，以及是否值得建立 v2（不得自動重審）。
 
 不得輸出超過 3 條展開的 objection、術語未解釋的 verdict，或未經去重的重複發現。
 

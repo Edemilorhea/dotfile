@@ -6,7 +6,7 @@ subtask: false
 
 # Fable Judge
 
-FABLE_COMMAND_ENTRY: /fable-judge
+FABLE_COMMAND_ENTRY: /selfmade/fable-judge
 
 Target: `$ARGUMENTS`.
 

@@ -6,7 +6,7 @@ subtask: false
 
 # Fable Method
 
-FABLE_COMMAND_ENTRY: /fable-method
+FABLE_COMMAND_ENTRY: /selfmade/fable-method
 
 Task: `$ARGUMENTS`.
 

@@ -1,6 +1,8 @@
 ---
 name: implementation-understanding-code-teach-contract
 description: Use ONLY when implementation-understanding-tutor explicitly delegates Layer 4 or an actual method/code walkthrough. Do not trigger independently for ordinary code review or code generation.
+metadata:
+  opencode/autoinvoke: false
 ---
 
 # Implementation Understanding Code Teach Contract

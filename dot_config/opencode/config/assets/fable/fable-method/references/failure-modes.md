@@ -1,6 +1,6 @@
 # Failure modes: symptom → step
 
-Eighteen ways agentic work goes wrong, what each looks like from the outside, and which step of the loop prevents it. Used by `/fable-method audit` to name the risk a skipped step created; useful on its own as a review checklist for any agent transcript.
+Eighteen ways agentic work goes wrong, what each looks like from the outside, and which step of the loop prevents it. Used by `/selfmade/fable-method audit` to name the risk a skipped step created; useful on its own as a review checklist for any agent transcript.
 
 | # | Failure mode | Symptom | Prevented by |
 |---|---|---|---|

@@ -1,7 +1,7 @@
 ---
 name: fable-method
-description: Command-only Fable Method payload. Read only after explicit `/selfmade/fable` or `/fable-method` command entry; never auto-discover or load as a skill.
-trigger: /fable-method
+description: Command-only Fable Method payload. Read only after explicit `/selfmade/fable` or `/selfmade/fable-method` command entry; never auto-discover or load as a skill.
+trigger: /selfmade/fable-method
 ---
 
 # The Fable Method
@@ -11,10 +11,10 @@ A mid-tier model that follows this loop beats a stronger model that free-styles:
 ## Usage
 
 ```
-/fable-method <task>       full loop on the task (default)
-/fable-method plan <task>  Steps 0-3 only: classify, define done, gather evidence, deliver the plan, stop
-/fable-method audit        grade the work already done in this conversation against the loop (see Modes)
-/fable-method report       rewrite the answer you were about to send per Step 6
+/selfmade/fable-method <task>       full loop on the task (default)
+/selfmade/fable-method plan <task>  Steps 0-3 only: classify, define done, gather evidence, deliver the plan, stop
+/selfmade/fable-method audit        grade the work already done in this conversation against the loop (see Modes)
+/selfmade/fable-method report       rewrite the answer you were about to send per Step 6
 ```
 
 During an explicit Fable slash command, use `Read` to load deeper material on demand from these exact home-relative payload paths: `~/.config/opencode/config/assets/fable/fable-method/references/failure-modes.md` (symptom to step map for 18 common agent failures), `~/.config/opencode/config/assets/fable/fable-method/references/examples.md` (full worked examples for every ask shape), `~/.config/opencode/config/assets/fable/fable-method/references/domains/` (domain adapters, see below; `domains/TEMPLATE.md` is their schema and `/fable-domain` generates new ones), and `~/.config/opencode/config/assets/fable/fable-method/references/flowcharts.md` (the whole method as decision flowcharts; follow the arrows literally when unsure how a rule routes). Do not use the `skill` tool for these files.

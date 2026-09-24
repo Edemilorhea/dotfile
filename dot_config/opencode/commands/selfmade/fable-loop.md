@@ -6,7 +6,7 @@ subtask: false
 
 # Fable Loop
 
-FABLE_COMMAND_ENTRY: /fable-loop
+FABLE_COMMAND_ENTRY: /selfmade/fable-loop
 
 Task: `$ARGUMENTS`.
 

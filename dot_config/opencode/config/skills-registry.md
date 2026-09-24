@@ -8,16 +8,16 @@ This registry records where workflow assets are installed and whether OpenCode e
 
 | Root | Current role | Ownership status |
 | --- | --- | --- |
-| `~/.config/opencode/skills` | OpenCode global auto-scan | chezmoi-managed local skills |
+| `~/.agents/skills` | The only global skill root. OpenCode and Codex both scan it. | chezmoi-managed local and vendored skills, plus `opencode-assets` installs declared in `external-assets.json` |
 | `~/.config/opencode/config/assets/fable` | Command-only Fable payloads; not skill-scanned | chezmoi-managed local package |
-| `~/.agents/skills` | Cross-agent external auto-scan | mixed installer payloads; reproducible entries are declared in `external-assets.json` |
-| `~/.claude/skills` | Claude compatibility auto-scan | installer-created junctions that mirror selected `.agents` skills |
+| `~/.config/opencode/skills` | Retired 2026-09-25; keep empty | Its skills moved to `~/.agents/skills` |
+| `~/.claude/skills` | Retired 2026-09-25; Claude Code is no longer used | Junctions removed |
 
 `~/.agents/skills/.manifest.json` identifies bundled third-party ownership for several external skills. `config/external-assets.json` is the schema v4 catalog used by `opencode-assets`; project selections live in `.opencode/assets.json` and resolved ownership is recorded in `.opencode/assets.lock.json`.
 
 ## Ownership Policy
 
-Only self-maintained assets that are OpenCode-specific and must be directly globally auto-scanned belong under `dot_config/opencode/...`. All other portable self-maintained skills, third-party skills, and optional project skills are managed through `config/assets` plus `external-assets.json`. The `core` profile is installed globally by default during initialization; projects select all other profiles through `.opencode/assets.json`.
+Self-maintained global skills belong under chezmoi source `dot_agents/skills/`. All other portable self-maintained skills, third-party skills, and optional project skills are managed through `config/assets` plus `external-assets.json`. The `core` profile is installed globally by default during initialization; projects select all other profiles through `.opencode/assets.json`.
 
 ## Exposure Values
 
@@ -29,12 +29,15 @@ Only self-maintained assets that are OpenCode-specific and must be directly glob
 | `explicit` | Installed but invoked only by an explicit command or skill request. |
 | `quarantine` | Do not expose until duplicate and provenance decisions are completed. |
 
+Every globally installed skill that the user may need directly stays advertised, because the user should not have to remember skill names. Only a sub-component that another skill loads by ID sets `metadata.opencode/autoinvoke: false`; OpenCode then omits it from the model's list but still loads it. Today that applies to the four `implementation-understanding-*-contract` skills and to `feature-flow-explainer` and `vibe-coding-tutor`, which `implementation-understanding-tutor` loads as evidence specialists. The user invokes `implementation-understanding-tutor` and `change-understanding-review` directly.
+
 ## Core Workflow Pack
 
 | Assets | Pack | Target exposure | Owner |
 | --- | --- | --- | --- |
-| `fable-method`, `fable-loop`, `fable-judge` command payloads | `fable` | `explicit` through `/selfmade/fable`, `/fable-method`, `/fable-loop`, or `/fable-judge`; never skill-scanned | chezmoi-managed local package |
-| `feature-flow-explainer`, `linear-workflow` | `core-workflow` | `global` | chezmoi-managed local skills |
+| `fable-method`, `fable-loop`, `fable-judge` command payloads | `fable` | `explicit` through `/selfmade/fable`, `/selfmade/fable-method`, `/selfmade/fable-loop`, or `/selfmade/fable-judge`; never skill-scanned | chezmoi-managed local package |
+| `linear-workflow` | `core-workflow` | `global` | chezmoi-managed local skill |
+| `feature-flow-explainer` | `learning-code` | `explicit`; evidence specialist for `implementation-understanding-tutor` | chezmoi-managed local skill |
 
 After explicit command entry, the Fable pack is the sole orchestration authority. The hidden `FableAgent` reads the command-only payloads from `config/assets/fable`; it does not load them with the `skill` tool. All three payloads remain installed together, while each command reads only the method, loop, judge, and nested references required by that invocation.
 
@@ -47,7 +50,7 @@ After explicit command entry, the Fable pack is the sole orchestration authority
 | `change-understanding-review` | `dev-foundation` | `global` | chezmoi-managed local skill |
 | `init` | `core` | `global` | zencoderai-derived template deployed by `opencode-assets` to `~/.agents/skills/init` |
 | `implementation-understanding-tutor`, `implementation-understanding-report-contract`, `implementation-understanding-code-teach-contract`, `implementation-understanding-mechanism-contract`, `implementation-understanding-quality-contract` | `learning-code` | `global` as one indivisible orchestrator pack | chezmoi-managed templates deployed by `opencode-assets`; contract skills are invoked only by the tutor orchestrator |
-| `vibe-coding-tutor` | `learning-code` | `global` | chezmoi-managed; upstream `tortoiseknightma/vibe-coding-tutor` with pinned provenance recorded locally |
+| `vibe-coding-tutor` | `learning-code` | `explicit`; required by the tutor's Code Teach contract | chezmoi-managed; upstream `tortoiseknightma/vibe-coding-tutor` with pinned provenance recorded locally |
 | `teach` | `learning-code` | `explicit` | Optional `learning` profile; pinned `mattpocock/skills` source in `external-assets.json` |
 
 ## Code Understanding Pack
@@ -79,9 +82,7 @@ These skills are complementary. ISO 24495 governs information design, ASD-STE100
 
 ## Review Pack
 
-| Skills | Pack | Target exposure | Owner / provenance |
-| --- | --- | --- | --- |
-| `cross-review` | `review` | `explicit` | `.agents` manifest: `zencoderai/skills` |
+Code review runs through `/selfmade/review`, `/selfmade/adv-review`, and the `jev-review` skill. `cross-review` was removed on 2026-09-25 because the user does not review with a separately named model.
 
 `fable-judge` is intentionally excluded: it is a command-only payload in the Core Fable pack, not a review skill.
 
@@ -89,8 +90,8 @@ These skills are complementary. ISO 24495 governs information design, ASD-STE100
 
 | Skills | Pack | Target exposure | Owner / provenance |
 | --- | --- | --- | --- |
-| `agent-browser` | `browser` | `project` | `.agents` manifest: `vercel-labs/agent-browser` |
-| `playwright` | `browser` | `project` | Runtime-only payload; exact-phrase and GitHub code searches found no verifiable public upstream as of 2026-08-09 |
+| `agent-browser` | `browser` | `global`; `change-verification` also loads it for exploration | `.agents` manifest: `vercel-labs/agent-browser` |
+| `playwright` | `browser` | `global`; `change-verification` loads it for precise assertions | Runtime-only payload; exact-phrase and GitHub code searches found no verifiable public upstream as of 2026-08-09. Its `node_modules/playwright-core/lib/tools/skills/` folder was deleted on 2026-09-25 because V2 discovered three nested `SKILL.md` files there; `npm install` can restore it. |
 | `document-processing` | `documents` | `project` | chezmoi-managed template deployed by `opencode-assets`; no longer globally scanned |
 | `office-documents` | `documents` | `global` | chezmoi-managed thin integration for the global Office MCP |
 | `copy-editing`, `copywriting` | `content` | `project` | chezmoi-managed template under `config/assets/skills`, deployed by `opencode-assets` profile `content`; no longer globally scanned (moved 2026-09-18 after zero global use in three months) |
@@ -99,7 +100,7 @@ These skills are complementary. ISO 24495 governs information design, ASD-STE100
 
 | Skills | Pack | Target exposure | Owner / provenance |
 | --- | --- | --- | --- |
-| `frontend-design` | `design` | `project` | `.agents` manifest: `zencoderai/skills` |
+| `frontend-design` | `design` | `global` | `.agents` manifest: `zencoderai/skills` |
 | `interactive-diagram` | `design` | `explicit` | Optional `design` profile; pinned `LizardLiang/interactive-diagram` source in `external-assets.json` |
 | `diagram-design` | `design` | `explicit` | Optional `design` profile; pinned `cathrynlavery/diagram-design` source in `external-assets.json` |
 | `archify` | `design` | `explicit` | Optional `design` profile; pinned `tt-a1i/archify` source in `external-assets.json` |
@@ -167,6 +168,4 @@ This profile is project-only. Network credentials and framework-generated projec
 ## Required Follow-up Evidence
 
 1. Add upstream repository, revision, and content hash for every chezmoi-managed skill whose source is currently unknown.
-2. Confirm the installer and source tree that produced the unmanifested `.agents/skills` and all `.claude/skills` entries.
-3. Hash-compare duplicate names across external roots before choosing the canonical copy.
-4. Only after those checks, implement profile rendering and disable the redundant auto-scan root.
+2. Confirm the installer and source tree that produced the unmanifested `~/.agents/skills/playwright` payload.

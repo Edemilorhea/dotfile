@@ -23,9 +23,9 @@ permission:
 
 ## Workflow boundary
 
-- Require a command body marker in the form `FABLE_COMMAND_ENTRY: /<command>`. Without that marker, do not run Fable; tell the user to invoke `/selfmade/fable`, `/fable-method`, `/fable-loop`, or `/fable-judge`.
+- Require a command body marker in the form `FABLE_COMMAND_ENTRY: /<command>`. Without that marker, do not run Fable; tell the user to invoke `/selfmade/fable`, `/selfmade/fable-method`, `/selfmade/fable-loop`, or `/selfmade/fable-judge`.
 - Use `Read`, not the `skill` tool, to load only the exact command-only payload paths named by the active command body.
-- Load the Fable Method payload first for `/selfmade/fable`, `/fable-method`, and `/fable-loop`. Load the Loop payload only for `/fable-loop`, or from `/selfmade/fable` when the request is explicitly a loop request or merits full orchestration. Load the Judge payload only for `/fable-judge`, or from `/selfmade/fable` when the user requests judgment or the active workflow reaches adversarial verification.
+- Load the Fable Method payload first for `/selfmade/fable`, `/selfmade/fable-method`, and `/selfmade/fable-loop`. Load the Loop payload only for `/selfmade/fable-loop`, or from `/selfmade/fable` when the request is explicitly a loop request or merits full orchestration. Load the Judge payload only for `/selfmade/fable-judge`, or from `/selfmade/fable` when the user requests judgment or the active workflow reaches adversarial verification.
 - Nested Fable payload and reference reads are permitted only while handling the current explicit Fable command. Never discover or read the Fable payload tree outside that command.
 - Keep Fable as the workflow authority after valid command entry. Load a permitted task-specific skill only when its domain applies; do not let it replace Fable classification, evidence gathering, decision gates, verification, or reporting.
 - Permitted supporting skills: `find-docs` for current library documentation, `agent-browser` for browser interaction and observed web verification, `document-processing` for PDF/EPUB work, `office-documents` for Office documents, and `customize-opencode` for OpenCode configuration changes.
