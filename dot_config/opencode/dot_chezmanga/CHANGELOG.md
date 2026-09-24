@@ -1,5 +1,23 @@
 # OpenCode Chezmoi Changelog
 
+## 2026-09-24T11:00:59+08:00 - Run V2 as the only OpenCode at its default paths
+
+- Status: Partial
+- Machine: TC-TSENG
+- Platform: Microsoft Windows 10.0.26200 / AMD64
+- Scope: whole config root; chezmoi root scripts `run_onchange_after_setup-opencode.ps1.tmpl` (renamed from `setup-opencode-v2`) and `run_onchange_after_install-opencode-external-assets.ps1.tmpl`; `.chezmoiignore`, `.chezmoiremove`; `~/.config/psmux/psmux.conf`.
+- Summary: V2 now reads `~/.config/opencode` directly and is launched as `opencode`. `opencode2.cmd`, `~/.config/opencodev2`, `~/.opencode-v2`, and every junction between them are retired.
+- Important records:
+  - Moved from `~/.config/opencodev2/opencode`: `opencode.json`, `cli.json`, `dcp.jsonc`, `plugins/{dcp-notify,handoff,locu,rtk}`. `tools/locu` became real files at `plugins/locu/core`.
+  - The two retired changelogs are kept here as `CHANGELOG-opencodev2.md` and `CHANGELOG-opencode-v2-install.md`.
+  - Deleted V1-only files and listed them in `.chezmoiremove`: `tui.json`, `fallback.json`, `model-fallback.json`, `kdco-notify.json`, `smart-title.jsonc`, `package*.json`, `bun.lock`, `lib/`, `tools/`, V1 plugins (`kdco-primitives`, `notify`, `openai-usage*`, `selfmade/mandatory-format`, unmanaged `rtk.ts`), `scripts/{oc-model.ps1,apply-model-fallback-patch.mjs}`, `config/model-tiers.json`, their tests, and `commands/fallback-status.md`. The tracked `.opencode/` files were deleted from the source; the setup script removes the directory. `opencode.json` keeps the port status of every V1 plugin.
+  - Setup script: installs the binary to `~/.opencode/bin` (official installer path), replaces `~/.opencode-v2` on the user PATH, and sets the user variable `ANTHROPIC_CLAUDE_CODE_VERSION=2.1.280`. A one-time migration stops the old service, refuses to run while any `opencode` process is open, moves `xdg/{data,state,cache}/opencode` to the default XDG paths (credentials live in the data database), renames any V1 copy there to `*.v1-retired-<stamp>`, moves `service.json`, removes every bridge link, renames both old roots to `*.retired-<stamp>`, deletes untracked V1 leftovers (`node_modules`, `.opencode`, `vendor/office-mcp`, `antigravity-accounts.json`), and runs `bun remove -g opencode-ai` when V1 is still installed.
+  - Asset Manager catalog: runtime `v1` removed; `v2` now has `command: opencode` and `configRoot: ~/.config/opencode`. The V1-only `gsd` and `ponytail` assets and profiles were removed.
+  - `AGENTS.md` replaces "V1 and V2 boundaries" with a short "OpenCode layout" section. `adv-review` and `worklog` drop V1 names.
+- Portability: No new absolute paths. The migration is idempotent and runs on any Windows machine that still has the old layout; on a clean machine it is skipped.
+- Chezmoi: files moved with `git mv`; source updated, not yet applied or pushed.
+- Verification: Asset Manager `plan -Runtimes v2` against the new catalog succeeded. The rendered setup script parses with no errors. `chezmoi status` shows only the intended OpenCode and psmux changes plus unrelated `.config/nvim` source edits that another session was making at the same time; they are not part of this commit. Remaining: close OpenCode, run the scoped apply, and confirm `opencode` starts with existing sessions and credentials.
+
 ## 2026-09-24T01:13:30+08:00 - Tighten shared commands and skills
 
 - Status: Completed

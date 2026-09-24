@@ -43,11 +43,11 @@ budget:
 
 同一則訊息透過 task 工具平行呼叫三個鏡頭，不得串行、合併角色或自動重試：
 
-| 鏡頭 | V1 agent | V2 agent |
-|---|---|---|
-| Skeptic | `Skeptic` | `selfmade/subagents/adversarial/skeptic` |
-| RedTeam | `RedTeam` | `selfmade/subagents/adversarial/red-team` |
-| Simplifier | `Simplifier` | `selfmade/subagents/adversarial/simplifier` |
+| 鏡頭 | agent |
+|---|---|
+| Skeptic | `selfmade/subagents/adversarial/skeptic` |
+| RedTeam | `selfmade/subagents/adversarial/red-team` |
+| Simplifier | `selfmade/subagents/adversarial/simplifier` |
 
 每個 prompt 必須包含完全相同的 contract、相關檔案路徑及該鏡頭任務。
 

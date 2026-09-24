@@ -1,0 +1,279 @@
+{{- if eq .chezmoi.os "windows" -}}
+$ErrorActionPreference = 'Stop'
+
+# OpenCode (the V2 CLI) at its default locations: binary in ~/.opencode/bin,
+# config in ~/.config/opencode, data/state/cache in ~/.local/share/opencode,
+# ~/.local/state/opencode, and ~/.cache/opencode. Bump $version to reinstall
+# the binary: chezmoi reruns this script whenever its rendered content changes.
+$version = '2.0.15'
+
+# @ex-machina/opencode-anthropic-auth@next still reports Claude Code 2.1.275,
+# which Anthropic rejects for current models. Remove this override once the
+# plugin bundles 2.1.280 or newer.
+$claudeCodeVersion = '2.1.280'
+
+$binDir = [System.IO.Path]::GetFullPath((Join-Path $HOME '.opencode/bin'))
+$exe = Join-Path $binDir 'opencode.exe'
+$stamp = Join-Path $binDir '.version'
+$configRoot = Join-Path $HOME '.config/opencode'
+
+# Layout retired on 2026-09-24: V1 from bun, and V2 isolated by opencode2.cmd
+# under these two roots.
+$legacyRoot = Join-Path $HOME '.opencode-v2'
+$legacyConfigHome = Join-Path $HOME '.config/opencodev2'
+
+# RTK (Rust Token Killer) shrinks verbose command output before it reaches the
+# model. Bump $rtkVersion to upgrade; the same rerun rule as $version applies.
+$rtkVersion = '0.49.0'
+$rtkBinDir = Join-Path $HOME '.local/bin'
+$rtkExe = Join-Path $rtkBinDir 'rtk.exe'
+$rtkStamp = Join-Path $rtkBinDir '.rtk-version'
+
+function Get-Target {
+    $arch = if ([System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture -eq 'Arm64') { 'arm64' } else { 'x64' }
+    if ($arch -ne 'x64') { return "windows-$arch" }
+
+    # Bun's x64 build needs AVX2; fall back to the baseline build without it.
+    Add-Type -MemberDefinition '[DllImport("kernel32.dll")] public static extern bool IsProcessorFeaturePresent(int ProcessorFeature);' -Name K32 -Namespace OpenCodeSetup -ErrorAction SilentlyContinue
+    $avx2 = try { [OpenCodeSetup.K32]::IsProcessorFeaturePresent(40) } catch { $false }
+    if ($avx2) { 'windows-x64' } else { 'windows-x64-baseline' }
+}
+
+function Install-Binary {
+    # npm install -g @opencode/cli fails on Windows: its postinstall cannot pick
+    # the platform package and npm then empties the package directory. Fetch the
+    # platform tarball directly, which is what opencode.ai/v2/install also does.
+    $target = Get-Target
+    $package = "@opencode/cli-$target"
+    $url = "https://registry.npmjs.org/$package/-/cli-$target-$version.tgz"
+    $work = Join-Path ([System.IO.Path]::GetTempPath()) "opencode-setup-$PID"
+
+    Write-Host "[OpenCode] Downloading $package@$version"
+    New-Item -ItemType Directory -Path $work -Force | Out-Null
+    try {
+        Invoke-WebRequest -Uri $url -OutFile (Join-Path $work 'cli.tgz')
+        & tar -xzf (Join-Path $work 'cli.tgz') -C $work
+        if ($LASTEXITCODE -ne 0) { throw "tar failed with exit code $LASTEXITCODE" }
+
+        New-Item -ItemType Directory -Path $binDir -Force | Out-Null
+        # A running opencode.exe (shared service or an active session) cannot be
+        # overwritten, but Windows allows renaming it. Park the old binary aside;
+        # live processes keep their mapped image and the next launch gets $version.
+        $previous = "$exe.previous"
+        Remove-Item -LiteralPath $previous -Force -ErrorAction SilentlyContinue
+        if (Test-Path -LiteralPath $exe) {
+            try {
+                Rename-Item -LiteralPath $exe -NewName (Split-Path -Leaf $previous)
+            }
+            catch {
+                # A previous backup may still be mapped by an older client.
+                # Keep it and use a versioned backup for this replacement.
+                $previous = "$exe.previous.$version"
+                Remove-Item -LiteralPath $previous -Force -ErrorAction SilentlyContinue
+                Rename-Item -LiteralPath $exe -NewName (Split-Path -Leaf $previous)
+            }
+        }
+        Move-Item (Join-Path $work 'package/bin/opencode.exe') $exe -Force
+        Set-Content -LiteralPath $stamp -Value $version -NoNewline
+        Write-Host "[OpenCode] Installed $version to $exe"
+        if (Get-Process opencode -ErrorAction SilentlyContinue) {
+            Write-Host "[OpenCode] Running opencode processes still use the previous binary. Run 'opencode service restart' when convenient."
+        }
+    }
+    finally {
+        Remove-Item -Recurse -Force $work -ErrorAction SilentlyContinue
+    }
+}
+
+function Install-Rtk {
+    # Deliberately not added to PATH. opencode/plugins/rtk/index.ts resolves
+    # this exact path and injects the directory into the PATH of the one shell
+    # it rewrites, so nothing else on the machine has to know rtk exists and
+    # removing it never requires an environment-variable edit.
+    $asset = 'rtk-x86_64-pc-windows-msvc.zip'
+    $base = "https://github.com/rtk-ai/rtk/releases/download/v$rtkVersion"
+    $work = Join-Path ([System.IO.Path]::GetTempPath()) "rtk-setup-$PID"
+
+    Write-Host "[OpenCode] Downloading rtk $rtkVersion"
+    New-Item -ItemType Directory -Path $work -Force | Out-Null
+    try {
+        $zip = Join-Path $work $asset
+        Invoke-WebRequest -Uri "$base/$asset" -OutFile $zip -UseBasicParsing
+
+        # checksums.txt holds one "<sha256>  <asset>" line per artifact, so a
+        # version bump stays a one-line edit instead of a hardcoded hash.
+        $checksums = Join-Path $work 'checksums.txt'
+        Invoke-WebRequest -Uri "$base/checksums.txt" -OutFile $checksums -UseBasicParsing
+        $line = Get-Content -LiteralPath $checksums | Where-Object { $_ -match "\s$([regex]::Escape($asset))\s*$" } | Select-Object -First 1
+        if (-not $line) { throw "checksums.txt has no entry for $asset" }
+        $expected = ($line -split '\s+')[0]
+        $actual = (Get-FileHash -LiteralPath $zip -Algorithm SHA256).Hash
+        if ($actual -ne $expected) { throw "sha256 mismatch for ${asset}: expected $expected, got $actual" }
+
+        Expand-Archive -LiteralPath $zip -DestinationPath $work -Force
+        New-Item -ItemType Directory -Path $rtkBinDir -Force | Out-Null
+        Move-Item (Join-Path $work 'rtk.exe') $rtkExe -Force
+        Set-Content -LiteralPath $rtkStamp -Value $rtkVersion -NoNewline
+        Write-Host "[OpenCode] Installed rtk $rtkVersion to $rtkExe"
+    }
+    finally {
+        Remove-Item -Recurse -Force $work -ErrorAction SilentlyContinue
+    }
+}
+
+function Set-UserPath {
+    param(
+        [Parameter(Mandatory = $true)][string]$Add,
+        [string[]]$Remove = @()
+    )
+
+    $current = [Environment]::GetEnvironmentVariable('PATH', 'User')
+    $items = @($current -split ';' | Where-Object { $_ -ne '' -and $Remove -notcontains $_.TrimEnd('\', '/') })
+    if ($items -notcontains $Add) { $items += $Add }
+    $updated = $items -join ';'
+    if ($updated -ne $current) {
+        [Environment]::SetEnvironmentVariable('PATH', $updated, 'User')
+        Write-Host "[OpenCode] Updated the user PATH: added $Add; removed $($Remove -join ', ')"
+    }
+}
+
+function Remove-Link {
+    param([Parameter(Mandatory = $true)][string]$Path)
+
+    $item = Get-Item -LiteralPath $Path -Force -ErrorAction SilentlyContinue
+    if ($item -and $item.LinkType) {
+        # Delete() on a junction or symlink removes only the link, never its target.
+        $item.Delete()
+        Write-Host "[OpenCode] Removed link $Path"
+    }
+}
+
+function Move-RuntimeDirectory {
+    param(
+        [Parameter(Mandatory = $true)][string]$Source,
+        [Parameter(Mandatory = $true)][string]$Destination,
+        [Parameter(Mandatory = $true)][string]$Suffix
+    )
+
+    if (-not (Test-Path -LiteralPath $Source)) { return }
+    if (Test-Path -LiteralPath $Destination) {
+        # Anything already at the default path came from V1. Keep it aside.
+        Rename-Item -LiteralPath $Destination -NewName "$(Split-Path -Leaf $Destination).v1-$Suffix"
+        Write-Host "[OpenCode] Kept the V1 copy of $Destination as *.v1-$Suffix"
+    }
+    New-Item -ItemType Directory -Path (Split-Path -Parent $Destination) -Force | Out-Null
+    Move-Item -LiteralPath $Source -Destination $Destination
+    Write-Host "[OpenCode] Moved $Source -> $Destination"
+}
+
+function Invoke-LegacyMigration {
+    if (-not (Test-Path -LiteralPath $legacyRoot) -and -not (Test-Path -LiteralPath $legacyConfigHome)) { return }
+
+    # The database, credentials, and service state are about to move. Stop the
+    # old background server, then refuse to continue while any client is open.
+    $legacyExe = Join-Path $legacyRoot 'bin/opencode.exe'
+    if (Test-Path -LiteralPath $legacyExe) {
+        $saved = @{}
+        $legacyEnv = @{
+            XDG_CONFIG_HOME = $legacyConfigHome
+            XDG_DATA_HOME = Join-Path $legacyRoot 'xdg/data'
+            XDG_STATE_HOME = Join-Path $legacyRoot 'xdg/state'
+            XDG_CACHE_HOME = Join-Path $legacyRoot 'xdg/cache'
+        }
+        foreach ($name in $legacyEnv.Keys) {
+            $saved[$name] = [Environment]::GetEnvironmentVariable($name)
+            [Environment]::SetEnvironmentVariable($name, $legacyEnv[$name])
+        }
+        try { & $legacyExe service stop 2>&1 | Out-Null } catch { }
+        finally {
+            foreach ($name in $saved.Keys) { [Environment]::SetEnvironmentVariable($name, $saved[$name]) }
+        }
+        Start-Sleep -Seconds 2
+    }
+    if (Get-Process opencode -ErrorAction SilentlyContinue) {
+        throw '[OpenCode] Close every OpenCode window and stop its service, then rerun "chezmoi apply". The data migration needs exclusive access.'
+    }
+
+    $suffix = "retired-$(Get-Date -Format 'yyyyMMdd-HHmmss')"
+    Write-Host '[OpenCode] Migrating from the V1 + opencode2 layout...'
+
+    # 1. Runtime data, including credentials in the database, moves to the
+    #    default XDG paths. Other tools' state under xdg/ stays in the retired copy.
+    Move-RuntimeDirectory (Join-Path $legacyRoot 'xdg/data/opencode') (Join-Path $HOME '.local/share/opencode') $suffix
+    Move-RuntimeDirectory (Join-Path $legacyRoot 'xdg/state/opencode') (Join-Path $HOME '.local/state/opencode') $suffix
+    Move-RuntimeDirectory (Join-Path $legacyRoot 'xdg/cache/opencode') (Join-Path $HOME '.cache/opencode') $suffix
+
+    # 2. The service password is per machine and not managed by chezmoi.
+    $legacyService = Join-Path $legacyConfigHome 'opencode/service.json'
+    $service = Join-Path $configRoot 'service.json'
+    if ((Test-Path -LiteralPath $legacyService) -and -not (Test-Path -LiteralPath $service)) {
+        Move-Item -LiteralPath $legacyService -Destination $service
+    }
+
+    # 3. Remove every bridge link before retiring the old roots, so a later
+    #    recursive delete cannot reach the shared config or the chezmoi source.
+    foreach ($name in 'git', 'tuios', 'scoop', 'chezmoi') { Remove-Link (Join-Path $legacyConfigHome $name) }
+    foreach ($name in 'agent', 'commands', 'skills', '.oh-my-opencode-slim', 'AGENTS.md', 'plugins/locu/core') {
+        Remove-Link (Join-Path $legacyConfigHome "opencode/$name")
+    }
+    Remove-Link (Join-Path $legacyRoot 'xdg/data/chezmoi')
+    Remove-Link (Join-Path $env:APPDATA 'opencode')
+    foreach ($path in $legacyRoot, $legacyConfigHome) {
+        if (Test-Path -LiteralPath $path) {
+            Rename-Item -LiteralPath $path -NewName "$(Split-Path -Leaf $path).$suffix"
+            Write-Host "[OpenCode] Retired $path as *.$suffix"
+        }
+    }
+
+    # 4. V1 runtime leftovers that chezmoi does not track.
+    foreach ($name in 'node_modules', '.opencode', 'vendor/office-mcp', 'antigravity-accounts.json', 'opencode-notifier-state.json', 'tui.json.newversion') {
+        $path = Join-Path $configRoot $name
+        $item = Get-Item -LiteralPath $path -Force -ErrorAction SilentlyContinue
+        if ($item -and -not $item.LinkType) {
+            Remove-Item -LiteralPath $path -Recurse -Force
+            Write-Host "[OpenCode] Removed V1 leftover $path"
+        }
+    }
+
+    # 5. The bun-installed V1 binary would shadow ~/.opencode/bin on PATH.
+    if (Test-Path -LiteralPath (Join-Path $HOME '.bun/install/global/node_modules/opencode-ai')) {
+        if (Get-Command bun -ErrorAction SilentlyContinue) {
+            & bun remove -g opencode-ai
+            if ($LASTEXITCODE -ne 0) { Write-Warning '[OpenCode] "bun remove -g opencode-ai" failed; remove the V1 binary manually.' }
+        }
+        else {
+            Write-Warning '[OpenCode] V1 opencode-ai is installed through bun, but bun is not on PATH; remove it manually.'
+        }
+    }
+}
+
+Write-Host '[OpenCode] Starting setup...'
+
+Invoke-LegacyMigration
+
+$installed = if (Test-Path -LiteralPath $stamp) { (Get-Content -LiteralPath $stamp -Raw).Trim() } else { '' }
+if (-not (Test-Path -LiteralPath $exe) -or $installed -ne $version) {
+    Install-Binary
+} else {
+    Write-Host "[OpenCode] Binary $version already installed"
+}
+
+$rtkInstalled = if (Test-Path -LiteralPath $rtkStamp) { (Get-Content -LiteralPath $rtkStamp -Raw).Trim() } else { '' }
+if (-not (Test-Path -LiteralPath $rtkExe) -or $rtkInstalled -ne $rtkVersion) {
+    # rtk only makes output smaller, so a download failure must not fail the
+    # setup. The plugin no-ops while the binary is missing.
+    try { Install-Rtk }
+    catch { Write-Warning "[OpenCode] rtk $rtkVersion install failed: $($_.Exception.Message)" }
+} else {
+    Write-Host "[OpenCode] rtk $rtkVersion already installed"
+}
+
+Set-UserPath -Add $binDir -Remove @($legacyRoot)
+
+if ([Environment]::GetEnvironmentVariable('ANTHROPIC_CLAUDE_CODE_VERSION', 'User') -ne $claudeCodeVersion) {
+    [Environment]::SetEnvironmentVariable('ANTHROPIC_CLAUDE_CODE_VERSION', $claudeCodeVersion, 'User')
+    Write-Host "[OpenCode] Set the user variable ANTHROPIC_CLAUDE_CODE_VERSION=$claudeCodeVersion"
+}
+
+Write-Host '[OpenCode] Complete. Open a new terminal and run "opencode".'
+{{- end }}

@@ -1,6 +1,0 @@
-{
-  "dependencies": {
-    "@opencode-ai/plugin": "1.17.9",
-    "jsonc-parser": "^3.3.1"
-  }
-}

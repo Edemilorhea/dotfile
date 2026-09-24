@@ -2,10 +2,9 @@ import { join } from "node:path"
 import { createLocuClient, type LocuClient } from "./core/client"
 import { resolveLocuToken } from "./core/config"
 
-// V2 port of the v1 custom tool at ~/.config/opencode/tools/locu.ts.
-// V2 removed file-based custom tools, so the same three tools are registered
-// through the plugin tool registry instead. `core/` is a junction to the v1
-// tools/locu directory, so both runtimes share one copy of the client.
+// V2 port of the retired v1 custom tool (tools/locu.ts). V2 removed file-based
+// custom tools, so the same three tools are registered through the plugin tool
+// registry instead. `core/` holds the client, config, and their tests.
 //
 // The default export is a plain object rather than `Plugin.define(...)` because
 // OpenCode does not resolve `@opencode/plugin` for a local plugin directory and

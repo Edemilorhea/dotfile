@@ -1,19 +1,11 @@
-// {
-//   "$schema": "https://raw.githubusercontent.com/Opencode-DCP/opencode-dynamic-context-pruning/master/dcp.schema.json",
-//   "pruneNotificationType": "toast",
-//   "compress": {
-//     "minContextLimit": "50%",
-//     "maxContextLimit": "75%",
-//     "iterationNudgeThreshold": 40,
-//     "nudgeFrequency": 100,
-//     "nudgeForce": "soft"
-//   }
-// }
 {
     "$schema": "https://raw.githubusercontent.com/Opencode-DCP/opencode-dynamic-context-pruning/master/dcp.schema.json",
     "enabled": true,
     "autoUpdate": true,
-    "debug": false,
+    // DCP 3.2.0's V2 lane sends every notification through report(), which only
+    // writes a debug log, so this is the only way to see what it pruned or
+    // compressed. The plugins/dcp-notify CLI plugin covers the live toast.
+    "debug": true,
     "pruneNotification": "detailed",
     "pruneNotificationType": "toast",
     "commands": {

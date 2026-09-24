@@ -20,3 +20,31 @@ dot_AppData_Local_nvim_blink.lua
 # profile; they are no longer global skills.
 .config/opencode/skills/copywriting
 .config/opencode/skills/copy-editing
+
+# Removed 2026-09-24: OpenCode V1 retired. V2 now uses ~/.config/opencode as its
+# config root, so it would discover the V1-API plugins below and fail to load
+# them. The remaining files are V1-only config, dependencies, and tooling.
+.config/opencode/tui.json
+.config/opencode/fallback.json
+.config/opencode/model-fallback.json
+.config/opencode/kdco-notify.json
+.config/opencode/smart-title.jsonc
+.config/opencode/package.json
+.config/opencode/package-lock.json
+.config/opencode/bun.lock
+.config/opencode/lib
+.config/opencode/tools
+.config/opencode/plugins/kdco-primitives
+.config/opencode/plugins/notify
+.config/opencode/plugins/notify.ts
+.config/opencode/plugins/openai-usage.ts
+.config/opencode/plugins/openai-usage-tui.ts
+.config/opencode/plugins/rtk.ts
+.config/opencode/plugins/selfmade
+.config/opencode/scripts/apply-model-fallback-patch.mjs
+.config/opencode/scripts/oc-model.ps1
+.config/opencode/config/model-tiers.json
+.config/opencode/tests/mandatory-format.test.ts
+.config/opencode/tests/model-fallback-patch.test.mjs
+.config/opencode/tests/openai-usage-groups.test.mjs
+.config/opencode/commands/fallback-status.md

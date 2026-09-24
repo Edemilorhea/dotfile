@@ -5,37 +5,6 @@
     "instructions": [
         "AGENTS.md"
     ],
-    "plugin": [
-        "opencode-auto-fallback@0.4.59",
-        "@ex-machina/opencode-anthropic-auth",
-        "@franlol/opencode-md-table-formatter@latest",
-        // "@different-ai/opencode-browser",
-        "./plugins/selfmade/mandatory-format.ts",
-        "file:///{{ .chezmoi.homeDir }}/.local/share/opencode-plugins/opencode-mem/dist/plugin.js",
-        "opencode-handoff@0.5.0",
-        "@tarquinen/opencode-smart-title@0.1.7",
-        "opencode-openai-codex-auth",
-        "./plugins/openai-usage.ts"
-        // Removed 2026-09-22:
-        //   opencode-large-image-optimizer  builtin attachment.image below does the
-        //                                   same downscaling
-        //   opencode-chrome-devtools        7 basic CDP tools, no performance,
-        //                                   network, console, or CPU profiling;
-        //                                   the playwright and agent-browser
-        //                                   skills cover this better
-        //   opencode-command-inject         only /make:* and /<runner>:* discovery
-        //                                   was unique; $ARGUMENTS and skills are
-        //                                   native
-    ],
-    // Replaces opencode-large-image-optimizer. The plugin targeted 1568px, which
-    // is Anthropic's internal downscale target; the builtin defaults to 2000px.
-    "attachment": {
-        "image": {
-            "auto_resize": true,
-            "max_width": 1568,
-            "max_height": 1568
-        }
-    },
     "default_agent": "plan",
     "disabled_providers": [
         "google",
@@ -73,16 +42,16 @@
             ],
             "enabled": true
         },
-        // Disabled: the server sources under ~/.local/share/opencode/office-mcp
-        // are unmanaged and exist only on the machine that built them. Restore
-        // that directory, then set "enabled" back to true.
+        // Unmanaged clone of https://github.com/gawirable/office-mcp under
+        // ~/.local/share/mcp-servers/office-mcp. Enabled only on machines where
+        // server.py exists; re-run chezmoi apply after installing it.
         "office-mcp": {
             "type": "local",
             "command": [
-                "{{ .chezmoi.homeDir }}/.local/share/opencode/office-mcp/.venv/Scripts/python.exe",
-                "{{ .chezmoi.homeDir }}/.local/share/opencode/office-mcp/server.py"
+                "{{ .chezmoi.homeDir }}/.local/share/mcp-servers/office-mcp/.venv/Scripts/python.exe",
+                "{{ .chezmoi.homeDir }}/.local/share/mcp-servers/office-mcp/server.py"
             ],
-            "enabled": false,
+            "enabled": {{ if stat (joinPath .chezmoi.homeDir ".local/share/mcp-servers/office-mcp/server.py") }}true{{ else }}false{{ end }},
             "environment": {
                 "PYTHONUTF8": "1",
                 "PYTHONIOENCODING": "utf-8",
@@ -93,7 +62,7 @@
             "type": "local",
             "command": [
                 "node",
-                "{{ .chezmoi.homeDir }}/.local/share/opencode/jev-review/dist/server.js"
+                "{{ .chezmoi.homeDir }}/.local/share/mcp-servers/jev-review/dist/server.js"
             ],
             "enabled": true,
             "environment": {
@@ -254,29 +223,122 @@
         "explore": {
             "model": "anthropic/claude-opus-5"
         },
-        "Navigator": {
+        // v2 derives file-based agent IDs from the path under agent/, not the
+        // frontmatter "name". v1 keys such as "Mentor" match nothing here and
+        // would silently create empty agents instead of overriding the real ones.
+        "selfmade/subagents/learning/Navigator": {
             "model": "anthropic/claude-opus-5"
         },
-        "Mentor": {
+        "selfmade/subagents/learning/Mentor": {
             "model": "anthropic/claude-opus-5"
         },
-        "Facilitator": {
+        "selfmade/subagents/learning/Facilitator": {
             "model": "anthropic/claude-opus-5"
         },
-        "Deconstructor": {
+        "selfmade/subagents/learning/Deconstructor": {
             "model": "anthropic/claude-opus-5"
         },
-        "ResearchCurator": {
+        "selfmade/subagents/learning/ResearchCurator": {
             "model": "anthropic/claude-opus-5"
         },
-        "Skeptic": {
+        "selfmade/subagents/adversarial/skeptic": {
             "model": "anthropic/claude-fable-5-1"
         },
-        "RedTeam": {
+        "selfmade/subagents/adversarial/red-team": {
             "model": "anthropic/claude-fable-5-1"
         },
-        "Simplifier": {
+        "selfmade/subagents/adversarial/simplifier": {
             "model": "anthropic/claude-opus-5"
         },
+    },
+    // v2 uses a different plugin SDK (@opencode/plugin) than v1
+    // (@opencode-ai/plugin), so v1 plugins load with no ID and do nothing.
+    // Status of every plugin carried over from the v1 config:
+    //
+    //   replaced by a v2 builtin, do not reinstall:
+    //     opencode-chrome-devtools          -> opencode.browser
+    //     opencode-large-image-optimizer    -> opencode.config.image + "media"
+    //     opencode-openai-codex-auth        -> openai "ChatGPT Pro/Plus" oauth
+    //     @tarquinen/opencode-smart-title   -> builtin "title" agent
+    //     ./plugins/selfmade/mandatory-format.ts -> "formatter" below
+    //
+    //   dropped on purpose:
+    //     opencode-auto-fallback            upstream stale, not ported
+    //     ./plugins/openai-usage.ts         monkey-patches a v1 build, use "stats"
+    //     opencode2-todo                    0.2.1 registers todowrite server-side,
+    //                                       but its src/tui.tsx has no
+    //                                       "@jsxImportSource solid-js" pragma and the
+    //                                       published tarball omits tsconfig.json, so
+    //                                       the cli transpiles the JSX with the React
+    //                                       runtime and fails every reconciliation with
+    //                                       "Cannot find package 'react'".
+    //
+    //   reimplemented locally, see plugins/:
+    //     opencode-handoff                  plugins/handoff, minus the prompt
+    //                                       draft: v2 has no appendPrompt
+    //
+    //   waiting for upstream to publish a v2 build:
+    //     opencode-command-inject
+    //     @franlol/opencode-md-table-formatter
+    //     oh-my-tokens                      entry is v1-only (no v2 setup export)
+    //
+    //   v2-capable, enabled below:
+    //     @tarquinen/opencode-dcp           3.2.0 ships lib/v2 setup() for @opencode/plugin
+    //     opencode-usage-stat               2.4.5 uses v2 Plugin.define with tui: true
+    //     opencode-mem                      local clone pinned to upstream cec1de4
+    //                                       (PR #311 v2 adapter; npm 2.26.0 is v1-only)
+    //
+    // Install plugins from npm, not from a git specifier. OpenCode installs with
+    // npm, and npm cannot select a subdirectory of a repository: the
+    // "github:...::path:" form is pnpm syntax.
+    "plugins": [
+        "@ex-machina/opencode-anthropic-auth@next",
+        // Magic Context is not loaded: its V2 lane is still unreliable, and it
+        // conflicts with DCP. Remove this entry before enabling Magic Context.
+        "@tarquinen/opencode-dcp@3.2.0",
+        // Built by run_onchange_after_build-opencode-mem. Reads
+        // ~/.config/opencode/opencode-mem.jsonc and ~/.opencode-mem.
+        "file:///{{ .chezmoi.homeDir }}/.local/share/opencode-plugins/opencode-mem",
+        // Subscription quota in the TUI sidebar and /usage. Every provider check
+        // is off by default; only the ones set to true here are queried, and the
+        // plugin resolves credentials at runtime from the v2 SQLite store.
+        {
+            "package": "opencode-usage-stat",
+            "options": {
+                "providerUsage": {
+                    "claude": true,
+                    "codex": true
+                },
+                "providerUsageDisplay": "remaining"
+            }
+        }
+    ],
+    // Replaces the v1 mandatory-format.ts plugin. The builtins already detect a
+    // project-local prettier dependency and a biome.json; dprint is not a v2
+    // builtin, so it is declared here with mandatory-format.ts's extension list.
+    "formatter": {
+        "dprint": {
+            "command": [
+                "dprint",
+                "fmt",
+                "$FILE"
+            ],
+            "extensions": [
+                ".cjs",
+                ".css",
+                ".html",
+                ".js",
+                ".json",
+                ".jsx",
+                ".md",
+                ".mjs",
+                ".scss",
+                ".toml",
+                ".ts",
+                ".tsx",
+                ".yaml",
+                ".yml"
+            ]
+        }
     }
 }

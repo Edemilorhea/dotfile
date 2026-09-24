@@ -1,10 +1,6 @@
 .config/opencode/node_modules/**
-.config/opencode/.opencode/node_modules/**
 .config/opencode/.tmp/**
 .config/opencode/vendor/**
-.config/opencode/antigravity-accounts.json
-.config/opencode/opencode-notifier-state.json
-.config/opencode/tui.json.newversion
 
 # nushell - runtime 與生成檔 (junction 後實體在 .config/nushell)
 .config/nushell/.tmp/**
@@ -21,7 +17,6 @@
 # OpenCode - 備份檔與測試設定
 .config/opencode/*.bak
 .config/opencode/opencode.json.bak-*
-.config/opencode/opencode.json.tui-migration.bak
 .config/opencode/opencode-test-no-pty.json
 .config/opencode/config/assets.lock.json
 
@@ -79,25 +74,9 @@
 # psmux - 插件與 runtime 全為執行產物 (ppm 管理插件、resurrect 存 session)，不進版控
 .psmux/**
 
-# OpenCode v2 沙箱 - 執行檔、runtime 狀態與機器專屬備份不進版控
-.opencode-v2/bin/**
-.opencode-v2/xdg/**
-.opencode-v2/PATH-user-backup.txt
-.opencode-v2/removed-dead-shims/**
-
-# OpenCode v2 設定 - runtime 狀態不進版控
-.config/opencodev2/opencode/service.json
-
-# OpenCode v2 設定 - junction/symlink 指向 .config/opencode，實體只管理一次
-.config/opencodev2/git/**
-.config/opencodev2/tuios/**
-.config/opencodev2/scoop/**
-.config/opencodev2/opencode/agent/**
-.config/opencodev2/opencode/commands/**
-.config/opencodev2/opencode/skills/**
-.config/opencodev2/opencode/.oh-my-opencode-slim/**
-.config/opencodev2/opencode/AGENTS.md
-.config/opencodev2/opencode/plugins/locu/core/**
+# OpenCode - 機器專屬的 service 密碼與 DCP 日誌不進版控
+.config/opencode/service.json
+.config/opencode/logs/**
 
 # Backups / temporary / test-only files
 .config/psmux/backups/**
