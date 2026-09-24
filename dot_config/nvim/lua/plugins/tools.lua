@@ -1,12 +1,6 @@
 return {
-    -- vim-visualrepeat 插件
-    {
-        "inkarkat/vim-visualrepeat",
-        event = "VeryLazy",
-    },
     {
         "nvim-telescope/telescope.nvim",
-        vscode = false,
         version = false,
         dependencies = {
             {
@@ -27,7 +21,7 @@ return {
                 file_ignore_patterns = { "node_modules", ".git/" },
                 -- <M-f> / <M-k> 是 Telescope 預設的 results 水平捲動，但 Alt 組合被 GlazeWM 攔走，
                 -- 所以改綁 <C-h> / <C-l>；<C-l> 原本的 complete_tag 移到 <C-y>。
-                -- 這裡用 closure 包住 require，避免啟動期就載入 telescope.actions。
+                -- 用 closure 包住 require，避免啟動期就載入 telescope.actions。
                 mappings = {
                     i = {
                         ["<C-v>"] = function()
@@ -75,7 +69,6 @@ return {
                 },
             },
         },
-        -- 快捷鍵只在這裡定義一次。
         -- Telescope 的 builtin picker 預設就用 cwd，搭配 vim.g.root_spec = { "cwd" }
         -- （見 lua/config/options.lua）即可保證不會搜到父層專案根目錄。
         keys = {
@@ -89,8 +82,9 @@ return {
             { "<leader>fp", "<cmd>Telescope projects<CR>", desc = "切換專案" },
         },
     },
+
+    -- 浮動終端機（Lazygit 請用 LazyVim 內建的 \gg）
     {
-        -- Float term（改為按鍵/命令觸發的 lazy load，加速啟動）
         "voldikss/vim-floaterm",
         cmd = { "FloatermNew", "FloatermToggle", "FloatermPrev", "FloatermNext", "FloatermKill", "FloatermHide" },
         config = function()
@@ -99,7 +93,6 @@ return {
                     vim.notify("目前不在 Floaterm 中", vim.log.levels.WARN)
                     return
                 end
-
                 if vim.b.floaterm_wintype == "float" then
                     vim.cmd("FloatermUpdate --wintype=vsplit --position=botright --width=0.45")
                 else
@@ -108,22 +101,17 @@ return {
             end, { desc = "切換 Floaterm 浮動／右側分割佈局" })
         end,
         keys = {
-            { "<leader>tc", ":FloatermNew --height=0.95 --width=0.95<CR>", desc = "新增終端機" },
-            { "<leader>tt", ":FloatermToggle<CR>", desc = "切換終端機" },
-            { "<leader>tp", ":FloatermPrev<CR>", desc = "上一個終端機" },
-            { "<leader>tn", ":FloatermNext<CR>", desc = "下一個終端機" },
-            { "<leader>tg", ":FloatermNew --height=0.95 --width=0.95 lazygit<CR>", desc = "開啟 Lazygit" },
-            { "<leader>tq", ":FloatermKill<CR>", desc = "關閉終端機" },
-            { "<leader>th", ":FloatermHide<CR>", desc = "隱藏終端機" },
+            { "<leader>tc", "<cmd>FloatermNew --height=0.95 --width=0.95<CR>", desc = "新增終端機" },
+            { "<leader>tt", "<cmd>FloatermToggle<CR>", desc = "切換終端機" },
+            { "<leader>tp", "<cmd>FloatermPrev<CR>", desc = "上一個終端機" },
+            { "<leader>tn", "<cmd>FloatermNext<CR>", desc = "下一個終端機" },
+            { "<leader>tq", "<cmd>FloatermKill<CR>", desc = "關閉終端機" },
+            { "<leader>th", "<cmd>FloatermHide<CR>", desc = "隱藏終端機" },
             { "<leader>ts", "<cmd>FloatermToggleLayout<CR>", desc = "切換浮動／右側分割" },
-            {
-                "<leader>ts",
-                "<C-\\><C-n><cmd>FloatermToggleLayout<CR>",
-                mode = "t",
-                desc = "切換浮動／右側分割",
-            },
+            { "<leader>ts", "<C-\\><C-n><cmd>FloatermToggleLayout<CR>", mode = "t", desc = "切換浮動／右側分割" },
         },
     },
+
     {
         "mikavilpas/yazi.nvim",
         event = "VeryLazy",
@@ -131,7 +119,7 @@ return {
             { "nvim-lua/plenary.nvim", lazy = true },
         },
         keys = {
-            { "<leader>ty", "<cmd>Yazi<cr>", mode = { "n", "v" }, desc = "開啟 Yazi（當前檔案）" },
+            { "<leader>ty", "<cmd>Yazi<cr>", mode = { "n", "x" }, desc = "開啟 Yazi（當前檔案）" },
             { "<leader>tw", "<cmd>Yazi cwd<cr>", desc = "開啟 Yazi（工作目錄）" },
             { "<C-Up>", "<cmd>Yazi toggle<cr>", desc = "恢復上次 Yazi" },
         },
@@ -154,60 +142,15 @@ return {
             },
         },
     },
+
+    -- 單檔程式碼快速執行（支援 dotnet / typescript / python / go 等）
     {
-        "natecraddock/workspaces.nvim",
-        event = "VeryLazy",
-        dependencies = {
-            "nvim-telescope/telescope.nvim",
-        },
-        config = function()
-            require("workspaces").setup({
-                cd_type = "global", -- 切換專案時全域 cd
-                sort = true,
-                mru_sort = true, -- 最近使用的排前面
-                auto_open = false,
-                hooks = {
-                    open = { "Telescope find_files" }, -- 開啟專案後自動搜尋檔案
-                },
-            })
-            require("telescope").load_extension("workspaces")
-        end,
-        keys = {
-            { "<leader>fW", "<cmd>Telescope workspaces<CR>", desc = "切換工作區" },
-            { "<leader>wa", ":WorkspacesAdd ", desc = "新增工作區" },
-            { "<leader>wr", ":WorkspacesRemove ", desc = "移除工作區" },
-            { "<leader>wl", "<cmd>WorkspacesList<CR>", desc = "列出工作區" },
-        },
-    },
-    {
-        "chentoast/marks.nvim",
-        event = "VeryLazy",
+        "GustavEikaas/code-playground.nvim",
+        cmd = "Code",
         opts = {
-            default_mappings = true, -- 保留原生 m + 字母 操作
-            signs = true, -- sign column 顯示 marks
-            mappings = {},
+            split_direction = "vsplit",
+            auto_change_cwd = false,
+            animation = "wave",
         },
     },
-    -- {
-    --     -- Tmux & neovim navigator（不使用：psmux 下 vim.fn.system() 開銷大會卡頓）
-    --     -- pane 切換改用 tmux/psmux 自己的 prefix 指令
-    --     "alexghergh/nvim-tmux-navigation",
-    --     cond = function()
-    --         return os.getenv("TMUX") ~= nil
-    --     end,
-    --     event = "VeryLazy",
-    --     config = function()
-    --         local nav = require("nvim-tmux-navigation")
-    --         nav.setup({
-    --             keybindings = {
-    --                 left = "<C-h>",
-    --                 down = "<C-j>",
-    --                 up = "<C-k>",
-    --                 right = "<C-l>",
-    --                 last_active = "<C-\\>",
-    --                 next = "<C-Space>",
-    --             },
-    --         })
-    --     end,
-    -- },
 }

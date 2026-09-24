@@ -1,167 +1,17 @@
--- plugins/neovim-only.lua
--- 只在 Neovim 中使用的插件
 return {
-    -- 程式碼折疊：使用 nvim-ufo（解決 treesitter foldtext 在 JSX/TSX 巢狀表達式
-    -- 回傳空字串、導致摺疊列整行空白的問題）。lsp.lua 已設 folds.enabled = false。
-    {
-        "kevinhwang91/nvim-ufo",
-        enabled = true,
-        dependencies = { "kevinhwang91/promise-async" },
-        event = "BufReadPost",
-        cond = not vim.g.vscode,
-        init = function()
-            -- ufo 需要很高的 foldlevel，否則開檔會被全部摺疊
-            vim.o.foldcolumn = "1"
-            vim.o.foldlevel = 99
-            vim.o.foldlevelstart = 99
-            vim.o.foldenable = true
-        end,
-        config = function()
-            -- 摺疊列顯示：保留第一行內容 + 顯示折疊行數（取代空白問題）
-            local handler = function(virtText, lnum, endLnum, width, truncate)
-                local newVirtText = {}
-                local suffix = ("  󰁂 %d lines"):format(endLnum - lnum)
-                local sufWidth = vim.fn.strdisplaywidth(suffix)
-                local targetWidth = width - sufWidth
-                local curWidth = 0
-                for _, chunk in ipairs(virtText) do
-                    local chunkText = chunk[1]
-                    local chunkWidth = vim.fn.strdisplaywidth(chunkText)
-                    if targetWidth > curWidth + chunkWidth then
-                        table.insert(newVirtText, chunk)
-                    else
-                        chunkText = truncate(chunkText, targetWidth - curWidth)
-                        table.insert(newVirtText, { chunkText, chunk[2] })
-                        chunkWidth = vim.fn.strdisplaywidth(chunkText)
-                        if curWidth + chunkWidth < targetWidth then
-                            suffix = suffix .. (" "):rep(targetWidth - curWidth - chunkWidth)
-                        end
-                        break
-                    end
-                    curWidth = curWidth + chunkWidth
-                end
-                table.insert(newVirtText, { suffix, "MoreMsg" })
-                return newVirtText
-            end
-
-            require("ufo").setup({
-                fold_virt_text_handler = handler,
-                provider_selector = function()
-                    return { "treesitter", "indent" }
-                end,
-            })
-
-            -- ufo 強化版 zR / zM（跨整個 buffer 展開／摺疊）
-            vim.keymap.set("n", "zR", require("ufo").openAllFolds, { desc = "Open all folds" })
-            vim.keymap.set("n", "zM", require("ufo").closeAllFolds, { desc = "Close all folds" })
-        end,
-    },
-
-    -- Markdown 自動列表
-    {
-        "gaoDean/autolist.nvim",
-        ft = { "markdown", "text", "tex", "plaintex", "norg" },
-        cond = not vim.g.vscode,
-        config = function()
-            local autolist = require("autolist")
-            autolist.setup()
-
-            vim.api.nvim_create_autocmd("FileType", {
-                pattern = { "markdown", "text", "tex", "plaintex", "norg" },
-                callback = function()
-                    local map = function(mode, lhs, rhs, desc)
-                        vim.keymap.set(mode, lhs, rhs, { buffer = true, desc = desc })
-                    end
-
-                    map("i", "<CR>", "<CR><cmd>AutolistNewBullet<cr>", "Auto continue list")
-                    map("n", "<a-r>", "<cmd>AutolistRecalculate<cr>", "Recalculate list")
-                    map("n", "cn", autolist.cycle_next_dr, "cycle next list type")
-                    map("n", "cp", autolist.cycle_prev_dr, "cycle prev list type")
-                    map("n", ">>", ">><cmd>AutolistRecalculate<cr>", "Indent and recalc")
-                    map("n", "<<", "<<<cmd>AutolistRecalculate<cr>", "Dedent and recalc")
-                    map("n", "dd", function()
-                        vim.cmd('normal! "_dd')
-                        vim.cmd("AutolistRecalculate")
-                    end, "Delete line and recalc")
-                    map("v", "p", '"zdP<cmd>AutolistRecalculate<cr>', "Paste without yanking and recalc")
-                end,
-            })
-        end,
-    },
-
-    -- Treesitter 語法高亮和解析
-    -- LazyVim 15.x (main branch): 僅補充額外 parser，其餘交給 LazyVim 處理
-    -- 移除 event 覆寫 (LazyVim 已設 LazyFile/VeryLazy)，opts_extend 會自動合併此清單
-    {
-        "nvim-treesitter/nvim-treesitter",
-        init = function()
-            -- 讓 markdown code block 的 cs / csharp 都對應到 c_sharp parser
-            -- (info string 別名，兩種寫法都能正確高亮)
-            vim.treesitter.language.register("c_sharp", { "cs", "csharp" })
-        end,
-        opts = {
-            ensure_installed = {
-                "vue",
-                "c_sharp",
-                "sql",
-                "mermaid",
-            },
-        },
-    },
-
-    -- 彩虹括號：依照巢狀層級顯示不同顏色
-    -- 注意：html/jsx/tsx/vue 使用 rainbow-parens，只彩虹括號，不彩虹 tag 層級
-    {
-        "HiPhish/rainbow-delimiters.nvim",
-        event = "LazyFile",
-        cond = not vim.g.vscode,
-        config = function()
-            local rainbow_delimiters = require("rainbow-delimiters")
-
-            vim.g.rainbow_delimiters = {
-                strategy = {
-                    [""] = rainbow_delimiters.strategy["global"],
-                },
-                query = {
-                    [""] = "rainbow-delimiters", -- 其他語言：括號 + block
-                    html = "rainbow-parens", -- HTML：只有括號，tag 不變色
-                    jsx = "rainbow-parens",
-                    tsx = "rainbow-parens",
-                    vue = "rainbow-parens",
-                },
-            }
-        end,
-    },
-
-    -- LazyGit 整合
-    -- 注意：\lg 已移除，改用 floaterm \tg (tools.lua)
-    -- LazyVim 內建的 \gg / \gG 也可使用
-    {
-        "kdheepak/lazygit.nvim",
-        cmd = "LazyGit",
-        cond = not vim.g.vscode,
-        dependencies = { "nvim-lua/plenary.nvim" },
-        config = function()
-            vim.g.lazygit_floating_window_winblend = 0
-            vim.g.lazygit_floating_window_scaling_factor = 0.9
-            vim.g.lazygit_use_neovim_remote = 1
-        end,
-    },
-
-    -- Diffview：單一 tabpage 對比所有變更檔案 / 檔案歷史
-    -- 用於解決 lazygit 內建 diff 面板與 `git diff` 不易並排對比的問題
-    -- lazygit.nvim 負責 stage/commit/branch 等操作，diffview 專注於「看對比」
+    -- Diffview：單一 tabpage 對比所有變更檔案 / 檔案歷史。
+    -- Lazygit 用 LazyVim 內建的 \gg / \gG；diffview 專注於「看對比」。
+    -- 檔案歷史用 \gV：\gh 是 gitsigns 的 hunk 群組。
     {
         "sindrets/diffview.nvim",
         cmd = { "DiffviewOpen", "DiffviewClose", "DiffviewFileHistory", "DiffviewFocusFiles", "DiffviewToggleFiles" },
-        cond = not vim.g.vscode,
         keys = {
             { "<leader>gv", "<cmd>DiffviewOpen<cr>", desc = "Diffview：對比目前變更" },
-            { "<leader>gh", "<cmd>DiffviewFileHistory %<cr>", desc = "Diffview：目前檔案歷史" },
+            { "<leader>gV", "<cmd>DiffviewFileHistory %<cr>", desc = "Diffview：目前檔案歷史" },
         },
-        -- opts 用 function 延遲 require，避免插件尚未安裝完成時 require 失敗
-        -- 按鍵（lhs）與動作（rhs）皆與官方預設相同，只把 desc 翻成中文
-        -- 供 g? 說明面板顯示中文（git 專有名詞 OURS/THEIRS/BASE 保留原文）
+        -- opts 用 function 延遲 require，避免插件尚未安裝完成時 require 失敗。
+        -- 按鍵（lhs）與動作（rhs）皆與官方預設相同，只把 desc 翻成中文，
+        -- 供 g? 說明面板顯示中文（git 專有名詞 OURS/THEIRS/BASE 保留原文）。
         opts = function()
             local actions = require("diffview.actions")
 

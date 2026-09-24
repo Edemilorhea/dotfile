@@ -289,3 +289,67 @@
 - Portability: Plain Neovim highlight APIs and literal hex colours with no machine-specific paths.
 - Chezmoi: Updated two existing managed sources and applied both scoped targets.
 - Verification: `loadfile` reported no syntax error for either file. A headless session sourced `autocmds.lua` and confirmed `@keyword` #6C95EB, `@comment` #85BA59, `@tag.tsx` #4EC9B0, `@lsp.type.field.cs` #9876AA, `@lsp.type.field.razor` #9876AA, `@lsp.type.controlKeyword.razor` linked to `@keyword`, and `@lsp.type.variable.razor` empty; every value was identical after `:colorscheme desert`, which is the regression this change targets. Scoped `chezmoi status` is clean and both files are LF-only. No Razor or C# project was opened against a live Roslyn server, so the rendered result in a real buffer is unverified.
+
+## 2026-09-24T11:05:25+08:00 - Restructure config and split the VSCode entry
+
+- Status: Completed
+- Machine: TC-TSENG
+- Platform: windows/x64
+- Scope: `init.lua`, `lazyvim.json`, `README.md`, `lua/core/`, `lua/vscode_mode/`, `lua/config/`, `lua/plugins/`
+- Summary: Reorganized the whole config by responsibility and fixed the issues from the 2026-09-24 review. `init.lua` now only dispatches: VSCode Neovim loads `lua/vscode_mode/` with the shared `lua/core/` layer, and full Neovim loads LazyVim through `lua/config/lazy.lua`, which imports `core.plugins` and the whole `plugins` directory.
+- Important records:
+  - Shared layer: `core/options.lua`, `core/keymaps.lua` (habit mappings, now `x` mode instead of `v`), `core/plugins.lua` (surround, flash, mini.comment), `core/bootstrap.lua`. The LazyVim `vscode` extra was removed from `lazyvim.json`; `lang.vue` moved there from `config/lazy.lua`.
+  - Bugs fixed: empty `grn`/`gnn`/`grc`/`grm` and insert `<C-Space>`/`<C-y>` maps removed; PowerShell shell options follow `:help shell-powershell` (`-NoProfile`, `shellpipe`, `noshelltemp`); global `FileType *` 4-space autocommand removed so ftplugins decide indent; Visual `<C-r>` and `p` fixed; `<leader>ih` captures its buffer; im-select falls back to the bundled `im-select-imm.exe`; `fileencodings` starts with `ucs-bom`.
+  - Keymap ordering: `config.keymaps` is no longer required early from `init.lua`; the restart restore hook moved to `config/restart.lua` and is registered from `config/options.lua`. User maps now load after LazyVim defaults. Overrides of plugin `keys` use `{ lhs, false }` in the spec (bufferline `<S-h>`/`<S-l>`, grug-far `<leader>sr`, trouble `<leader>xx`).
+  - LSP: `plugins/lsp.lua` now holds the diagnostics, inlay-hint-off, LSP-fold-off (ufo owns folds), and ESLint overrides. The previous unimported `lsp.lua` and `lsp-cache.lua` were deleted; its vtsls, marksman, lua_ls, and document_highlight settings were not carried over.
+  - blink.cmp follows LazyVim's version and keymap (v1). `<Tab>` is LazyVim's snippet/Copilot chain; accept with `<CR>` or `<C-y>`.
+  - Roslyn remembers the last solution per workspace in `stdpath("data")/roslyn-targets.json` through `choose_target`.
+  - Markdown: `obsidian-nvim/obsidian.nvim` replaces `epwalsh/obsidian.nvim` with `legacy_commands = false`; TOC helpers moved to `config/markdown_toc.lua` and apply to all markdown buffers; peek.nvim removed.
+  - Removed: neo-tree block, nvim-cmp stub, lazygit.nvim and the floaterm lazygit key (LazyVim `<leader>gg` remains), workspaces.nvim, dead `config/csharp.lua`. Diffview file history moved from `<leader>gh` to `<leader>gV`.
+  - The removed target files were deleted manually because `chezmoi apply` does not remove them.
+- Portability: Paths use `stdpath()` and `~`; Windows-only shell and im-select logic is guarded by `has("win32")`.
+- Chezmoi: Updated, added, and removed managed sources under `dot_config/nvim`; applied the scoped target.
+- Verification: Scoped `chezmoi status` is clean. Edited Lua files are LF-only. Neovim was not started, so syntax, plugin loading, and keymaps are unverified until `:Lazy sync` and a restart.
+## 2026-09-24T11:35:29+08:00 - Limit reference highlight to Normal mode and drop stale docs
+
+- Status: Completed
+- Machine: TC-TSENG
+- Platform: windows/x64
+- Scope: `lua/plugins/ui.lua`, `docs/`
+- Summary: LSP reference highlighting (`Snacks.words`, LazyVim's `document_highlight`) stays enabled but only updates in Normal mode. Five docs that described the pre-restructure layout were deleted.
+- Important records:
+  - `opts.words.modes = { "n" }` replaces the default `{ "n", "i", "c" }`, so typing no longer sends `textDocument/documentHighlight` requests. `]]`/`[[` reference jumps are unchanged. The request is per document, so it already covers only the current buffer; no filter was added.
+  - `modes` is assigned directly instead of through `vim.tbl_deep_extend`, which would merge list indexes and keep the default modes.
+  - Deleted `docs/RESTRUCTURE_GUIDE.md`, `PLUGIN_COMPARISON.md`, `KEYMAPS.md`, `VTSLS-OPTIMIZATION.md`, and `CLEANUP-LSP.md` from source and target. Kept `docs/CHANGELOG.md` and `docs/PLUGIN_WISHLIST.md`.
+- Portability: No paths or machine-specific values.
+- Chezmoi: Updated one managed source, removed five managed sources, and deleted the matching target files manually.
+- Verification: Scoped `chezmoi status` is clean and `ui.lua` is LF-only. Neovim was not started, so the mode restriction is unverified.
+## 2026-09-24T11:57:20+08:00 - Align VSCode Neovim keys with Neovim
+
+- Status: Completed
+- Machine: TC-TSENG
+- Platform: windows/x64
+- Scope: `lua/vscode_mode/keymaps.lua`, `lua/vscode_mode/init.lua`
+- Summary: VSCode Neovim keys now follow the full Neovim config and call the matching VSCode commands.
+- Important records:
+  - Changed: `gi`→`gI` implementation, `<C-h/j/k/l>` now focus editor groups instead of moving the cursor, `\qq`→`\fg`/`\sg`/`\/`, `\xm`→`\tt`/`\ft`, `\xx` now shows the line diagnostic hover, Smart Select moved from `\xx` to `S`.
+  - Added: `gD`, `gK`, `]]`/`[[`, `]d`/`[d`, `\ss`, `\sS`, `\ca`, `\cr`, `\cf`, `\xX`, `]b`/`[b`, `\bd`, `\bo`, `\bl`, `\br`, `\b.`, `\b,`, `\1`-`\9`, `\sv`/`\sh`/`\sx`, `\wm`, `\ff`, `\<Space>`, `\fb`, `\fr`, `\fw`, `\fn`, `\e`, `\sr`, `\tc`.
+  - flash.nvim `S` is disabled only in the VSCode entry with `{ "S", false }` so the Smart Select mapping is not replaced when flash loads.
+  - Command IDs were checked against the installed VSCode `workbench.desktop.main.js`; `openEditorAtIndex1`-`9` are built dynamically and were not matched literally.
+- Portability: No paths.
+- Chezmoi: Updated two managed sources and applied the scoped targets.
+- Verification: Files are LF-only and scoped `chezmoi status` is clean. VSCode was not reloaded, so the mappings are unverified.
+## 2026-09-24T16:24:23+08:00 - Add \sc and VSCode \cR
+
+- Status: Completed
+- Machine: TC-TSENG
+- Platform: windows/x64
+- Scope: `lua/core/keymaps.lua`, `lua/plugins/ui.lua`, `lua/plugins/which-key.lua`, `lua/vscode_mode/keymaps.lua`
+- Summary: `\sc` clears search highlight in Neovim and VSCode, matching Rider; `<Esc>` still clears it too. VSCode gained `\cR` rename file.
+- Important records:
+  - `\sc` replaces LazyVim's snacks Command History key, disabled with `{ "<leader>sc", false }` on snacks.nvim. Command History remains on `\:`.
+  - VSCode `\cR` reveals the active file in the Explorer and then runs `renameFile`, because that command acts on the Explorer selection.
+  - Level folding (`z1`-`z5`) is intentionally left different in each editor.
+- Portability: No paths.
+- Chezmoi: Updated managed sources and applied the scoped targets.
+- Verification: Files are LF-only and scoped `chezmoi status` is clean. Neovim and VSCode were not reloaded.

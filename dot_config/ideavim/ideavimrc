@@ -1,3 +1,6 @@
+" Rider / IdeaVim 鍵位
+" 鍵位盡量與 Neovim（LazyVim + ~/.config/nvim）一致；IDE 獨有功能放在最後一段。
+
 " Leader 鍵設定
 let mapleader = "\\"
 let maplocalleader = "\\"
@@ -24,174 +27,219 @@ Plug 'tpope/vim-commentary'
 Plug 'tpope/vim-surround'
 set NERDTree
 
-" 文字游標移動
+" 處理器設定
+sethandler <C-V> i:ide n:vim
+
+" ── 編輯習慣（同 nvim lua/core/keymaps.lua）──────────
+
+" 行首 / 行尾
 nnoremap H ^
 nnoremap L $
-vnoremap H ^
-vnoremap L $
+xnoremap H ^
+xnoremap L $
 
 " Visual 模式跳轉和復原
-vnoremap <C-o> <Esc>:normal! <C-o><CR>
-vnoremap <C-i> <Esc>:normal! <C-i><CR>
-vnoremap <C-r> <Esc>:normal! <C-r><CR>
+xnoremap <C-o> <Esc><C-o>
+xnoremap <C-i> <Esc><C-i>
+xnoremap <C-r> <Esc><C-r>
 
 " Normal 模式新行
 nnoremap o o<Esc>
 nnoremap O O<Esc>
 
-" 複製修改
 nnoremap Y y$
 
 " 刪除到黑洞暫存器
 nnoremap d "_d
-vnoremap d "_d
+xnoremap d "_d
 nnoremap D "_D
 nnoremap dd "_dd
 
-" Visual 模式貼上
+" Visual 模式貼上不覆蓋暫存器
 xnoremap p pgvy
 
+" Visual 大小寫
+xnoremap U gU
+xnoremap u gu
+
+" 互換 ' 和 `，讓 'a 直接跳到 mark 的精確位置
+nnoremap ' `
+xnoremap ' `
+onoremap ' `
+nnoremap ` '
+xnoremap ` '
+onoremap ` '
 
 " 插入模式
 imap jj <Esc>
 inoremap <S-Tab> <C-d>
+cnoremap <C-v> <C-r>+
+map <C-[> <Esc>
 
-" IDE 跳轉
-nnoremap gd :action GotoDeclaration<CR>
-nnoremap gm :action GotoImplementation<CR>
-nnoremap gy :action GotoTypeDeclaration<CR>
-nnoremap gp :action GotoSuperMethod<CR>
+" ── Flash（同 nvim lua/core/plugins.lua）─────────────
 
-"索引標籤
-nnoremap <Tab> :action NextTab<CR>
-nnoremap <S-Tab> :action PreviousTab<CR>
-nnoremap <leader>co :action CloseAllEditorsButActive<CR>
-nnoremap <leader>cg :action CloseAllEditors<CR>
-
-" IDE 左右分割跳轉
-nnoremap <C-h> :action PrevSplitter<CR>
-nnoremap <C-l> :action NextSplitter<CR>
-nnoremap <C-m> :action MaximizeEditorInSplit<CR>
-
-" Flash 搜尋
 nmap s <Action>(flash.search)
 xmap s <Action>(flash.search)
-
-" enhance vim f (find for char in characters to the right of the current cursor)
 nmap f <Action>(flash.find)
 xmap f <Action>(flash.find)
-
-" enhance vim F (find for char in characters to the left of the current cursor)
 nmap F <Action>(flash.find_backward)
 xmap F <Action>(flash.find_backward)
-
-" enhance vim t (till for char in characters to the right of the current cursor)
 nmap t <Action>(flash.till)
 xmap t <Action>(flash.till)
-
-" enhance vim T (till for char in characters to the left of the current cursor)
 nmap T <Action>(flash.till_backward)
 xmap T <Action>(flash.till_backward)
-
-" enhance vim ; (Repeat the last f/F/t/T search)
 nmap ; <Action>(flash.repeat)
 xmap ; <Action>(flash.repeat)
-
-" enhance vim , (Repeat the last f/F/t/T search backward)
 nmap , <Action>(flash.repeat_backward)
 xmap , <Action>(flash.repeat_backward)
-
-" syntax node expansion (flash.nvim treesitter equivalent)
 nmap S <Action>(flash.treesitter)
 xmap S <Action>(flash.treesitter)
-
-" remote operator (after pressing an operator like d, use r to pick target line remotely)
 omap r <Action>(flash.remote)
 
-" Visual 大小寫
-vnoremap U gU
-vnoremap u gu
+" ── 程式碼導航（同 LazyVim LSP keymap）──────────────
 
-" Close Tab
-nnoremap <leader>cl :action CloseAllToTheLeft<CR>
-nnoremap <leader>cr :action CloseAllToTheRight<CR>
-nnoremap <leader>cua :action CloseAllUnpinnedEditors<CR>
+nnoremap gd :action GotoDeclaration<CR>
+nnoremap gy :action GotoTypeDeclaration<CR>
+nnoremap gI :action GotoImplementation<CR>
+nnoremap gr :action FindUsages<CR>
+nnoremap K :action QuickJavaDoc<CR>
+nnoremap gK :action ParameterInfo<CR>
 
-cnoremap <C-v> <C-r>+
+" 下一個 / 上一個：參照、診斷、方法
+nnoremap ]] :action GotoNextElementUnderCaretUsage<CR>
+nnoremap [[ :action GotoPrevElementUnderCaretUsage<CR>
+nnoremap ]d :action GotoNextError<CR>
+nnoremap [d :action GotoPreviousError<CR>
+nnoremap ]f :action MethodDown<CR>
+nnoremap [f :action MethodUp<CR>
+nnoremap ]m :action MethodDown<CR>
+nnoremap [m :action MethodUp<CR>
 
-" 展開到指定層級（對應你截圖中的「展開層級 1~5」）
-" 目前區塊：z1 ~ z5
+" 符號
+nnoremap <leader>ss :action FileStructurePopup<CR>
+nnoremap <leader>sS :action GotoSymbol<CR>
+
+" 程式碼操作
+nnoremap <leader>ca :action ShowIntentionActions<CR>
+nnoremap <leader>cr :action RenameElement<CR>
+nnoremap <leader>cR :action RenameFile<CR>
+nnoremap <leader>cf :action ReformatCode<CR>
+xmap <leader>cf <Action>(ReformatCode)
+
+" 診斷
+nnoremap <leader>xx :action ShowErrorDescription<CR>
+nnoremap <leader>xX :action ActivateProblemsViewToolWindow<CR>
+
+" ── 分頁（同 bufferline / LazyVim buffer keymap）─────
+
+nnoremap ]b :action NextTab<CR>
+nnoremap [b :action PreviousTab<CR>
+nnoremap <leader>bd :action CloseContent<CR>
+nnoremap <leader>bo :action CloseAllEditorsButActive<CR>
+nnoremap <leader>bl :action CloseAllToTheLeft<CR>
+nnoremap <leader>br :action CloseAllToTheRight<CR>
+nnoremap <leader>bp :action PinActiveTabToggle<CR>
+nnoremap <leader>bP :action CloseAllUnpinnedEditors<CR>
+nnoremap <leader>1 :action GoToTab1<CR>
+nnoremap <leader>2 :action GoToTab2<CR>
+nnoremap <leader>3 :action GoToTab3<CR>
+nnoremap <leader>4 :action GoToTab4<CR>
+nnoremap <leader>5 :action GoToTab5<CR>
+nnoremap <leader>6 :action GoToTab6<CR>
+nnoremap <leader>7 :action GoToTab7<CR>
+nnoremap <leader>8 :action GoToTab8<CR>
+nnoremap <leader>9 :action GoToTab9<CR>
+
+" ── 視窗與分割 ─────────────────────────────────────
+
+nnoremap <C-h> :action PrevSplitter<CR>
+nnoremap <C-l> :action NextSplitter<CR>
+nnoremap <leader>sv :action SplitVertically<CR>
+nnoremap <leader>sh :action SplitHorizontally<CR>
+nnoremap <leader>sx :action Unsplit<CR>
+nnoremap <leader>wm :action MaximizeEditorInSplit<CR>
+
+" ── 搜尋 / 檔案 / 工具 ─────────────────────────────
+
+nnoremap <leader>ff :action GotoFile<CR>
+nnoremap <leader><Space> :action GotoFile<CR>
+nnoremap <leader>fb :action Switcher<CR>
+nnoremap <leader>fr :action RecentFiles<CR>
+nnoremap <leader>fg :action FindInPath<CR>
+nnoremap <leader>sg :action FindInPath<CR>
+nnoremap <leader>/ :action FindInPath<CR>
+nnoremap <leader>fn :action NewElementSamePlace<CR>
+nnoremap <leader>e :action SelectInProjectView<CR>
+nnoremap <leader>sr :action Replace<CR>
+nnoremap <leader>tt :action ActivateTerminalToolWindow<CR>
+nnoremap <leader>ft :action ActivateTerminalToolWindow<CR>
+nnoremap <leader>tr :action Translation.EditorTranslateAction<CR>
+xnoremap <leader>tr :action Translation.EditorTranslateAction<CR>
+
+" 搜尋清除
+nnoremap <leader>sc :nohlsearch<CR>
+
+" ── Rider 獨有 ─────────────────────────────────────
+
+" 前往父方法
+nnoremap gp :action GotoSuperMethod<CR>
+
+" 關閉全部分頁
+nnoremap <leader>cg :action CloseAllEditors<CR>
+
+" 中斷點、執行、偵錯（中斷點用 LazyVim DAP 的 \db）
+nnoremap <leader>db :action ToggleLineBreakpoint<CR>
+nnoremap <leader>rrm :action ChooseRunConfiguration<CR>
+nnoremap <leader>rdm :action ChooseDebugConfiguration<CR>
+
+" 資料庫
+nnoremap <leader>doc :action Jdbc.OpenConsole.New.Generate<CR>
+nnoremap <leader>dd :action ActivateDatabaseToolWindow<CR>
+" 任何位置都可用：先選資料來源，再選既有 console 或新增
+nnoremap <leader>dq :action Jdbc.OpenConsole.Any<CR>
+
+" 工具視窗
+nnoremap <leader>hwa :action HideAllWindows<CR>
+nnoremap <leader>haw :action HideActiveWindow<CR>
+nnoremap <leader>hsw :action HideSideWindows<CR>
+
+nnoremap <leader>yfn :action CopyFileName<CR>
+xnoremap <leader>so :action OpenCodeCompanion.QuickSend<CR>
+
+" 展開到指定層級：目前區塊 z1 ~ z5，全檔案 za1 ~ za5
 nnoremap z1 :action ExpandToLevel1<CR>
 nnoremap z2 :action ExpandToLevel2<CR>
 nnoremap z3 :action ExpandToLevel3<CR>
 nnoremap z4 :action ExpandToLevel4<CR>
 nnoremap z5 :action ExpandToLevel5<CR>
-
-" 全檔案：za1 ~ za5
 nnoremap za1 :action ExpandAllToLevel1<CR>
 nnoremap za2 :action ExpandAllToLevel2<CR>
 nnoremap za3 :action ExpandAllToLevel3<CR>
 nnoremap za4 :action ExpandAllToLevel4<CR>
 nnoremap za5 :action ExpandAllToLevel5<CR>
 
-" Leader 快捷鍵
-let g:WhichKeyDesc_find = "<leader>f Find"
-nnoremap <leader>f :action FindInPath<CR>
+" ── Which-Key 說明 ─────────────────────────────────
 
-let g:WhichKeyDesc_refactor = "<leader>r Refactor"
-nnoremap <leader>r :action ReformatCode<CR>
-
-let g:WhichKeyDesc_debug = "<leader>b Breakpoint"
-nnoremap <leader>b :action ToggleLineBreakpoint<CR>
-
-nnoremap <leader>yfn : action CopyFileName<CR>
-
-" 格式化
-map Q gq
-
-" 處理器設定
-sethandler <C-V> i:ide n:vim
-
-" 方法跳轉（放在最後）
-nnoremap ]m :action MethodDown<CR>
-nnoremap [m :action MethodUp<CR>
-
-"執行 or debug
-nnoremap <leader>rrm :action ChooseRunConfiguration<CR>
-nnoremap <leader>rdm :action ChooseDebugConfiguration<CR>
-
-"執行db_console 相關
-nnoremap <leader>doc : action Jdbc.OpenConsole.New.Generate<CR>
-nnoremap <leader>gd : action ActivateDatabaseToolWindow<CR>
-
-" 中文說明（新增這些）
 let g:WhichKeyDesc_gd = "gd 前往定義"
-let g:WhichKeyDesc_gm = "gm 前往實作"
-let g:WhichKeyDesc_gy = "gy 前往類型宣告" 
+let g:WhichKeyDesc_gy = "gy 前往類型宣告"
+let g:WhichKeyDesc_gI = "gI 前往實作"
+let g:WhichKeyDesc_gr = "gr 查參照"
 let g:WhichKeyDesc_gp = "gp 前往父方法"
 
-nnoremap <leader>hwa :action HideAllWindows<CR>
-nnoremap <leader>haw :action HideActiveWindow<CR>
-nnoremap <leader>hsw :action HideSideWindows<CR>
-nnoremap <leader>ot :action ActivateTerminalToolWindow<CR>
-nnoremap <leader>fm :action FileStructurePopup<CR>
-nnoremap <leader>tf :action SelectInProjectView<CR>
+let g:WhichKeyDesc_buffer = "<leader>b 分頁"
+let g:WhichKeyDesc_code = "<leader>c 程式碼"
+let g:WhichKeyDesc_debug = "<leader>d 偵錯 / 資料庫"
+let g:WhichKeyDesc_file = "<leader>f 檔案 / 搜尋"
+let g:WhichKeyDesc_search = "<leader>s 搜尋 / 分割"
+let g:WhichKeyDesc_tool = "<leader>t 終端機 / 工具"
+let g:WhichKeyDesc_window = "<leader>w 視窗"
+let g:WhichKeyDesc_diag = "<leader>x 診斷"
+let g:WhichKeyDesc_hide = "<leader>h 隱藏工具視窗"
 
-let g:WhichKeyDesc_fm = "fm 檔案結構"
-let g:WhichKeyDesc_hwa = "hwa 隱藏所有視窗"
-let g:WhichKeyDesc_haw = "haw 隱藏活動視窗"
-let g:WhichKeyDesc_hsw = "hsw 隱藏側邊視窗"
-let g:WhichKeyDesc_ot = "ot 終端工具視窗"
-
-nnoremap <leader>fcf :action NewElementSamePlace<CR>
-
-" 第三方套件快捷
-nnoremap <leader>ty :action Translation.EditorTranslateAction<CR>
-vnoremap <leader>ty :action Translation.EditorTranslateAction<CR>
-
-vnoremap <leader>so :action OpenCodeCompanion.QuickSend<CR>
-
-
-" 搜尋清除
-nnoremap <leader>sc :nohlsearch<CR>
-map <C-[> <Esc>
+let g:WhichKeyDesc_ss = "<leader>ss 檔案結構"
+let g:WhichKeyDesc_hwa = "<leader>hwa 隱藏所有視窗"
+let g:WhichKeyDesc_haw = "<leader>haw 隱藏活動視窗"
+let g:WhichKeyDesc_hsw = "<leader>hsw 隱藏側邊視窗"
+let g:WhichKeyDesc_tt = "<leader>tt 終端工具視窗"
+let g:WhichKeyDesc_dd = "<leader>dd 資料庫視窗"
+let g:WhichKeyDesc_dq = "<leader>dq 開啟 SQL Console"
