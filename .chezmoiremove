@@ -76,3 +76,22 @@ dot_AppData_Local_nvim_blink.lua
 # Removed 2026-09-25: cross-review is unused; the user does not review with a
 # separately named model.
 .agents/skills/cross-review
+
+# Moved 2026-09-25 to the private opencode-assets repository, which now owns
+# every installable OpenCode asset. The installer redeploys agents, commands,
+# plugins, skills, and the Fable payload; these leftovers have no new owner.
+.config/opencode/scripts/opencode-assets.ps1
+.config/opencode/scripts/validate-agents.ps1
+.config/opencode/tests
+.config/opencode/config/external-assets.json
+.config/opencode/config/project-assets
+.config/opencode/config/skills-registry.md
+.config/opencode/config/assets/agents
+.config/opencode/config/assets/commands
+.config/opencode/config/assets/examples
+.config/opencode/config/assets/overlays
+.config/opencode/config/assets/skills
+.config/opencode/config/assets/love-tutor.md
+.config/opencode/docs/understand-anything-guide.md
+.agents/.chezmanga
+.agents/skills/.manifest.json

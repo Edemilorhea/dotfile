@@ -66,6 +66,7 @@ Shared instructions for coding agents.
 ## Configuration maintenance
 
 - The source of truth is chezmoi. Locate a file with `chezmoi source-path <target>`, update the source first, then apply it to runtime. Do not write the resolved source directory into a shared file: it differs per runtime.
+- OpenCode assets are the exception. The private `opencode-assets` repository owns agents, commands, plugins, skills in `~/.agents/skills`, the Fable payloads, and the `plugins` and `mcp` keys of `opencode.json`. Its local path is written in `~/.config/opencode/commands/selfmade/assets.md`. Edit the repository, commit, and deploy with `/selfmade/assets apply`. Never edit a deployed copy, and never add these files back to chezmoi.
 - Restart OpenCode after changing its configuration, agents, commands, skills, or this file.
 
 ## OpenCode layout
@@ -79,7 +80,7 @@ This machine runs only OpenCode V2, as `opencode`, at its default paths. V1 was 
 - Custom tools come from plugins. V2 does not load a `tools/` directory.
 - Data, state, and cache: `~/.local/share/opencode`, `~/.local/state/opencode`, and `~/.cache/opencode`. Credentials are stored in the data database.
 - V2 derives an agent ID from the agent file path and ignores the frontmatter `name:` field. `agent/selfmade/fable-agent.md` is `selfmade/fable-agent`. A command must name the full path-derived ID.
-- Install a third-party or plugin-bundled skill through the project-scoped asset manager, so it never lands in the global `~/.agents/skills` tree.
+- Install every third-party skill, plugin, or MCP server through the asset manager. Use project scope unless the user wants it on every project; never copy one into `~/.agents/skills` or `opencode.json` by hand.
 
 ## Command-only Fable payloads
 

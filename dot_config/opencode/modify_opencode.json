@@ -1,0 +1,233 @@
+{{- /* chezmoi:modify-template */ -}}
+{{- /*
+  chezmoi owns every key in ~/.config/opencode/opencode.json except "plugins"
+  and "mcp". The opencode-assets installer (private repository
+  Edemilorhea/opencode-assets) owns those two keys, so every machine keeps the
+  plugins and MCP servers it chose to install. See OWNERSHIP.md.
+
+  The template keeps the current file byte-for-byte when its content already
+  matches, so a rewrite by the installer does not show up as chezmoi drift.
+*/ -}}
+{{- $base := `
+{
+    "$schema": "https://opencode.ai/config.json",
+    "model": "anthropic/claude-opus-5",
+    "autoupdate": true,
+    "instructions": [
+        "AGENTS.md"
+    ],
+    "default_agent": "plan",
+    "disabled_providers": [
+        "google",
+        "nvidia"
+    ],
+    "provider": {
+        "openai": {
+            "options": {
+                "headerTimeout": 60000,
+                "timeout": 600000,
+                "chunkTimeout": 60000
+            }
+        }
+    },
+    "lsp": true,
+    "permission": {
+        "read": "allow",
+        "list": "allow",
+        "glob": "allow",
+        "grep": "allow",
+        "lsp": "allow",
+        "question": "allow",
+        "skill": {
+            "change-understanding-review": "allow"
+        },
+        "edit": "ask",
+        "bash": {
+            "*": "ask",
+            "ls": "allow",
+            "ls *": "allow",
+            "pwd": "allow",
+            "cat *": "allow",
+            "head *": "allow",
+            "tail *": "allow",
+            "find *": "ask",
+            "which *": "allow",
+            "wc *": "allow",
+            "du *": "allow",
+            "df *": "allow",
+            "stat *": "allow",
+            "file *": "allow",
+            "tree *": "allow",
+            "diff *": "allow",
+            "grep *": "allow",
+            "rg *": "allow",
+            "ag *": "allow",
+            "Select-String *": "allow",
+            "whoami": "allow",
+            "hostname": "allow",
+            "uname *": "allow",
+            "uptime": "allow",
+            "date": "allow",
+            "env": "allow",
+            "printenv": "allow",
+            "echo *": "allow",
+            "ps *": "allow",
+            "curl *": "ask",
+            "wget *": "ask",
+            "jq *": "allow",
+            "yq *": "allow",
+            "git status*": "allow",
+            "git diff*": "allow",
+            "git log*": "allow",
+            "git show*": "allow",
+            "git branch": "allow",
+            "git branch --list": "allow",
+            "git branch --show-current": "allow",
+            "git branch -a": "allow",
+            "git branch -r": "allow",
+            "git branch -v": "allow",
+            "git branch -vv": "allow",
+            "git remote": "allow",
+            "git remote -v": "allow",
+            "git config --get*": "allow",
+            "git config --list": "allow",
+            "dotnet --version": "allow",
+            "dotnet --info*": "allow",
+            "dotnet --list-*": "allow",
+            "dotnet list *": "allow",
+            "dotnet sln list": "allow",
+            "node --version": "allow",
+            "npm --version": "allow",
+            "npm list*": "allow",
+            "pnpm --version": "allow",
+            "pnpm list*": "allow",
+            "yarn --version": "allow",
+            "bun --version": "allow",
+            "python --version": "allow",
+            "python3 --version": "allow",
+            "pip list": "allow",
+            "pip show *": "allow",
+            "go version": "allow",
+            "cargo --version": "allow",
+            "rustc --version": "allow",
+            "docker ps*": "allow",
+            "docker images*": "allow",
+            "docker inspect *": "allow",
+            "dotnet build*": "allow",
+            "dotnet test*": "allow",
+            "npm run *": "ask",
+            "npm run test*": "allow",
+            "npm run lint*": "allow",
+            "npm run check*": "allow",
+            "npm run typecheck*": "allow",
+            "npm test*": "allow",
+            "pnpm run *": "ask",
+            "pnpm run test*": "allow",
+            "pnpm run lint*": "allow",
+            "pnpm run check*": "allow",
+            "pnpm run typecheck*": "allow",
+            "pnpm test*": "allow",
+            "yarn *": "ask",
+            "yarn run *": "ask",
+            "yarn run test*": "allow",
+            "yarn run lint*": "allow",
+            "yarn run check*": "allow",
+            "yarn run typecheck*": "allow",
+            "yarn test*": "allow",
+            "git add *": "ask",
+            "git commit*": "ask",
+            "git push*": "ask",
+            "git merge*": "ask",
+            "git rebase*": "ask",
+            "npm install*": "ask",
+            "pnpm install*": "ask",
+            "mv *": "ask",
+            "cp *": "ask",
+            "rm *": "ask",
+            "rm -rf *": "ask",
+            "rm -rf /*": "deny",
+            "sudo rm*": "deny",
+            "sudo *": "deny",
+            "su *": "deny",
+            "> /dev/*": "deny",
+            "dd *": "deny",
+            "mkfs*": "deny",
+            "fdisk*": "deny",
+            "shutdown*": "deny",
+            "reboot*": "deny",
+            "halt*": "deny",
+            "poweroff*": "deny",
+            "kill -9 *": "deny",
+            "killall *": "deny",
+            "pkill *": "deny"
+        },
+        "task": "allow",
+        "todoread": "allow",
+        "todowrite": "ask",
+        "webfetch": "allow",
+        "websearch": "allow",
+        "codesearch": "allow",
+        "external_directory": "ask",
+        "doom_loop": "ask"
+    },
+    // Only built-in agents are overridden here. Overriding an agent ID that no
+    // file defines makes V2 create an empty agent, so the models of the
+    // selfmade agents live in their own frontmatter in opencode-assets.
+    "agent": {
+        "plan": {
+            "model": "anthropic/claude-opus-5",
+            "permission": {
+                "edit": "deny"
+            }
+        },
+        "general": {
+            "model": "anthropic/claude-opus-5"
+        },
+        "explore": {
+            "model": "anthropic/claude-opus-5"
+        }
+    },
+    // Replaces the v1 mandatory-format.ts plugin. The builtins already detect a
+    // project-local prettier dependency and a biome.json; dprint is not a v2
+    // builtin, so it is declared here with mandatory-format.ts's extension list.
+    "formatter": {
+        "dprint": {
+            "command": [
+                "dprint",
+                "fmt",
+                "$FILE"
+            ],
+            "extensions": [
+                ".cjs",
+                ".css",
+                ".html",
+                ".js",
+                ".json",
+                ".jsx",
+                ".md",
+                ".mjs",
+                ".scss",
+                ".toml",
+                ".ts",
+                ".tsx",
+                ".yaml",
+                ".yml"
+            ]
+        }
+    }
+}
+` | fromJsonc -}}
+{{- $current := dict -}}
+{{- if .chezmoi.stdin | trim -}}
+{{-   $current = .chezmoi.stdin | fromJsonc -}}
+{{- end -}}
+{{- range $key := list "plugins" "mcp" -}}
+{{-   if hasKey $current $key -}}
+{{-     $_ := set $base $key (get $current $key) -}}
+{{-   end -}}
+{{- end -}}
+{{- if and (.chezmoi.stdin | trim) (eq (toJson $base) (toJson $current)) -}}
+{{- .chezmoi.stdin -}}
+{{- else -}}
+{{- toPrettyJson $base }}
+{{ end -}}

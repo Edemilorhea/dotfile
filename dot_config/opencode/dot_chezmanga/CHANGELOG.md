@@ -1,5 +1,22 @@
 # OpenCode Chezmoi Changelog
 
+## 2026-09-25T03:56:40+08:00 - Hand OpenCode assets to the private opencode-assets repository
+
+- Status: Completed
+- Machine: TC-TSENG
+- Platform: Microsoft Windows 10.0.26200 / AMD64
+- Scope: removed `agent/`, `commands/`, `plugins/`, `config/`, `scripts/`, `tests/`, `vendor/fable-method.json`, `docs/understand-anything-guide.md`, `opencode-mem.jsonc`, `opencode.json.tmpl`; added `modify_opencode.json`; updated `AGENTS.md.tmpl`, `OWNERSHIP.md`; chezmoi root: removed `dot_agents/`, `run_onchange_after_install-opencode-external-assets.ps1.tmpl`, `run_onchange_after_build-opencode-mem.ps1.tmpl`; updated `run_onchange_after_setup-opencode.ps1.tmpl`, `.chezmoiremove`.
+- Summary: The private repository `Edemilorhea/opencode-assets` (local `E:/tools/opencode-assets`) now owns every OpenCode extension: own agents, commands, plugins, and skills; third-party skills, plugins, and MCP servers; the Fable payloads; opencode-mem; rtk; and the `plugins` and `mcp` keys of `opencode.json`. chezmoi keeps the OpenCode binary, PATH, `opencode.json` (other keys), `cli.json`, `dcp.jsonc`, `AGENTS.md`, and `docs/tool-command-lifecycle.md`.
+- Important records:
+  - `modify_opencode.json` renders the shared config and copies `plugins` and `mcp` from the current file, so each machine keeps its own plugins and MCP servers. It writes nothing when the result is unchanged. The output is plain JSON with sorted keys; comments are gone.
+  - The selfmade agent model overrides moved from `opencode.json` into each agent's frontmatter `model:` in the assets repository.
+  - `setup-opencode` no longer installs rtk; the `rtk` asset does (now 0.50.0). It still installs OpenCode 2.0.15, sets PATH and `ANTHROPIC_CLAUDE_CODE_VERSION`, and runs the one-time legacy migration.
+  - `.chezmoiremove` deletes the old deployed manager, catalog, `config/assets/*` (except `fable`, which the `fable-pack` asset now owns), and the `.agents` marker and manifest. Deployed agents, commands, plugins, and skills stay in place; the asset manager adopted them.
+  - Other machines: after `chezmoi update`, clone the assets repository and run `./opencode-assets.ps1 apply -Scope global -Profiles core,integrations -Adopt` once. Until then, their existing deployed files keep working, but nothing updates them.
+- Portability: No machine-specific paths in chezmoi. The assets repository path is written only into the deployed `/selfmade/assets` command at install time.
+- Chezmoi: removed sources with `git rm`; added `modify_opencode.json`; appended `.chezmoiremove` entries.
+- Verification: `opencode-assets apply -Scope global -Profiles core,integrations -Adopt` exited 0; `status` shows 47 assets installed with no drift; `doctor` valid. `chezmoi apply --force` exited 0 and `chezmoi status` is clean. The rendered `opencode.json` keeps 4 plugins and 5 MCP servers. OpenCode restarted its service during apply because `opencode.json` changed; MCP servers reconnected afterward.
+
 ## 2026-09-25T02:05:11+08:00 - Give skills, agents, and commands one home each
 
 - Status: Completed
