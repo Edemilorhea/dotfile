@@ -87,13 +87,15 @@ function Set-UserPath {
         [string[]]$Remove = @()
     )
 
+    # $Add goes first, so no other `opencode` shim in the user PATH (for
+    # example bun's or npm's global bin) can shadow it.
     $current = [Environment]::GetEnvironmentVariable('PATH', 'User')
-    $items = @($current -split ';' | Where-Object { $_ -ne '' -and $Remove -notcontains $_.TrimEnd('\', '/') })
-    if ($items -notcontains $Add) { $items += $Add }
+    $drop = @($Remove) + $Add | ForEach-Object { $_.TrimEnd('\', '/') }
+    $items = @($Add) + @($current -split ';' | Where-Object { $_ -ne '' -and $drop -notcontains $_.TrimEnd('\', '/') })
     $updated = $items -join ';'
     if ($updated -ne $current) {
         [Environment]::SetEnvironmentVariable('PATH', $updated, 'User')
-        Write-Host "[OpenCode] Updated the user PATH: added $Add; removed $($Remove -join ', ')"
+        Write-Host "[OpenCode] Updated the user PATH: $Add is first; removed $($Remove -join ', ')"
     }
 }
 
@@ -250,17 +252,38 @@ function Invoke-LegacyMigration {
             }
         }
     }
+}
 
-    # 5. The bun-installed V1 binary would shadow ~/.opencode/bin on PATH.
-    if (Test-Path -LiteralPath (Join-Path $HOME '.bun/install/global/node_modules/opencode-ai')) {
-        if (Get-Command bun -ErrorAction SilentlyContinue) {
-            & bun remove -g opencode-ai
-            if ($LASTEXITCODE -ne 0) { Write-Warning '[OpenCode] "bun remove -g opencode-ai" failed; remove the V1 binary manually.' }
-        }
-        else {
-            Write-Warning '[OpenCode] V1 opencode-ai is installed through bun, but bun is not on PATH; remove it manually.'
+# V1 came from `bun add -g opencode-ai`. Its shim shadows ~/.opencode/bin, and
+# V1 fails on the migrated V2 database ("Database is not empty and has no
+# session table"), which in the TUI looks like a silent hang. Ask bun itself,
+# because BUN_INSTALL may point elsewhere (scoop uses scoop/persist/bun).
+# This runs on every setup, not only during the one-time migration.
+function Remove-BunV1 {
+    if (-not (Get-Command bun -ErrorAction SilentlyContinue)) { return }
+    $globals = (& bun pm ls -g 2>$null) -join "`n"
+    if ($LASTEXITCODE -ne 0 -or $globals -notmatch '(?m)\bopencode-ai@') { return }
+    Write-Host '[OpenCode] Removing V1 (bun global package opencode-ai)'
+    & bun remove -g opencode-ai
+    if ($LASTEXITCODE -ne 0) { Write-Warning '[OpenCode] "bun remove -g opencode-ai" failed; the check below reports whether V1 still shadows V2.' }
+}
+
+# Returns the file that a new terminal runs for `opencode`: the system PATH
+# comes before the user PATH, and within a directory PowerShell tries .ps1 too.
+function Resolve-OpenCodeCommand {
+    $dirs = foreach ($scope in 'Machine', 'User') {
+        [Environment]::GetEnvironmentVariable('PATH', $scope) -split ';' |
+            Where-Object { $_ } | ForEach-Object { [Environment]::ExpandEnvironmentVariables($_) }
+    }
+    foreach ($dir in $dirs) {
+        foreach ($extension in '.exe', '.cmd', '.bat', '.ps1') {
+            $candidate = Join-Path $dir "opencode$extension"
+            if (Test-Path -LiteralPath $candidate -PathType Leaf) {
+                return [System.IO.Path]::GetFullPath($candidate)
+            }
         }
     }
+    return $null
 }
 
 Write-Host '[OpenCode] Starting setup...'
@@ -274,6 +297,8 @@ if (-not (Test-Path -LiteralPath $exe) -or $installed -ne $version) {
     Write-Host "[OpenCode] Binary $version already installed"
 }
 
+Remove-BunV1
+
 Set-UserPath -Add $binDir -Remove @($legacyRoot)
 
 if ([Environment]::GetEnvironmentVariable('ANTHROPIC_CLAUDE_CODE_VERSION', 'User') -ne $claudeCodeVersion) {
@@ -281,5 +306,13 @@ if ([Environment]::GetEnvironmentVariable('ANTHROPIC_CLAUDE_CODE_VERSION', 'User
     Write-Host "[OpenCode] Set the user variable ANTHROPIC_CLAUDE_CODE_VERSION=$claudeCodeVersion"
 }
 
-Write-Host '[OpenCode] Complete. Open a new terminal and run "opencode".'
+# Do not report success unless `opencode` in a new terminal is this binary.
+# Failing makes chezmoi rerun this script on the next apply.
+$resolved = Resolve-OpenCodeCommand
+if ($resolved -ne [System.IO.Path]::GetFullPath($exe)) {
+    $found = if ($resolved) { $resolved } else { 'nothing' }
+    throw "[OpenCode] 'opencode' in a new terminal would run $found instead of $exe. Remove that program or move its folder after $binDir in PATH (the system PATH comes before the user PATH), then rerun 'chezmoi apply'."
+}
+
+Write-Host "[OpenCode] Complete. 'opencode' resolves to $exe ($version). Open a new terminal to use it."
 {{- end }}

@@ -41,3 +41,16 @@
 - Portability: Existing ignore rules deploy the file only on Windows when PowerShell synchronization is enabled.
 - Chezmoi: Added the existing target as a readonly managed source file.
 - Verification: The target-to-source mapping resolved after the scoped add; scoped apply and JSON parsing completed successfully.
+
+## 2026-09-25T14:42:06+08:00 - Make the oc alias portable
+
+- Status: Completed
+- Machine: TC-TSENG
+- Platform: Microsoft Windows 10.0.26200 / AMD64
+- Scope: `Microsoft.PowerShell_profile.ps1`
+- Summary: The `oc` alias pointed at `C:\Users\tc_tseng\.config\opencode-wrapper.ps1`, a path that exists only on this machine. It now uses `$HOME` and is defined only when the wrapper exists.
+- Important records:
+  - `~/.config/opencode-wrapper.ps1` is not managed by chezmoi and exists only on this machine (last changed 2026-05-06). Other machines simply have no `oc` alias.
+- Portability: No hard-coded user path remains for this alias.
+- Chezmoi: Updated the profile source and applied it.
+- Verification: The profile parses; the deployed profile contains the guarded alias.

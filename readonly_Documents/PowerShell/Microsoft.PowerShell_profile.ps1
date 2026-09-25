@@ -227,7 +227,8 @@ Remove-PSReadLineKeyHandler -Chord "Alt+a"
 Set-Alias bunx "bun"
 
 # OpenCode 包裝腳本 - 防止退出時關閉終端
-Set-Alias oc "C:\Users\tc_tseng\.config\opencode-wrapper.ps1"
+$ocWrapper = Join-Path $HOME '.config/opencode-wrapper.ps1'
+if (Test-Path -LiteralPath $ocWrapper) { Set-Alias oc $ocWrapper }
 
 # Import the Chocolatey Profile that contains the necessary code to enable
 # tab-completions to function for `choco`.

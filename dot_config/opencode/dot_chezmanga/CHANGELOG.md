@@ -1,5 +1,21 @@
 # OpenCode Chezmoi Changelog
 
+## 2026-09-25T14:42:06+08:00 - Make sure `opencode` runs V2 after setup
+
+- Status: Completed
+- Machine: TC-TSENG
+- Platform: Microsoft Windows 10.0.26200 / AMD64
+- Scope: chezmoi root `run_onchange_after_setup-opencode.ps1.tmpl`
+- Summary: On the machine of user `TC`, the migration succeeded, but `opencode` still ran V1 1.18.31. V1 then failed on the migrated V2 database ("Database is not empty and has no session table"); the TUI showed it as a silent hang. Setup now removes bun's V1, puts `~/.opencode/bin` first, and fails unless `opencode` resolves to V2.
+- Important records:
+  - Root cause 1: V1 removal checked the hard-coded `~/.bun/install/global/node_modules/opencode-ai`. That machine's bun is from scoop (`BUN_INSTALL=scoop/persist/bun`), so V1 stayed. `Remove-BunV1` now asks bun (`bun pm ls -g`) and runs on every setup, not only inside the one-time migration, because the migration had already finished there.
+  - Root cause 2: `Set-UserPath` appended `~/.opencode/bin`, so bun's shim earlier in the user PATH won. It now puts the folder first in the user PATH.
+  - Root cause 3: the script printed "Complete" without checking the result. `Resolve-OpenCodeCommand` walks the system PATH, then the user PATH (`.exe`, `.cmd`, `.bat`, `.ps1`), and the script throws with the shadowing file when it is not `~/.opencode/bin/opencode.exe`. chezmoi then reruns the script on the next apply.
+  - A shim in the system PATH still wins over the user PATH; the check reports it instead of editing the system PATH (that needs admin rights).
+- Portability: No machine-specific paths.
+- Chezmoi: Updated the script source; it reruns on every machine because its content changed.
+- Verification: The rendered script parses. A sandbox copy of `Resolve-OpenCodeCommand` with a fake PATH picked the bun shim when `~/.opencode/bin` was appended (reproducing the bug), picked V2 when it was first, and picked a system-PATH shim over both. `chezmoi apply` on this machine moved `~/.opencode/bin` to position 0 of the user PATH and printed "'opencode' resolves to ...\.opencode\bin\opencode.exe (2.0.15)". Not yet run on the affected machine.
+
 ## 2026-09-25T14:27:11+08:00 - Let a locked legacy folder no longer abort OpenCode setup
 
 - Status: Completed
