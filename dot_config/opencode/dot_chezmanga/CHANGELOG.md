@@ -1,5 +1,21 @@
 # OpenCode Chezmoi Changelog
 
+## 2026-09-25T14:27:11+08:00 - Let a locked legacy folder no longer abort OpenCode setup
+
+- Status: Completed
+- Machine: TC-TSENG
+- Platform: Microsoft Windows 10.0.26200 / AMD64
+- Scope: chezmoi root `run_onchange_after_setup-opencode.ps1.tmpl`
+- Summary: On another machine (user `TC`), the legacy migration moved the data and retired `~/.opencode-v2`, then failed to rename `~/.config/opencodev2` ("being used by another process"). The throw aborted the script before the binary, PATH, and environment steps, and `chezmoi update` exited 1. Retiring a legacy root is now best effort.
+- Important records:
+  - New `Invoke-RetireRoot`: stops processes whose executable lives inside the retired root (for example an MCP server left by the old service), retries the rename 5 times at 2-second intervals, then warns with the processes that reference the path and the exact `Rename-Item` command to finish by hand. Setup continues.
+  - The "close every OpenCode window" gate now applies only while data still needs to move, so a rerun after a partial migration no longer blocks on a running OpenCode.
+  - Removing V1 leftovers under `~/.config/opencode` warns instead of failing.
+  - A process whose current directory is inside the folder (terminal, editor) cannot be detected without extra tools; the warning names that as the usual cause.
+- Portability: No machine-specific paths.
+- Chezmoi: Updated the script source; chezmoi reruns it on every machine because its content changed. On machines without legacy roots it is a no-op.
+- Verification: The rendered script parses. A sandbox test in a temp folder confirmed that a folder held by a process's working directory produces the warning and returns without throwing; a folder with a running executable inside has that process stopped and is renamed; an unlocked folder is renamed. `chezmoi apply` on this machine printed "Binary 2.0.15 already installed"; `chezmoi status` is clean.
+
 ## 2026-09-25T03:56:40+08:00 - Hand OpenCode assets to the private opencode-assets repository
 
 - Status: Completed

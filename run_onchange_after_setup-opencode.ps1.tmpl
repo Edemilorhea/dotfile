@@ -126,13 +126,69 @@ function Move-RuntimeDirectory {
     Write-Host "[OpenCode] Moved $Source -> $Destination"
 }
 
+# Processes that run from, or were started with a path inside, a retired root.
+function Get-ProcessesUsingPath {
+    param([Parameter(Mandatory = $true)][string]$Path)
+
+    $full = [System.IO.Path]::GetFullPath($Path).TrimEnd('\')
+    $patterns = @("$full\", "$($full -replace '\\', '/')/")
+    @(Get-CimInstance Win32_Process -ErrorAction SilentlyContinue | Where-Object {
+        $process = $_
+        $patterns | Where-Object {
+            ($process.ExecutablePath -and $process.ExecutablePath.StartsWith($_, [StringComparison]::OrdinalIgnoreCase)) -or
+            ($process.CommandLine -and $process.CommandLine.IndexOf($_, [StringComparison]::OrdinalIgnoreCase) -ge 0)
+        }
+    })
+}
+
+# Renames a retired root aside. Returns $false instead of failing: the data has
+# already moved, so a leftover root is clutter, not breakage.
+function Invoke-RetireRoot {
+    param(
+        [Parameter(Mandatory = $true)][string]$Path,
+        [Parameter(Mandatory = $true)][string]$Suffix
+    )
+
+    if (-not (Test-Path -LiteralPath $Path)) { return $true }
+    $Path = [System.IO.Path]::GetFullPath($Path)
+
+    # A program whose executable lives in a retired root (for example an MCP
+    # server left running by the old service) belongs to the old layout.
+    $full = [System.IO.Path]::GetFullPath($Path).TrimEnd('\') + '\'
+    foreach ($process in Get-ProcessesUsingPath $Path) {
+        if ($process.ExecutablePath -and $process.ExecutablePath.StartsWith($full, [StringComparison]::OrdinalIgnoreCase)) {
+            Write-Host "[OpenCode] Stopping $($process.Name) (PID $($process.ProcessId)), which runs from the retired $Path"
+            Stop-Process -Id $process.ProcessId -Force -ErrorAction SilentlyContinue
+        }
+    }
+
+    $newName = "$(Split-Path -Leaf $Path).$Suffix"
+    for ($attempt = 1; $attempt -le 5; $attempt++) {
+        try {
+            Rename-Item -LiteralPath $Path -NewName $newName -ErrorAction Stop
+            Write-Host "[OpenCode] Retired $Path as *.$Suffix"
+            return $true
+        }
+        catch {
+            if ($attempt -lt 5) { Start-Sleep -Seconds 2 }
+        }
+    }
+
+    $holders = @(Get-ProcessesUsingPath $Path | ForEach-Object { "$($_.Name) (PID $($_.ProcessId))" })
+    $hint = if ($holders.Count) { "Processes that reference it: $($holders -join ', ')." }
+            else { 'Usually a terminal, editor, or Explorer window is open inside it.' }
+    Write-Warning "[OpenCode] Could not retire $Path because another process is using it. $hint OpenCode works without this step. To finish, close that program and run: Rename-Item '$Path' '$newName'"
+    return $false
+}
+
 function Invoke-LegacyMigration {
     if (-not (Test-Path -LiteralPath $legacyRoot) -and -not (Test-Path -LiteralPath $legacyConfigHome)) { return }
 
-    # The database, credentials, and service state are about to move. Stop the
-    # old background server, then refuse to continue while any client is open.
+    # Only moving the database, credentials, and service state needs exclusive
+    # access. A rerun after a partial migration skips this gate.
+    $pendingData = @('data', 'state', 'cache' | Where-Object { Test-Path -LiteralPath (Join-Path $legacyRoot "xdg/$_/opencode") })
     $legacyExe = Join-Path $legacyRoot 'bin/opencode.exe'
-    if (Test-Path -LiteralPath $legacyExe) {
+    if ($pendingData.Count -and (Test-Path -LiteralPath $legacyExe)) {
         $saved = @{}
         $legacyEnv = @{
             XDG_CONFIG_HOME = $legacyConfigHome
@@ -150,7 +206,7 @@ function Invoke-LegacyMigration {
         }
         Start-Sleep -Seconds 2
     }
-    if (Get-Process opencode -ErrorAction SilentlyContinue) {
+    if ($pendingData.Count -and (Get-Process opencode -ErrorAction SilentlyContinue)) {
         throw '[OpenCode] Close every OpenCode window and stop its service, then rerun "chezmoi apply". The data migration needs exclusive access.'
     }
 
@@ -178,20 +234,20 @@ function Invoke-LegacyMigration {
     }
     Remove-Link (Join-Path $legacyRoot 'xdg/data/chezmoi')
     Remove-Link (Join-Path $env:APPDATA 'opencode')
-    foreach ($path in $legacyRoot, $legacyConfigHome) {
-        if (Test-Path -LiteralPath $path) {
-            Rename-Item -LiteralPath $path -NewName "$(Split-Path -Leaf $path).$suffix"
-            Write-Host "[OpenCode] Retired $path as *.$suffix"
-        }
-    }
+    foreach ($path in $legacyRoot, $legacyConfigHome) { Invoke-RetireRoot $path $suffix | Out-Null }
 
     # 4. V1 runtime leftovers that chezmoi does not track.
     foreach ($name in 'node_modules', '.opencode', 'vendor/office-mcp', 'antigravity-accounts.json', 'opencode-notifier-state.json', 'tui.json.newversion') {
         $path = Join-Path $configRoot $name
         $item = Get-Item -LiteralPath $path -Force -ErrorAction SilentlyContinue
         if ($item -and -not $item.LinkType) {
-            Remove-Item -LiteralPath $path -Recurse -Force
-            Write-Host "[OpenCode] Removed V1 leftover $path"
+            try {
+                Remove-Item -LiteralPath $path -Recurse -Force -ErrorAction Stop
+                Write-Host "[OpenCode] Removed V1 leftover $path"
+            }
+            catch {
+                Write-Warning "[OpenCode] Could not remove the V1 leftover $path ($($_.Exception.Message)). It is unused; delete it later."
+            }
         }
     }
 
