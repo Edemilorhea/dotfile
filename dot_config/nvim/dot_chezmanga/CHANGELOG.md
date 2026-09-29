@@ -391,3 +391,14 @@
 - Portability: No paths.
 - Chezmoi: Added the managed source, then applied the scoped targets.
 - Verification: Scoped `chezmoi diff` is empty. Neovim was not reloaded.
+
+## 2026-09-30T00:46:08+08:00 - Merge ui-restructured.lua into ui.lua
+
+- Platform: windows/x64
+- Scope: `lua/plugins/ui.lua`, unmanaged `lua/plugins/ui-restructured.lua`
+- Summary: Moved the bufferline Neo-tree offset (`File Explorer` label) into `ui.lua` and deleted the unmanaged duplicate `ui-restructured.lua`.
+- Important records:
+  - `ui-restructured.lua` was an older copy of `ui.lua`; its only unique setting was the bufferline offset. Its `cond = not vim.g.vscode` guards were inert because `init.lua` never loads `lua/plugins/` under VSCode.
+- Portability: No paths.
+- Chezmoi: Updated the managed source, then applied the scoped targets.
+- Verification: Scoped `chezmoi diff` is empty. Neovim was not reloaded.
