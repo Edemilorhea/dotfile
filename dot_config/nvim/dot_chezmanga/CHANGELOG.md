@@ -414,3 +414,17 @@
 - Portability: No paths.
 - Chezmoi: Updated the managed source, then applied the scoped targets.
 - Verification: Scoped `chezmoi diff` is empty. Neovim was not reloaded.
+
+## 2026-09-30T01:13:18+08:00 - Remove stale blink.lua and unpin blink.cmp v0
+
+- Platform: windows/x64
+- Scope: `lazy-lock.json`, unmanaged `lua/plugins/blink.lua` and `lua/plugins/blink.bak`
+- Summary: Deleted the unmanaged `blink.lua` (and dead `blink.bak`); updated blink.cmp from v0.14.2 to v1.10.2; `coding.lua` is now the only blink.cmp override.
+- Important records:
+  - `blink.lua` pinned `version = "v0.*"`, so blink.cmp stayed on v0.14.2 while LazyVim expects v1.
+  - Its `<Tab> = select_and_accept` override made LazyVim skip its own `<Tab>` (snippet jump then Copilot accept), contradicting `coding.lua`.
+  - All other settings (score offsets, preselect/auto_insert off, auto_brackets off, signature, documentation auto_show 200 ms, cmdline Left/Right) were already in `coding.lua` or LazyVim defaults. `use_nvim_cmp_as_default = true` was dropped (LazyVim uses false).
+  - The source `lazy-lock.json` already differs from this machine's lock for many plugins; only the `blink.cmp` commit and the new `neo-tree.nvim` entry were changed in source. The target lock was not overwritten.
+- Portability: No paths.
+- Chezmoi: Updated the managed `lazy-lock.json` source by hand; the target was not applied.
+- Verification: `Lazy! update blink.cmp` headless moved blink.cmp to v1.10.2; a headless load showed `keymap.preset = enter`, `<Tab>` and `<C-x><C-s>` present, no load warnings. Interactive completion was not tested.
