@@ -440,3 +440,15 @@
 - Portability: No paths.
 - Chezmoi: Updated the managed source, then applied the scoped targets.
 - Verification: Scoped `chezmoi diff` is empty. The key was not pressed interactively.
+
+## 2026-09-30T01:17:49+08:00 - Snippet picker on \sy
+
+- Platform: windows/x64
+- Scope: `lua/plugins/coding.lua`, unmanaged `docs/KEYMAPS.md`
+- Summary: Replaced the Insert-mode `<M-s>` blink key with a Normal-mode `<leader>sy` Snacks picker listing every snippet for the current filetype (prefix, description, body preview); Enter expands it at the cursor.
+- Important records:
+  - `<M-s>` conflicted with the user's search usage, and blink's snippet-only menu still required knowing the prefix.
+  - The picker reads snippets through blink.cmp's snippet registry (friendly-snippets plus `stdpath('config')/snippets`) and resolves VSCode variables with `expand_vars` before `vim.snippet.expand`. The registry is an internal blink.cmp module.
+- Portability: No paths.
+- Chezmoi: Updated the managed source, then applied the scoped targets.
+- Verification: Headless on a `.vue` buffer: 357 snippets found, `vbase-3-ts-setup` expanded to template/script setup ts/style scoped, and `\sy` was mapped. The picker UI was not opened interactively.

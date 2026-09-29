@@ -1,17 +1,59 @@
+-- 列出目前檔案類型可用的 snippet（prefix + 說明 + 預覽），不必記 prefix。
+-- 資料來源與 blink.cmp 相同：friendly-snippets 與 stdpath("config")/snippets。
+local function pick_snippets()
+    local ft = vim.bo.filetype
+    local registry = require("blink.cmp.sources.snippets.default.registry").new({})
+    local snippets = registry:get_snippets_for_ft(ft)
+    vim.list_extend(snippets, registry:get_global_snippets())
+
+    local items = {}
+    for _, s in ipairs(snippets) do
+        local body = type(s.body) == "table" and table.concat(s.body, "\n") or s.body
+        local desc = s.description ~= s.prefix and s.description or ""
+        table.insert(items, {
+            text = s.prefix .. " " .. desc,
+            prefix = s.prefix,
+            desc = desc,
+            body = body,
+            preview = { text = body, ft = ft },
+        })
+    end
+    table.sort(items, function(a, b)
+        return a.prefix < b.prefix
+    end)
+
+    Snacks.picker({
+        title = "Snippets (" .. ft .. ")",
+        items = items,
+        preview = "preview",
+        format = function(item)
+            return { { item.prefix, "Function" }, { "  " }, { item.desc, "Comment" } }
+        end,
+        confirm = function(picker, item)
+            picker:close()
+            if not item then
+                return
+            end
+            vim.schedule(function()
+                local ok, body = pcall(registry.expand_vars, registry, item.body, os.time())
+                vim.snippet.expand(ok and body or item.body)
+            end)
+        end,
+    })
+end
+
 return {
+    {
+        "folke/snacks.nvim",
+        keys = {
+            { "<leader>sy", pick_snippets, desc = "Snippets（目前檔案類型）" },
+        },
+    },
+
     -- blink.cmp：版本、<Tab>（snippet 跳轉 → Copilot 接受）與 Enter 確認都交給 LazyVim 預設。
     {
         "saghen/blink.cmp",
         opts = {
-            keymap = {
-                -- Insert 模式列出目前檔案類型的所有 snippet。
-                -- 不用 <C-x> 前綴：timeoutlen 內沒按完會掉進原生 CTRL-X 模式（<C-s> 變拼字建議）。
-                ["<M-s>"] = {
-                    function(cmp)
-                        return cmp.show({ providers = { "snippets" } })
-                    end,
-                },
-            },
             sources = {
                 providers = {
                     lsp = { score_offset = 100 },
