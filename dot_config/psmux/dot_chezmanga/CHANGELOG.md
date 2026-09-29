@@ -137,3 +137,19 @@
 - Portability: The binding uses psmux-native format comparisons and stays inside the existing Windows-specific psmux scope.
 - Chezmoi: Updated the managed `psmux.conf` source and applied only that target.
 - Verification: Scoped diff showed only the binding line; scoped apply succeeded; `psmux source-file` reloaded the running server without ending sessions; the root key table contained the extended `C-v` binding; evaluating the same condition against the live panes returned `match=1` for the `opencode2` pane and `match=0` for the `nvim` and `nu` panes. An interactive image paste was not performed by the agent.
+
+## 2026-09-29T21:30:00+08:00 - Stop duplicate text paste in OpenCode V2
+
+- Status: Completed
+- Machine: DESKTOP-3JHKCAP
+- Platform: Microsoft Windows NT 10.0.26200.0 / AMD64
+- Scope: `psmux.conf`
+- Summary: Forward `C-v` to OpenCode only when the clipboard holds no text, so text is pasted once by psmux and images still reach OpenCode.
+- Important records:
+  - OpenCode V2 (2.0.19, binary `opencode`) binds `prompt.paste` to Ctrl+V; it reads the clipboard and inserts text as well as images. The unconditional forward plus `paste-detection on` delivered two text pastes.
+  - OpenCode V2 compacts a paste of 3+ lines or 150+ characters into `[Pasted ~N lines]`. Pasting identical text again right after the placeholder expands it to the full text, so the duplicate looked like "not compacted".
+  - psmux client triggers its paste on the Ctrl+V Release and reads the clipboard as text only; the root binding fires on the Press. The inner `if-shell 'exit [int][bool](Get-Clipboard -Raw)'` runs through `pwsh -NoProfile -Command` (about 0.4 s) and only in OpenCode panes.
+  - `paste-detection` is a server-wide option, so it cannot be turned off for OpenCode panes only.
+- Portability: The inner condition requires `pwsh` or Windows PowerShell, which psmux already uses for `if-shell` on Windows.
+- Chezmoi: Updated the managed `psmux.conf` source and applied only that target.
+- Verification: `psmux source-file` reloaded session `1` without ending it and `list-keys` showed the nested binding. In a temporary OpenCode 2.0.19 pane, a `paste-buffer -p` bracketed paste showed `[Pasted ~18 lines]`, a second identical paste expanded it to full text, a forwarded `C-v` with 8 text lines showed `[Pasted ~8 lines]`, the binding command with text on the clipboard did not forward `C-v`, and with a bitmap on the clipboard it forwarded `C-v` and OpenCode attached `[Image 1]`. A physical Ctrl+V press in Rio was not performed by the agent.

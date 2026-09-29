@@ -383,3 +383,11 @@
 - Portability: No paths.
 - Chezmoi: Updated managed sources, then applied the scoped targets.
 - Verification: Scoped `chezmoi diff` is empty and edited files are LF-only. Neovim was not reloaded.
+## 2026-09-29T20:37:29+08:00 - Ignore unknown CSS at-rules in cssls
+
+- Platform: windows/x64
+- Scope: `lua/plugins/cssls.lua`
+- Summary: Added a cssls server config with `css.lint.unknownAtRules = "ignore"` so Tailwind `@apply`/`@tailwind` no longer raise diagnostics.
+- Portability: No paths.
+- Chezmoi: Added the managed source, then applied the scoped targets.
+- Verification: Scoped `chezmoi diff` is empty. Neovim was not reloaded.
