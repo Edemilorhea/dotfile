@@ -402,3 +402,15 @@
 - Portability: No paths.
 - Chezmoi: Updated the managed source, then applied the scoped targets.
 - Verification: Scoped `chezmoi diff` is empty. Neovim was not reloaded.
+
+## 2026-09-30T01:10:37+08:00 - Insert-mode snippet list key
+
+- Platform: windows/x64
+- Scope: `lua/plugins/coding.lua`, unmanaged `docs/KEYMAPS.md`
+- Summary: Added blink.cmp keymap `<C-x><C-s>` in Insert mode that opens the completion menu with only the `snippets` provider.
+- Important records:
+  - Native `<C-x><C-s>` is spelling suggestions; other `<C-x>` completion submodes are unaffected.
+  - The unmanaged `lua/plugins/blink.lua` also sets a blink keymap table; lazy.nvim deep-merges both, so the new key is added alongside it.
+- Portability: No paths.
+- Chezmoi: Updated the managed source, then applied the scoped targets.
+- Verification: Scoped `chezmoi diff` is empty. Neovim was not reloaded.

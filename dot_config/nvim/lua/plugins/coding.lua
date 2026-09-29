@@ -3,6 +3,14 @@ return {
     {
         "saghen/blink.cmp",
         opts = {
+            keymap = {
+                -- Insert 模式列出目前檔案類型的所有 snippet（原生 <C-x><C-s> 是拼字建議，幾乎用不到）
+                ["<C-x><C-s>"] = {
+                    function(cmp)
+                        return cmp.show({ providers = { "snippets" } })
+                    end,
+                },
+            },
             sources = {
                 providers = {
                     lsp = { score_offset = 100 },
