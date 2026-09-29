@@ -452,3 +452,15 @@
 - Portability: No paths.
 - Chezmoi: Updated the managed source, then applied the scoped targets.
 - Verification: Headless on a `.vue` buffer: 357 snippets found, `vbase-3-ts-setup` expanded to template/script setup ts/style scoped, and `\sy` was mapped. The picker UI was not opened interactively.
+
+## 2026-09-30T01:22:30+08:00 - Restore Tab accepting the completion menu
+
+- Platform: windows/x64
+- Scope: `lua/plugins/coding.lua`
+- Summary: `<Tab>` now runs `select_and_accept`, then LazyVim's snippet_forward/ai_nes/ai_accept, then fallback.
+- Important records:
+  - Deleting `blink.lua` removed its `<Tab> = select_and_accept`; LazyVim's default `<Tab>` never accepts the menu, so Tab inserted indentation while the menu was open.
+  - Defining `<Tab>` makes LazyVim skip its own injection, so the snippet and AI steps are added explicitly through `LazyVim.cmp.map`.
+- Portability: No paths.
+- Chezmoi: Updated the managed source, then applied the scoped targets.
+- Verification: Headless blink config showed `<Tab>` = select_and_accept, function, fallback. Not tested by typing.

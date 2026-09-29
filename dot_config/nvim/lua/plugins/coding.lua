@@ -50,10 +50,21 @@ return {
         },
     },
 
-    -- blink.cmp：版本、<Tab>（snippet 跳轉 → Copilot 接受）與 Enter 確認都交給 LazyVim 預設。
+    -- blink.cmp：版本與 Enter 確認交給 LazyVim 預設。
     {
         "saghen/blink.cmp",
         opts = {
+            keymap = {
+                -- <Tab>：有選單時接受 → snippet 下一欄 → Copilot 建議 → 一般 Tab。
+                -- 自訂 <Tab> 後 LazyVim 不再注入 snippet/AI 行為，所以在這裡補上。
+                ["<Tab>"] = {
+                    "select_and_accept",
+                    function(cmp)
+                        return LazyVim.cmp.map({ "snippet_forward", "ai_nes", "ai_accept" })(cmp)
+                    end,
+                    "fallback",
+                },
+            },
             sources = {
                 providers = {
                     lsp = { score_offset = 100 },
