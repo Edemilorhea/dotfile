@@ -4,8 +4,9 @@ return {
         "saghen/blink.cmp",
         opts = {
             keymap = {
-                -- Insert 模式列出目前檔案類型的所有 snippet（原生 <C-x><C-s> 是拼字建議，幾乎用不到）
-                ["<C-x><C-s>"] = {
+                -- Insert 模式列出目前檔案類型的所有 snippet。
+                -- 不用 <C-x> 前綴：timeoutlen 內沒按完會掉進原生 CTRL-X 模式（<C-s> 變拼字建議）。
+                ["<M-s>"] = {
                     function(cmp)
                         return cmp.show({ providers = { "snippets" } })
                     end,

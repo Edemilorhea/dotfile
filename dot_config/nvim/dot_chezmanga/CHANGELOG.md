@@ -428,3 +428,15 @@
 - Portability: No paths.
 - Chezmoi: Updated the managed `lazy-lock.json` source by hand; the target was not applied.
 - Verification: `Lazy! update blink.cmp` headless moved blink.cmp to v1.10.2; a headless load showed `keymap.preset = enter`, `<Tab>` and `<C-x><C-s>` present, no load warnings. Interactive completion was not tested.
+
+## 2026-09-30T01:15:09+08:00 - Move snippet list key to Alt+s
+
+- Platform: windows/x64
+- Scope: `lua/plugins/coding.lua`, unmanaged `docs/KEYMAPS.md`
+- Summary: Changed the Insert-mode snippet list key from `<C-x><C-s>` to `<M-s>`.
+- Important records:
+  - `timeoutlen` is 300 ms. When `<C-s>` came later, `<C-x>` fell into native CTRL-X mode, whose keys are not remapped, so `<C-s>` showed spelling suggestions.
+  - `<M-s>` is unused in the Neovim config and `psmux.conf`.
+- Portability: No paths.
+- Chezmoi: Updated the managed source, then applied the scoped targets.
+- Verification: Scoped `chezmoi diff` is empty. The key was not pressed interactively.
