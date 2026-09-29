@@ -11,7 +11,7 @@
 {{- $base := `
 {
     "$schema": "https://opencode.ai/config.json",
-    "model": "anthropic/claude-opus-5",
+    "model": "anthropic/claude-opus-5-5",
     "autoupdate": true,
     "instructions": [
         "AGENTS.md"
@@ -175,16 +175,16 @@
     // selfmade agents live in their own frontmatter in opencode-assets.
     "agent": {
         "plan": {
-            "model": "anthropic/claude-opus-5",
+            "model": "anthropic/claude-opus-5-5",
             "permission": {
                 "edit": "deny"
             }
         },
         "general": {
-            "model": "anthropic/claude-opus-5"
+            "model": "anthropic/claude-opus-5-5"
         },
         "explore": {
-            "model": "anthropic/claude-opus-5"
+            "model": "anthropic/claude-opus-5-5"
         }
     },
     // Replaces the v1 mandatory-format.ts plugin. The builtins already detect a

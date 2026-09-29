@@ -33,8 +33,8 @@ return {
                 { "<leader>:", desc = "命令歷史" },
                 { "<leader>`", desc = "切換上一個 Buffer" },
                 { "<leader>?", desc = "顯示目前 Buffer 快捷鍵" },
-                { "<leader>e", desc = "Snacks Explorer（專案根目錄）" },
-                { "<leader>E", desc = "Snacks Explorer（目前工作目錄）" },
+                { "<leader>e", desc = "Neo-tree 檔案總管（專案根目錄）" },
+                { "<leader>E", desc = "Neo-tree 檔案總管（目前工作目錄）" },
                 { "<leader>rr", desc = "重啟 Neovim 並還原上次 Session" },
 
                 -- ── Buffer 管理 ───────────────────────────────

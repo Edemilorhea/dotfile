@@ -16,25 +16,6 @@ vim.api.nvim_create_autocmd("FileType", {
     end,
 })
 
--- 離開 Insert 模式時把輸入法切回英文。
--- 優先使用 PATH 上的 im-select.exe，其次使用設定目錄內的 im-select-imm.exe。
-if vim.fn.has("win32") == 1 then
-    local im_select = vim.fn.exepath("im-select.exe")
-    if im_select == "" then
-        local bundled = vim.fn.stdpath("config") .. "/im-select-imm.exe"
-        im_select = vim.fn.executable(bundled) == 1 and bundled or ""
-    end
-    if im_select ~= "" then
-        vim.api.nvim_create_autocmd("InsertLeave", {
-            group = augroup("im_select"),
-            callback = function()
-                -- 非阻塞呼叫，避免每次離開 Insert 模式同步 spawn 行程凍結 UI
-                vim.fn.jobstart({ im_select, "1033" }, { detach = true })
-            end,
-        })
-    end
-end
-
 require("config.highlights").setup()
 
 local function convert_line_endings(fileformat)

@@ -99,6 +99,15 @@ return {
                     vim.cmd("FloatermUpdate --wintype=float --position=center --width=0.95 --height=0.95")
                 end
             end, { desc = "切換 Floaterm 浮動／右側分割佈局" })
+
+            -- 只在 Floaterm 內生效，避免干擾 Yazi / Lazygit 等需要 <Esc> 的終端程式
+            vim.api.nvim_create_autocmd("FileType", {
+                pattern = "floaterm",
+                group = vim.api.nvim_create_augroup("floaterm_esc", { clear = true }),
+                callback = function(ev)
+                    vim.keymap.set("t", "<Esc><Esc>", [[<C-\><C-n>]], { buffer = ev.buf, desc = "退出 terminal mode" })
+                end,
+            })
         end,
         keys = {
             { "<leader>tc", "<cmd>FloatermNew --height=0.95 --width=0.95<CR>", desc = "新增終端機" },

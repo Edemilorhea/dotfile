@@ -353,3 +353,33 @@
 - Portability: No paths.
 - Chezmoi: Updated managed sources and applied the scoped targets.
 - Verification: Files are LF-only and scoped `chezmoi status` is clean. Neovim and VSCode were not reloaded.
+## 2026-09-27T19:17:34+08:00 - Remove im-select
+
+- Status: Completed
+- Machine: TC-TSENG
+- Platform: windows/x64
+- Scope: `lua/config/autocmds.lua`, `im-select-imm.exe`
+- Summary: Removed the Windows `InsertLeave` im-select autocommand and the bundled `im-select-imm.exe`.
+- Important records:
+  - The autocommand posted `WM_INPUTLANGCHANGEREQUEST` (en-US) to the foreground window; Rio 0.5.26 with the Boshiamy TSF IME deadlocked in `DefWindowProcW` handling it.
+  - The `.chezmoiignore` entry for `im-select-imm.exe` was removed with the binary.
+- Portability: No paths.
+- Chezmoi: Updated managed sources and the root `.chezmoiignore`, then applied the scoped targets.
+- Verification: Files are LF-only, the binary is gone, and scoped `chezmoi status` is clean. Neovim was not reloaded.
+
+## 2026-09-29T19:58:22+08:00 - Floaterm Esc exit and switch explorer to Neo-tree
+
+- Status: Completed
+- Machine: TC-TSENG
+- Platform: windows/x64
+- Scope: `lua/plugins/tools.lua`, `lazyvim.json`, `lua/plugins/ui.lua`, `lua/plugins/which-key.lua`
+- Summary: Added a Floaterm-only `<Esc><Esc>` terminal-mode exit and replaced Snacks Explorer with LazyVim's Neo-tree extra.
+- Important records:
+  - `<Esc><Esc>` maps to `<C-\><C-n>` buffer-locally through a `FileType floaterm` autocmd, so Yazi and Lazygit still receive Esc.
+  - Enabling `editor.neo-tree` makes LazyVim skip the default `snacks_explorer` extra; `\e` `\E` `\fe` `\fE` now open Neo-tree, plus `\ge` and `\be`.
+  - The Snacks Explorer sidebar width config was removed from `ui.lua`.
+  - The target `lazyvim.json` had drifted with the `lang.tailwind` extra; the source now keeps it.
+  - The unmanaged `lua/plugins/ui-restructured.lua` had a `neo-tree` spec with `enabled = false` and a Snacks Explorer config; both were removed there directly.
+- Portability: No paths.
+- Chezmoi: Updated managed sources, then applied the scoped targets.
+- Verification: Scoped `chezmoi diff` is empty and edited files are LF-only. Neovim was not reloaded.
