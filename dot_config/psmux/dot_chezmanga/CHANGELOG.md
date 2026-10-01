@@ -153,3 +153,16 @@
 - Portability: The inner condition requires `pwsh` or Windows PowerShell, which psmux already uses for `if-shell` on Windows.
 - Chezmoi: Updated the managed `psmux.conf` source and applied only that target.
 - Verification: `psmux source-file` reloaded session `1` without ending it and `list-keys` showed the nested binding. In a temporary OpenCode 2.0.19 pane, a `paste-buffer -p` bracketed paste showed `[Pasted ~18 lines]`, a second identical paste expanded it to full text, a forwarded `C-v` with 8 text lines showed `[Pasted ~8 lines]`, the binding command with text on the clipboard did not forward `C-v`, and with a bitmap on the clipboard it forwarded `C-v` and OpenCode attached `[Image 1]`. A physical Ctrl+V press in Rio was not performed by the agent.
+
+## 2026-10-01T09:26:00+08:00 - Remove options unknown to psmux 3.3.8
+
+- Status: Completed
+- Machine: TC-TSENG
+- Platform: Microsoft Windows / AMD64
+- Scope: `psmux.conf`
+- Summary: Removed `set -s extended-keys on` and `set -as terminal-features 'xterm*:extkeys'`. psmux 3.3.8 (c8ff0ea) reports both as `unknown option` at startup.
+- Important records:
+  - Both options were tmux-only; psmux ignored them, so removal does not change behavior. The `C-F12` binding uses the custom `send-keys -f` flag instead.
+- Portability: None needed.
+- Chezmoi: Updated the managed `psmux.conf` source and applied only that target.
+- Verification: Not run beyond inspection; reload the config to confirm the warnings are gone.

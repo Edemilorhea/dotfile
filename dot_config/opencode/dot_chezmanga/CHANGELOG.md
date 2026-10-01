@@ -1,5 +1,30 @@
 # OpenCode Chezmoi Changelog
 
+## 2026-10-01 - Resolve AGENTS.md rule conflicts
+
+- Status: Completed
+- Machine: TC-TSENG
+- Platform: Windows x64
+- Scope: `dot_config/opencode/AGENTS.md.tmpl`; unmanaged `~/AGENTS.md`
+- Summary: Added a precedence rule to `Working style`: when a skill, injected output style (for example OmniRoute Ponytail), or persona rule conflicts with AGENTS.md, AGENTS.md wins, and marker comments, test files, or verification not called for by AGENTS.md must not be added. Rewrote `~/AGENTS.md` to keep only the unique preferences: removed the Claude Code "MANDATORY backslashes" section (it contradicted the forward-slash rule and referenced `MultiEdit`/`file_path`, which OpenCode lacks), removed the duplicate Traditional Chinese rule, and aligned the edit-authorization wording with the global rule.
+- Portability: No machine-specific content.
+- Chezmoi: Updated the template source and applied it with this changelog.
+- Verification: Template keeps LF line endings; `~/AGENTS.md` keeps CRLF; scoped `chezmoi status` is clean after apply.
+
+## 2026-09-30 - Route OpenCode through OmniRoute with Codex fallback
+
+- Status: Completed
+- Machine: TC-TSENG
+- Platform: Windows x64
+- Scope: `modify_opencode.json`; OmniRoute local combo `Opus 5.5 with Codex fallback`
+- Summary: Created a priority combo with `claude/claude-opus-5-5` first and `codex/gpt-6-astra` second. OpenCode's default, plan, general, and explore models now point to the combo through OmniRoute at `http://127.0.0.1:20128/v1`.
+- Important records:
+  - The OpenAI-compatible OpenCode provider reads its credential from the local-only `OMNIROUTE_API_KEY` environment variable. No credential is stored in chezmoi.
+  - The API key was configured as a user environment variable. Authenticated `/v1/models` discovery returned 805 models and included the combo.
+- Portability: Uses loopback and an environment-variable credential; no host-specific filesystem path or secret was added.
+- Chezmoi: Updated the managed template source and applied it with the changelog to the exact targets.
+- Verification: The combo exists with Opus before Codex and `priority` strategy; authenticated model discovery lists it; the applied OpenCode config selects it by default and scoped chezmoi status is clean. No inference request was sent, so live generation and upstream fallback remain untested.
+
 ## 2026-09-25T14:42:06+08:00 - Make sure `opencode` runs V2 after setup
 
 - Status: Completed
@@ -1286,3 +1311,27 @@
   `server`. After `opencode2 reload`, `opencode2 plugin list` did not show
   opencode-mem yet; a V2 service restart is required to confirm. V1 loading was
   not exercised.
+
+## 2026-10-01T10:07:29+08:00 - OmniRoute role combos with reasoning variants
+
+- Status: Completed
+- Machine: TC-TSENG
+- Platform: Windows amd64
+- Scope: `modify_opencode.json`
+- Summary: Replaced the single `opus-5-5-with-codex-fallback` OmniRoute model
+  with six combo models: `claude-opus`, `claude-fable`, `claude-sonnet`,
+  `codex-sol`, `codex-astra`, `codex-luna`. Each has `low`/`medium`/
+  `high`/`xhigh` variants that send `reasoningEffort`. Root `model`,
+  `plan` and `general` use `omniroute/claude-opus`; `explore` uses
+  `omniroute/claude-sonnet`.
+- Important records:
+  - Each OmniRoute combo is `priority` with the main-subscription model first
+    (quota-only fallback) and the other subscription's cheaper equivalent second.
+  - Switch the main subscription monthly by replacing `claude-*` with `codex-*`.
+  - The Implementer subagent model lives in opencode-assets (commit `c334e5d`):
+    `omniroute/claude-sonnet` with variant `high`.
+- Portability: No machine paths added; requires a local OmniRoute on port 20128.
+- Chezmoi: Already managed; source updated and target applied.
+- Verification: Rendered `opencode.json` parses and lists the six models;
+  scoped `chezmoi diff` is empty. Requests through the combos and variant
+  pass-through were not exercised.

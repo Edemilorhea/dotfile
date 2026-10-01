@@ -11,7 +11,7 @@
 {{- $base := `
 {
     "$schema": "https://opencode.ai/config.json",
-    "model": "anthropic/claude-opus-5-5",
+    "model": "omniroute/claude-opus",
     "autoupdate": true,
     "instructions": [
         "AGENTS.md"
@@ -27,6 +27,83 @@
                 "headerTimeout": 60000,
                 "timeout": 600000,
                 "chunkTimeout": 60000
+            }
+        }
+    },
+    "providers": {
+        "omniroute": {
+            "name": "OmniRoute",
+            "env": [
+                "OMNIROUTE_API_KEY"
+            ],
+            "package": "@opencode/ai/providers/openai-compatible",
+            "settings": {
+                "baseURL": "http://127.0.0.1:20128/v1"
+            },
+            // Each model is an OmniRoute combo: the first target is the main
+            // subscription and the second is used only when its quota runs out.
+            // Variants send reasoningEffort; the combos hold base models only.
+            "models": {
+                "claude-opus": {
+                    "name": "Claude Opus 5.5 (fallback Codex Sol)",
+                    "modelID": "Claude-Opus",
+                    "variants": [
+                        { "id": "low", "settings": { "reasoningEffort": "low" } },
+                        { "id": "medium", "settings": { "reasoningEffort": "medium" } },
+                        { "id": "high", "settings": { "reasoningEffort": "high" } },
+                        { "id": "xhigh", "settings": { "reasoningEffort": "xhigh" } }
+                    ]
+                },
+                "claude-fable": {
+                    "name": "Claude Fable 5.1 (fallback Codex Sol)",
+                    "modelID": "Claude-Fable",
+                    "variants": [
+                        { "id": "low", "settings": { "reasoningEffort": "low" } },
+                        { "id": "medium", "settings": { "reasoningEffort": "medium" } },
+                        { "id": "high", "settings": { "reasoningEffort": "high" } },
+                        { "id": "xhigh", "settings": { "reasoningEffort": "xhigh" } }
+                    ]
+                },
+                "claude-sonnet": {
+                    "name": "Claude Sonnet 5.5 (fallback Codex Luna)",
+                    "modelID": "Claude-Sonnet",
+                    "variants": [
+                        { "id": "low", "settings": { "reasoningEffort": "low" } },
+                        { "id": "medium", "settings": { "reasoningEffort": "medium" } },
+                        { "id": "high", "settings": { "reasoningEffort": "high" } },
+                        { "id": "xhigh", "settings": { "reasoningEffort": "xhigh" } }
+                    ]
+                },
+                "codex-sol": {
+                    "name": "GPT-6 Sol (fallback Claude Opus)",
+                    "modelID": "Codex-Sol",
+                    "variants": [
+                        { "id": "low", "settings": { "reasoningEffort": "low" } },
+                        { "id": "medium", "settings": { "reasoningEffort": "medium" } },
+                        { "id": "high", "settings": { "reasoningEffort": "high" } },
+                        { "id": "xhigh", "settings": { "reasoningEffort": "xhigh" } }
+                    ]
+                },
+                "codex-astra": {
+                    "name": "GPT-6 Astra (fallback Claude Opus)",
+                    "modelID": "Codex-Astra",
+                    "variants": [
+                        { "id": "low", "settings": { "reasoningEffort": "low" } },
+                        { "id": "medium", "settings": { "reasoningEffort": "medium" } },
+                        { "id": "high", "settings": { "reasoningEffort": "high" } },
+                        { "id": "xhigh", "settings": { "reasoningEffort": "xhigh" } }
+                    ]
+                },
+                "codex-luna": {
+                    "name": "GPT-6 Luna (fallback Claude Sonnet)",
+                    "modelID": "Codex-luna",
+                    "variants": [
+                        { "id": "low", "settings": { "reasoningEffort": "low" } },
+                        { "id": "medium", "settings": { "reasoningEffort": "medium" } },
+                        { "id": "high", "settings": { "reasoningEffort": "high" } },
+                        { "id": "xhigh", "settings": { "reasoningEffort": "xhigh" } }
+                    ]
+                }
             }
         }
     },
@@ -175,16 +252,16 @@
     // selfmade agents live in their own frontmatter in opencode-assets.
     "agent": {
         "plan": {
-            "model": "anthropic/claude-opus-5-5",
+            "model": "omniroute/claude-opus",
             "permission": {
                 "edit": "deny"
             }
         },
         "general": {
-            "model": "anthropic/claude-opus-5-5"
+            "model": "omniroute/claude-opus"
         },
         "explore": {
-            "model": "anthropic/claude-opus-5-5"
+            "model": "omniroute/claude-sonnet"
         }
     },
     // Replaces the v1 mandatory-format.ts plugin. The builtins already detect a
