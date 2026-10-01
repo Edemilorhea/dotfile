@@ -104,3 +104,14 @@
 - Portability: The change only deletes code and introduces no machine-specific path.
 - Chezmoi: Updated the managed source, deployed runtime bundle, and documentation, then applied all three to the current machine.
 - Verification: The patched bundle passed `node --check` and contains no remaining `refresh-work-area`, `wscript`, or `Oy`/`Vy`/`_y` references, while `Dy` (useAutoTiling) is intact. After a Zebar restart all three bars rendered at 1920x38 on their monitor origins and `errors.log` gained no new entry.
+
+## 2026-09-30T09:42:30+08:00 - Update restart helper path
+
+- Status: Completed
+- Machine: TC-TSENG
+- Platform: windows/x64
+- Scope: `CUSTOMIZATION.md`
+- Summary: Updated the documented path of `restart-glazewm.ps1` to `~/.glzr/glazewm/scripts/restart-glazewm.ps1` after the GlazeWM helper scripts moved into `scripts/`.
+- Portability: The path uses `~` and contains no machine-specific value.
+- Chezmoi: Updated the existing managed source and applied it.
+- Verification: Scoped `chezmoi status` is clean; the source uses LF.

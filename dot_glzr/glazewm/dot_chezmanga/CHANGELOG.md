@@ -208,3 +208,34 @@
 - Portability: The helper resolves `glazewm` and `zebar` through `PATH`, reads monitor geometry from live GlazeWM state, and enables Per-Monitor-V2 DPI awareness before reading any window or monitor rectangle.
 - Chezmoi: Updated the managed `restart-glazewm.ps1` source and applied it; removed `refresh-work-area.ps1` from both source and target without invoking chezmoi commands that trigger the configured Git auto-commit and auto-push.
 - Verification: PowerShell AST parsing passed; scoped `chezmoi diff` matched the intended change; scoped apply completed and scoped `chezmoi status` is clean; the source uses LF-only line endings. A healthy-state run exited 0 in 1.68s without changing the GlazeWM PID. A fault was then injected by collapsing the monitor's app-bar rect to zero height while keeping its registration, and a second run exited 0 in 2.12s, restored 40px on all three monitors, and left both GlazeWM and Zebar PIDs unchanged. The full-restart fallback path was not exercised.
+
+## 2026-09-30T09:42:30+08:00 - Consolidate scripts into scripts/
+
+- Status: Completed
+- Machine: TC-TSENG
+- Platform: windows/x64
+- Scope: `config.yaml`, `scripts/`
+- Summary: Moved every helper script into `scripts/`, merged the two manual diagnostic scripts into one, and added a short index.
+- Important records:
+  - `cycle-workspace-window.js`, `cycle-workspace-window.config.json`, and `restart-glazewm.ps1` moved unchanged; the script still resolves its config through `__dirname`.
+  - `inspect-window.ps1` and `workspace-window-list.ps1` were merged into `scripts/window-tools.ps1` with an `inspect|list` command; behavior and output are unchanged. `workspace-window-list.ps1` was bound to no shortcut and is largely superseded by the Zebar window switcher.
+  - `scripts/README.md` lists each script, its shortcut, and its purpose.
+  - Zebar's `SleepHelper.exe` and `WindowIconHelper.exe` stay in `zebar/overline-TC/tools` because the built widget resolves them relative to its pack.
+  - Files were moved in source and target in place; no chezmoi command that triggers Git auto-commit or auto-push was used, and nothing was committed.
+- Portability: The three script paths in `config.yaml.tmpl` still render from `.chezmoi.homeDir`.
+- Chezmoi: Updated the existing config template and applied it; moved managed scripts and added `scripts/window-tools.ps1` and `scripts/README.md` in source, then applied the `scripts` directory.
+- Verification: PowerShell AST parsing passed for `window-tools.ps1` and `restart-glazewm.ps1`; `node --check` passed for the cycle script; GlazeWM accepted `wm-reload-config`; scoped `chezmoi status` is clean; edited source files use LF. The shortcuts and `window-tools.ps1` GUI were not exercised.
+## 2026-09-30T09:58:00+08:00 - Remove workspace window picker
+
+- Status: Completed
+- Machine: TC-TSENG
+- Platform: windows/x64
+- Scope: `scripts/`
+- Summary: Removed the WPF workspace window picker and restored the window-rule inspector as `scripts/inspect-window.ps1`, replacing the merged `scripts/window-tools.ps1`.
+- Important records:
+  - The picker was bound to `Alt+Shift+G` on 2026-08-17 (`b988f2d`). On 2026-08-18 (`c6467a8`) that shortcut opened the Zebar window switcher instead, so the picker had no entry point.
+  - `inspect-window.ps1` keeps its original behavior and parameters.
+  - Files were removed in source and target directly; no chezmoi command that triggers Git auto-commit or auto-push was used, and nothing was committed.
+- Portability: The inspector only needs `glazewm` on `PATH`.
+- Chezmoi: Added `scripts/inspect-window.ps1`, updated `scripts/README.md`, and removed `scripts/window-tools.ps1` from source and target.
+- Verification: PowerShell AST parsing passed; scoped `chezmoi status` is clean; edited source files use LF. The inspector was not run.

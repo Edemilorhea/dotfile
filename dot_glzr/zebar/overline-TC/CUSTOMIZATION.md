@@ -42,7 +42,7 @@ single bounded process-name argument.
 The main widget no longer runs a work-area refresh helper on start. Zebar
 registers each monitor's AppBar once and sometimes leaves a monitor with no top
 reservation, but asking GlazeWM to re-read the work area cannot fix that,
-because the Windows work area itself is wrong. `~/.glzr/glazewm/restart-glazewm.ps1`,
+because the Windows work area itself is wrong. `~/.glzr/glazewm/scripts/restart-glazewm.ps1`,
 bound to `Alt+Shift+W`, re-issues `ABM_SETPOS` against Zebar's own bar windows
 instead. The checked-in `dist/assets/main-*.js` carries this removal as a
 runtime backport; `custom-src/main/App.tsx` is the source for future builds.
