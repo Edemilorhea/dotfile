@@ -464,3 +464,18 @@
 - Portability: No paths.
 - Chezmoi: Updated the managed source, then applied the scoped targets.
 - Verification: Headless blink config showed `<Tab>` = select_and_accept, function, fallback. Not tested by typing.
+
+## 2026-10-02T09:25:55+08:00 - Stop tracking lazy-lock.json
+
+- Status: Completed
+- Machine: TC-TSENG
+- Platform: Windows x64
+- Scope: lazy-lock.json
+- Summary: Removed lazy-lock.json from chezmoi source. lazy.nvim rewrites it on every :Lazy update, so each machine now keeps its own copy and picks its own plugin versions.
+- Important records:
+  - The local ~/.config/nvim/lazy-lock.json is untouched; chezmoi does not delete a target when its source is removed.
+  - A new machine installs the newest plugin versions and generates its own lock file on first start.
+  - Earlier versions stay in Git history (last tracked in commit ef2f8b).
+- Portability: Each machine owns its lock file; no shared state.
+- Chezmoi: Removed the source file with git rm. The target stays unmanaged.
+- Verification: chezmoi status no longer lists the file.
