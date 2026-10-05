@@ -1,0 +1,4 @@
+{
+  "historian": { "opencode": { "model": "omniroute/claude-sonnet" } },
+  "dreamer": { "opencode": { "model": "omniroute/claude-sonnet" } }
+}
