@@ -111,6 +111,12 @@ public static class ZebarAppBar
         data.rc.bottom = bottom;
         return SHAppBarMessage(ABM_SETPOS, ref data) != UIntPtr.Zero;
     }
+
+    public static int WindowTop(IntPtr window)
+    {
+        RECT rect;
+        return GetWindowRect(window, out rect) ? rect.top : int.MaxValue;
+    }
 }
 '@
 
@@ -315,6 +321,55 @@ function Repair-ZebarAppBar {
   }
 }
 
+function Write-RestartLog {
+  param([string]$Message)
+
+  [void](New-Item -ItemType Directory -Path $logDirectory -Force)
+  Add-Content -LiteralPath $logPath -Value ('{0:o} {1}' -f [DateTimeOffset]::Now, $Message) -Encoding utf8
+}
+
+# Some apps that draw their own title bar (for example Zen Browser) ignore the
+# work area when GlazeWM maximizes them and stretch to the monitor's top edge,
+# covering Zebar even though the reservation is intact. A maximized window
+# normally starts only a frame border above the work area, so a top edge in the
+# upper half of the reserved strip means the bar is covered. Toggling the
+# maximized state twice makes GlazeWM place the window again.
+#
+# Returns the titles of the windows that were re-placed.
+function Repair-CoveringWindows {
+  param([string]$GlazeWmPath)
+
+  $monitors = ((& $GlazeWmPath query monitors 2>$null | Out-String) | ConvertFrom-Json).data.monitors
+  $windows = ((& $GlazeWmPath query windows 2>$null | Out-String) | ConvertFrom-Json).data.windows
+
+  foreach ($window in $windows) {
+    if ($window.state.type -ne 'fullscreen' -or -not $window.state.maximized -or $window.displayState -ne 'shown') {
+      continue
+    }
+
+    $centerX = $window.x + $window.width / 2
+    $centerY = $window.y + $window.height / 2
+    $monitor = $monitors | Where-Object {
+      $centerX -ge $_.x -and $centerX -lt ($_.x + $_.width) -and
+      $centerY -ge $_.y -and $centerY -lt ($_.y + $_.height)
+    } | Select-Object -First 1
+
+    $reserved = if ($monitor) { $monitor.workingRect.top - $monitor.y } else { 0 }
+    if ($reserved -le 0) {
+      continue
+    }
+
+    $top = [ZebarAppBar]::WindowTop([IntPtr][long]$window.handle)
+    if ($top -ge $monitor.y + $reserved / 2) {
+      continue
+    }
+
+    & $GlazeWmPath command --id $window.id toggle-fullscreen --maximized | Out-Null
+    & $GlazeWmPath command --id $window.id toggle-fullscreen --maximized | Out-Null
+    $window.title
+  }
+}
+
 try {
   try {
     $hasLock = $mutex.WaitOne(0)
@@ -333,10 +388,16 @@ try {
   }
   $expectedMonitorCount = $currentState.data.monitors.Count
 
-  # Fast path: re-seat the missing reservations in place. This also succeeds
-  # immediately when every monitor is already correct, so the full restart below
-  # only runs when the cheap repair cannot fix the work areas.
+  # Fast path: re-seat the missing reservations in place, then re-place windows
+  # that still cover the bar. The full restart below only runs when the cheap
+  # repair cannot fix the work areas.
   if (Repair-ZebarAppBar -GlazeWmPath $glazeWmPath -ExpectedMonitorCount $expectedMonitorCount) {
+    $replaced = @(Repair-CoveringWindows -GlazeWmPath $glazeWmPath)
+    if ($replaced.Count -gt 0) {
+      Write-RestartLog "Fast path: re-placed windows covering Zebar: $($replaced -join '; ')"
+    } else {
+      Write-RestartLog 'Fast path: work areas and windows already correct; nothing to repair.'
+    }
     exit 0
   }
 
@@ -386,9 +447,7 @@ try {
     throw 'Zebar did not reserve a top work area on every monitor after 3 repair attempts.'
   }
 } catch {
-  [void](New-Item -ItemType Directory -Path $logDirectory -Force)
-  $message = '{0:o} {1}' -f [DateTimeOffset]::Now, $_.Exception.Message
-  Add-Content -LiteralPath $logPath -Value $message -Encoding utf8
+  Write-RestartLog $_.Exception.Message
   exit 1
 } finally {
   if ($hasLock) {

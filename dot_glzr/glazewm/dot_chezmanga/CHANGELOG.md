@@ -239,3 +239,18 @@
 - Portability: The inspector only needs `glazewm` on `PATH`.
 - Chezmoi: Added `scripts/inspect-window.ps1`, updated `scripts/README.md`, and removed `scripts/window-tools.ps1` from source and target.
 - Verification: PowerShell AST parsing passed; scoped `chezmoi status` is clean; edited source files use LF. The inspector was not run.
+
+## 2026-10-05T21:11:43+08:00 - Alt+Shift+W re-places windows covering Zebar
+
+- Status: Completed
+- Machine: TC-TSENG
+- Platform: windows/x64
+- Scope: `scripts/restart-glazewm.ps1`
+- Summary: When every work area is already reserved, `Alt+Shift+W` now re-places maximized (`alt+z`) windows whose top edge covers Zebar instead of exiting silently. Every fast-path run writes one line to `%LOCALAPPDATA%/glazewm/restart.log`.
+- Important records:
+  - Root cause observed on 2026-10-05: all monitors reserved 40px, but Zen Browser maximized to the monitor top (`y=-503`) while Discord and Folo on the same monitor sat at the work area (`y=-471`). `wm-redraw` did not fix it.
+  - The 2026-09-21 fast path exited with code 0 whenever reservations existed, so the hotkey had no visible effect in this case.
+  - Detection: a `fullscreen --maximized` window whose real top is in the upper half of the reserved strip. Repair: `toggle-fullscreen --maximized` twice via `--id`.
+- Portability: No new paths; uses `glazewm` on `PATH`.
+- Chezmoi: Updated managed source and applied the target.
+- Verification: Not run. The hotkey was not exercised.
