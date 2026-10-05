@@ -1,5 +1,16 @@
 # OpenCode Chezmoi Changelog
 
+## 2026-10-05 - Disable native compaction for Magic Context
+
+- Status: Completed
+- Machine: TC-TSENG
+- Platform: Windows x64
+- Scope: `modify_opencode.json`
+- Summary: Added `compaction: { auto: false, prune: false }` because Magic Context (`@cortexkit/opencode-magic-context@0.45.0`) replaces DCP and native compaction. DCP and dcp-notify were removed through opencode-assets. `~/.config/cortexkit/magic-context.jsonc` (historian/dreamer = `omniroute/claude-sonnet`) is not chezmoi-managed.
+- Portability: No machine-specific content.
+- Chezmoi: Updated the modify template and applied it.
+- Verification: Deployed `opencode.json` shows the compaction block; source keeps LF.
+
 ## 2026-10-01 - Resolve AGENTS.md rule conflicts
 
 - Status: Completed
