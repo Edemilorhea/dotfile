@@ -74,6 +74,8 @@
 # OpenCode - 機器專屬的 service 密碼與 DCP 日誌不進版控
 .config/opencode/service.json
 .config/opencode/logs/**
+# OpenCode - cli.json 是每台機器的 TUI 偏好，OpenCode 會在執行期回寫
+.config/opencode/cli.json
 
 # Backups / temporary / test-only files
 .config/psmux/backups/**

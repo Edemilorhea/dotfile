@@ -413,3 +413,20 @@ The v2 binary, database, credentials, and other runtime state stay in
   with 22 global rules, 82 plan rules, and the installer-owned `plugins` (3)
   and `mcp` (5 servers) keys intact. Rule enforcement is unverified until
   OpenCode V2 restarts.
+
+## 2026-10-07T14:40:00+08:00 - Stop managing cli.json
+
+- Status: Completed
+- Machine: tc-tseng
+- Platform: Windows x64 (pwsh)
+- Scope: cli.json removed from chezmoi; .chezmoiignore
+- Summary: `chezmoi forget` removed `dot_config/opencode/cli.json` from the
+  source state (auto-committed as 714ae54 by the chezmoi git hook) and
+  `.chezmoiignore` now lists `.config/opencode/cli.json`.
+- Important records:
+  - `cli.json` holds per-machine TUI preferences (thinking visibility,
+    theme, keybinds). OpenCode writes it back at runtime, so it drifted from
+    the source on every machine. It is no longer managed; the runtime file
+    stays untouched.
+  - `session.permissions: "autoaccept"` still lives there and still turns
+    every `ask` permission into `allow`.
