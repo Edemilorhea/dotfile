@@ -70,6 +70,8 @@ return {
             broad_search = false,
             lock_target = false,
             choose_target = choose_remembered_target,
+            -- 不讓 Neovim 端比對 watched-files glob；bin/obj 變動時避免主執行緒卡頓
+            filewatching = "off",
         },
         config = function(_, opts)
             vim.lsp.config("roslyn", {
@@ -77,6 +79,10 @@ return {
                     ["csharp|background_analysis"] = {
                         ["background_analysis.dotnet_analyzer_diagnostics_scope"] = "openFiles",
                         ["background_analysis.dotnet_compiler_diagnostics_scope"] = "openFiles",
+                    },
+                    -- 不列出尚未 import 的 namespace 成員；這是 Roslyn completion 最重的來源
+                    ["csharp|completion"] = {
+                        ["dotnet_show_completion_items_from_unimported_namespaces"] = false,
                     },
                 },
             })

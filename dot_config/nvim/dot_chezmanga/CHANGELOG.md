@@ -479,3 +479,18 @@
 - Portability: Each machine owns its lock file; no shared state.
 - Chezmoi: Removed the source file with git rm. The target stays unmanaged.
 - Verification: chezmoi status no longer lists the file.
+## 2026-10-07T16:45:04+08:00 - Reduce C# editing and save latency
+
+- Status: Completed
+- Machine: TC-TSENG
+- Platform: windows/x64
+- Scope: `lua/config/autocmds.lua`, `lua/plugins/ui.lua`, `lua/plugins/csharp.lua`
+- Summary: C# buffers now save immediately and format asynchronously afterwards; Snacks `words` is disabled; roslyn.nvim stops Neovim-side file watching and no longer lists completion items from unimported namespaces.
+- Important records:
+  - LazyVim deletes `format_after_save` from conform opts, so `autocmds.lua` sets `vim.b.autoformat = false` for `cs` and adds its own `BufWritePost` that calls `conform.format({ async = true, lsp_format = "fallback" })` and writes the buffer back with a `user_formatting` guard. Conform discards the result on concurrent modification, so typing during formatting is safe.
+  - Measured on a 2073-line C# file: dprint -> csharpier took 1.6-4.1 s per save (synchronous, LazyVim timeout 3 s); Snacks `words` accounted for ~75% of per-`j` cost (2.23 ms -> 0.55 ms).
+  - `filewatching = "off"` and `csharp|completion` keys verified against roslyn.nvim `config.lua` and `README.md`.
+  - Rejected: rainbow-delimiters size gating (already incremental, ~1 ms/key), `fsync=false` (5 ms), dprint cache tweaks (stdin path bypasses cache), `dotnet_analyzer_diagnostics_scope = "none"` (user needs CA/IDE/naming diagnostics).
+- Portability: No machine-specific paths; all changes are plugin options and buffer-local autocmds.
+- Chezmoi: Updated existing managed files; applied with scoped `chezmoi apply`.
+- Verification: Scoped `chezmoi status` empty after apply. Runtime behavior (save latency, cursor feel, semantic tokens / blink impact) not yet observed in a live session; user to test.

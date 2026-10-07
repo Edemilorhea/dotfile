@@ -119,9 +119,10 @@ return {
             })
             opts.indent.scope = vim.tbl_deep_extend("force", opts.indent.scope or {}, { char = "│" })
 
-            -- 同名參照標示（document_highlight）：只在 Normal 模式更新，打字時不向 LSP 發請求
+            -- 同名參照標示（document_highlight）：關閉。每次游標停下都向 LSP 發請求，
+            -- 在大型 C# 檔案上占游標移動成本的 75%。
             opts.words = opts.words or {}
-            opts.words.modes = { "n" }
+            opts.words.enabled = false
         end,
     },
 

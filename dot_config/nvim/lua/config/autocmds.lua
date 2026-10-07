@@ -18,6 +18,35 @@ vim.api.nvim_create_autocmd("FileType", {
 
 require("config.highlights").setup()
 
+-- C#：csharpier 每次 1.5–4 秒，改成存檔後非同步格式化再寫回，不擋 :w。
+-- LazyVim 會移除 conform 的 format_after_save，所以自己掛 BufWritePost。
+vim.api.nvim_create_autocmd("FileType", {
+    group = augroup("cs_format"),
+    pattern = "cs",
+    callback = function(event)
+        vim.b[event.buf].autoformat = false
+    end,
+})
+
+vim.api.nvim_create_autocmd("BufWritePost", {
+    group = augroup("cs_format_after_save"),
+    pattern = "*.cs",
+    callback = function(args)
+        if vim.b[args.buf].user_formatting then
+            return
+        end
+        require("conform").format({ bufnr = args.buf, async = true, lsp_format = "fallback" }, function(err)
+            if not err and vim.api.nvim_buf_is_valid(args.buf) and vim.bo[args.buf].modified then
+                vim.api.nvim_buf_call(args.buf, function()
+                    vim.b[args.buf].user_formatting = true
+                    vim.cmd.update()
+                    vim.b[args.buf].user_formatting = false
+                end)
+            end
+        end)
+    end,
+})
+
 local function convert_line_endings(fileformat)
     vim.cmd([[silent! %s/\r$//e]])
     vim.bo.fileformat = fileformat
