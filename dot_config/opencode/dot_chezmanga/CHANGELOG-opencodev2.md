@@ -376,3 +376,40 @@ The v2 binary, database, credentials, and other runtime state stay in
   schemas, which confirms the tool transform. The `/handoff` command, the DCP
   toast, and the handoff navigation run in the CLI process and stay unverified
   until OpenCode V2 restarts.
+
+## 2026-10-07T14:08:38+08:00 - Convert permissions to native V2 rules
+
+- Status: Completed
+- Machine: tc-tseng
+- Platform: Windows x64 (pwsh)
+- Scope: modify_opencode.json (`permission`/`agent` -> `permissions`/`agents`)
+- Summary: Replaced the V1 `permission` map and `agent` map with the V2
+  ordered `permissions` array and `agents` map. Global rules keep `edit`
+  and `shell` at `ask` and carry only hard `deny` rules; the `plan`
+  agent now denies `shell` by default and allows a read-only allowlist.
+- Important records:
+  - `cli.json` runs with `session.permissions: "autoaccept"`, which turns
+    every `ask` into `allow`. Only `deny` is enforced by the server, so the
+    old 100-line `bash` allow/ask list had no effect. The V2 file keeps only
+    `deny` rules globally.
+  - Global rules override the shipped `plan` policy, so the `edit` deny and
+    the `~/.opencode/plan/*` allow are repeated under `agents.plan`.
+  - `plan` previously allowed shell, so the model could still write files via
+    pwsh (`[IO.File]::WriteAllText`). `shell` is now deny-by-default in
+    `plan` with git/chezmoi/rg/Get-* read-only commands allowed. Add to the
+    allowlist when a legitimate read-only command is blocked.
+  - Removed actions that V2 does not recognize: `list`, `lsp`,
+    `todoread`, `todowrite`, `codesearch`, `doom_loop`. Unix `deny` entries
+    are kept because the config is shared across machines; pwsh equivalents
+    (`Stop-Computer`, `Restart-Computer`, `Format-Volume`, `Clear-Disk`,
+    `diskpart`, `format`) were added next to them.
+  - The `skill: change-understanding-review: allow` entry was dropped; the
+    base policy already allows every skill.
+- Portability: No machine-specific path. `~/.opencode/plan/*` is home-expanded
+  by OpenCode at load time.
+- Chezmoi: Updated `modify_opencode.json`; applied only `opencode.json`.
+- Verification: Scoped `chezmoi diff` showed only the permission/agent
+  rewrite; scoped `chezmoi status` is clean. The rendered file parses as JSON
+  with 22 global rules, 82 plan rules, and the installer-owned `plugins` (3)
+  and `mcp` (5 servers) keys intact. Rule enforcement is unverified until
+  OpenCode V2 restarts.
