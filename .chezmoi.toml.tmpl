@@ -9,6 +9,7 @@
 {{- $syncPowershell := promptBoolOnce . "syncPowershell" "sync powershell config" true }}
 {{- $syncIdeavimrc := promptBoolOnce . "syncIdeavimrc" "sync ideavimrc config" true }}
 {{- $autoPush := promptBoolOnce . "autoPush" "auto commit and push dotfile changes" true }}
+{{- $omnirouteBaseURL := promptStringOnce . "omnirouteBaseURL" "OmniRoute base URL (VPS itself: http://127.0.0.1:20128/v1)" "https://selfvps.edemilorhea.tw/v1" }}
 
 # 3. 偵測本機工具（dot_zshrc.tmpl 使用）
 {{- $hasSnap := ne (lookPath "snap") "" }}
@@ -40,6 +41,7 @@
     syncPowershell = {{ $syncPowershell }}
     syncIdeavimrc = {{ $syncIdeavimrc }}
     autoPush = {{ $autoPush }}
+    omnirouteBaseURL = {{ $omnirouteBaseURL | quote }}
     # 本機工具偵測（每次 chezmoi init 重新計算）
     has_snap = {{ $hasSnap }}
     has_homebrew = {{ $hasHomebrew }}

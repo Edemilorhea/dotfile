@@ -272,6 +272,7 @@
     }
 }
 ` | fromJsonc -}}
+{{- $_ := set $base.providers.omniroute.settings "baseURL" (.omnirouteBaseURL | default "http://127.0.0.1:20128/v1") -}}
 {{- $current := dict -}}
 {{- if .chezmoi.stdin | trim -}}
 {{-   $current = .chezmoi.stdin | fromJsonc -}}
