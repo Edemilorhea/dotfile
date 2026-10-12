@@ -8,6 +8,12 @@
 {{- $syncNvim := promptBoolOnce . "syncNvim" "sync neovim config" true }}
 {{- $syncPowershell := promptBoolOnce . "syncPowershell" "sync powershell config" true }}
 {{- $syncIdeavimrc := promptBoolOnce . "syncIdeavimrc" "sync ideavimrc config" true }}
+{{- $autoPush := promptBoolOnce . "autoPush" "auto commit and push dotfile changes" true }}
+
+# 3. 偵測本機工具（dot_zshrc.tmpl 使用）
+{{- $hasSnap := ne (lookPath "snap") "" }}
+{{- $hasHomebrew := or (stat "/opt/homebrew/bin/brew") (stat "/home/linuxbrew/.linuxbrew/bin/brew") | not | not }}
+{{- $hasNvm := stat (joinPath .chezmoi.homeDir ".nvm") | not | not }}
 
 [add]
     templateSymlinks = false
@@ -16,8 +22,8 @@
     command = "nvim"
 
 [git]
-    autoCommit = true
-    autoPush = true
+    autoCommit = {{ $autoPush }}
+    autoPush = {{ $autoPush }}
     commitMessageTemplate = "Update dotfiles: {{ "{{" }} .chezmoi.hostname {{ "}}" }}"
 
 [hooks.add.pre]
@@ -33,6 +39,11 @@
     syncNvim = {{ $syncNvim }}
     syncPowershell = {{ $syncPowershell }}
     syncIdeavimrc = {{ $syncIdeavimrc }}
+    autoPush = {{ $autoPush }}
+    # 本機工具偵測（每次 chezmoi init 重新計算）
+    has_snap = {{ $hasSnap }}
+    has_homebrew = {{ $hasHomebrew }}
+    has_nvm = {{ $hasNvm }}
 
 [update]
     apply = true
