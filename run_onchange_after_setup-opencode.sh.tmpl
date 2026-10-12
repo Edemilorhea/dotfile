@@ -1,0 +1,33 @@
+{{- if ne .chezmoi.os "windows" -}}
+#!/bin/bash
+# OpenCode (the V2 CLI) for Linux/macOS: binary in ~/.opencode/bin.
+# Keep $version in sync with run_onchange_after_setup-opencode.ps1.tmpl;
+# chezmoi reruns this script whenever its rendered content changes.
+set -euo pipefail
+version='2.0.15'
+
+bin_dir="$HOME/.opencode/bin"
+stamp="$bin_dir/.version"
+if [ -x "$bin_dir/opencode" ] && [ "$(cat "$stamp" 2>/dev/null)" = "$version" ]; then
+  echo "[OpenCode] Binary $version already installed"
+  exit 0
+fi
+
+case "$(uname -s)-$(uname -m)" in
+  Linux-x86_64)  target=linux-x64; grep -q avx2 /proc/cpuinfo || target=linux-x64-baseline ;;
+  Linux-aarch64) target=linux-arm64 ;;
+  Darwin-arm64)  target=darwin-arm64 ;;
+  Darwin-x86_64) target=darwin-x64 ;;
+  *) echo "[OpenCode] Unsupported platform $(uname -sm)" >&2; exit 1 ;;
+esac
+
+work="$(mktemp -d)"
+trap 'rm -rf "$work"' EXIT
+echo "[OpenCode] Downloading @opencode/cli-$target@$version"
+curl -fsSL "https://registry.npmjs.org/@opencode/cli-$target/-/cli-$target-$version.tgz" -o "$work/cli.tgz"
+tar -xzf "$work/cli.tgz" -C "$work"
+mkdir -p "$bin_dir"
+install -m 755 "$work/package/bin/opencode" "$bin_dir/opencode"
+printf '%s' "$version" > "$stamp"
+echo "[OpenCode] Installed $version to $bin_dir/opencode"
+{{- end }}
