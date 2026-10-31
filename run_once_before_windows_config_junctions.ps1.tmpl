@@ -20,6 +20,7 @@ function Ensure-Symlink {
     )
 
     Write-Host "[Symlink] Processing: $Target -> $Source"
+    $backup = $null
 
     if (Test-Path -LiteralPath $Target) {
         $item = Get-Item -LiteralPath $Target -Force
@@ -36,8 +37,20 @@ function Ensure-Symlink {
     $parent = Split-Path -Parent $Target
     Ensure-Directory -Path $parent
 
-    New-Item -ItemType SymbolicLink -Path $Target -Target $Source | Out-Null
-    Write-Host "[Symlink] Created: $Target -> $Source"
+    # Without Developer Mode or admin rights Windows refuses symlinks. Warn and
+    # keep going so the rest of chezmoi apply still runs.
+    try {
+        New-Item -ItemType SymbolicLink -Path $Target -Target $Source | Out-Null
+        Write-Host "[Symlink] Created: $Target -> $Source"
+    }
+    catch {
+        # run_once scripts do not rerun, so print the command that finishes the job.
+        Write-Warning "[Symlink] Failed: $Target -> $Source ($($_.Exception.Message))"
+        Write-Warning "[Symlink] Enable Developer Mode or open an admin shell, then run: New-Item -ItemType SymbolicLink -Path '$Target' -Target '$Source'"
+        if ($backup -and (Test-Path -LiteralPath $backup)) {
+            Rename-Item -LiteralPath $backup -NewName (Split-Path -Leaf $Target)
+        }
+    }
 }
 
 function Ensure-Junction {
