@@ -175,3 +175,17 @@
 - Portability: No diagnostic script remains to deploy on other machines.
 - Chezmoi: Removed the temporary source and deployed target before committing the final fix.
 - Verification: The source repository no longer contains an untracked Nushell diagnostics directory.
+
+## 2026-11-01T17:40:00+08:00 - Rename Tab completion keybinding
+
+- Status: Completed
+- Machine: DESKTOP-3JHKCAP
+- Platform: windows/x64
+- Scope: `modules/keybindings.nu`
+- Summary: Renamed the Tab keybinding from `completion_menu` to `tab_completion`.
+- Important records:
+  - Nushell 0.116 warns `shared_keybindings_name` because its default config already has a keybinding named `completion_menu`.
+  - The binding still opens the menu named `completion_menu`; only the keybinding name changed.
+- Portability: No host-specific values.
+- Chezmoi: Managed source edited and applied with scoped `chezmoi apply`.
+- Verification: A new `nu` session started without the warning.

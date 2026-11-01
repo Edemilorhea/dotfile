@@ -1,0 +1,38 @@
+{{- if eq .chezmoi.os "windows" -}}
+# 產生 zoxide 與 Atuin 的 Nushell 整合檔，效果等同在 Nushell 裡執行 refresh-shell-integrations。
+# 工具若剛由安裝器裝好，目前程序的 PATH 還沒更新，所以先從登錄重新讀取。
+$env:Path = @(
+    [Environment]::GetEnvironmentVariable('Path', 'Machine')
+    [Environment]::GetEnvironmentVariable('Path', 'User')
+) -join ';'
+
+$autoloadDir = $null
+if (Get-Command nu -ErrorAction SilentlyContinue) {
+    $autoloadDir = (& nu -n -c '$nu.vendor-autoload-dirs | last' | Out-String).Trim()
+}
+if (-not $autoloadDir) {
+    $autoloadDir = Join-Path $env:APPDATA 'nushell\vendor\autoload'
+}
+New-Item -ItemType Directory -Path $autoloadDir -Force | Out-Null
+
+$utf8 = [Text.UTF8Encoding]::new($false)
+$tools = @(
+    @{ Name = 'zoxide'; Args = @('init', 'nushell'); File = 'zoxide.nu' }
+    @{ Name = 'atuin'; Args = @('init', 'nu'); File = 'atuin.nu' }
+)
+
+foreach ($t in $tools) {
+    if (-not (Get-Command $t.Name -ErrorAction SilentlyContinue)) {
+        Write-Warning "[Nushell Integrations] $($t.Name) 未安裝，已略過。裝好後在 Nushell 執行 refresh-shell-integrations"
+        continue
+    }
+    $target = Join-Path $autoloadDir $t.File
+    $content = & $t.Name @($t.Args) | Out-String
+    if ($LASTEXITCODE -ne 0) {
+        Write-Warning "[Nushell Integrations] $($t.Name) init 失敗（exit $LASTEXITCODE）"
+        continue
+    }
+    [IO.File]::WriteAllText($target, $content, $utf8)
+    Write-Host "[Nushell Integrations] 已更新 $target"
+}
+{{- end -}}
