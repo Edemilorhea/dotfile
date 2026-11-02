@@ -1,5 +1,18 @@
 # OpenCode Chezmoi Changelog
 
+## 2026-11-03T00:15:12+08:00 - Document snapshot ownership of cli.json and assets.json
+
+- Status: Completed
+- Machine: DESKTOP-3JHKCAP
+- Platform: Windows x64
+- Scope: `OWNERSHIP.md`
+- Summary: `cli.json` was still listed as chezmoi-owned although `.chezmoiignore` excludes it. OWNERSHIP now states that `cli.json` and `config/assets.json` are per-machine files carried by the system_reinstall_tools snapshot, and the new-machine step no longer names the nonexistent `core` profile.
+- Important records:
+  - system_reinstall_tools backs up both files and runs the opencode-assets preset after restore, so `apply -Scope global` reuses the machine's previous selection.
+- Portability: No paths or machine values were added.
+- Chezmoi: Updated managed documentation only; ignore rules unchanged.
+- Verification: Inspected the edit. No functional check run.
+
 ## 2026-10-31T19:35:08+08:00 - Bootstrap missing OpenCode assets and restore local CLI preferences
 
 - Status: Completed
