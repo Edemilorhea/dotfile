@@ -1,0 +1,64 @@
+# noctty configuration based on the Rio setup (~/.config/rio/config.toml).
+# Reload while running: Ctrl+Shift+,
+# All options: noctty +show-config --default --docs
+
+# Shell
+command = nu.exe
+term = xterm-256color
+env = LANG=zh_TW.UTF-8
+env = LC_ALL=zh_TW.UTF-8
+
+# Font
+# Rio sizes fonts in pixels; noctty uses points. 12pt is about Rio's 16.
+font-family = JetBrains Maple Mono
+font-style = Medium
+font-style-bold = Bold
+font-style-italic = Italic
+font-style-bold-italic = Bold Italic
+font-size = 12
+adjust-cell-height = 10%
+
+# Window
+maximize = true
+window-show-tab-bar = never
+window-padding-x = 4
+window-padding-y = 4
+# background-blur has no effect on Windows; opacity is a flat window tint.
+background-opacity = 0.95
+confirm-close-surface = true
+mouse-hide-while-typing = true
+copy-on-select = false
+
+# Colors
+background = #121417
+foreground = #c0c5ce
+cursor-color = #c0c5ce
+selection-foreground = #c0c5ce
+selection-background = #4f5b66
+palette = 0=#343d46
+palette = 1=#bf616a
+palette = 2=#a3be8c
+palette = 3=#ebcb8b
+palette = 4=#8fa1b3
+palette = 5=#b48ead
+palette = 6=#96b5b4
+palette = 7=#c0c5ce
+palette = 8=#65737e
+palette = 9=#bf616a
+palette = 10=#a3be8c
+palette = 11=#ebcb8b
+palette = 12=#8fa1b3
+palette = 13=#b48ead
+palette = 14=#96b5b4
+palette = 15=#eff1f5
+
+# Cursor
+cursor-style = block
+cursor-style-blink = true
+
+# Keys
+# psmux: forward Control+F12 as the standard xterm sequence.
+keybind = ctrl+f12=csi:24;5~
+keybind = ctrl+slash=text:\x1f
+# Preserve Control+H for Neovim instead of sending Backspace.
+keybind = ctrl+h=csi:104;5u
