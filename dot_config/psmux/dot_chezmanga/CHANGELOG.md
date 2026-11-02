@@ -166,3 +166,18 @@
 - Portability: None needed.
 - Chezmoi: Updated the managed `psmux.conf` source and applied only that target.
 - Verification: Not run beyond inspection; reload the config to confirm the warnings are gone.
+
+## 2026-11-02T23:28:15+08:00 - Status bar on top and plugin bootstrap on apply
+
+- Status: Completed
+- Machine: DESKTOP-3JHKCAP
+- Platform: Microsoft Windows / AMD64
+- Scope: `psmux.conf`; chezmoi script `run_onchange_after_install-psmux-plugins.ps1.tmpl` (replaces `run_once_install-ppm.ps1.tmpl`)
+- Summary: The status bar now stays on top. Applying chezmoi now installs PPM and every declared `psmux-plugins/<name>` plugin, including the Tokyo Night theme.
+- Important records:
+  - The theme's `plugin.conf` and `.ps1` both set `status-position bottom`. Both run after the old `set -g status-position top`, so the setting moved to after the theme `run` line.
+  - Removed `@tokyonight-status-position`: the theme does not read this option.
+  - The script clones `psmux/psmux-plugins` once and copies only missing plugins. It writes the same `.monorepo.json` marker as PPM, so Prefix+U still updates them. It reruns when `psmux.conf` changes, so newly declared plugins also install. Specs outside `psmux-plugins/` are only listed for Prefix+I.
+- Portability: Windows only (`.chezmoi.os` guard). Uses `$env:USERPROFILE`, no hard-coded paths.
+- Chezmoi: Updated `psmux.conf` and applied it. Added the script; removed the old run_once PPM script from source.
+- Verification: Template renders. Script not run on this machine (all plugins already exist); reload psmux config to see the status bar on top.

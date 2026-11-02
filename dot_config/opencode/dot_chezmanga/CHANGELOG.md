@@ -1,5 +1,20 @@
 # OpenCode Chezmoi Changelog
 
+## 2026-10-31T19:35:08+08:00 - Bootstrap missing OpenCode assets and restore local CLI preferences
+
+- Status: Completed
+- Machine: DESKTOP-3JHKCAP
+- Platform: Windows x64
+- Scope: Local OpenCode assets deployment; unmanaged `cli.json`
+- Summary: Installed 27 assets through opencode-assets using the base, fable, learning-agents, and adversarial profiles, plus chezmoi-management, opencode-magic-context, change-verification, implementation-understanding-tutor, init, and typesafe-ai with their dependencies. Restored CLI preferences from the chezmoi history immediately before 714ae54, including the alt+m leader and Tab agent cycling.
+- Important records:
+  - The private asset repository was accessible through SSH, not HTTPS authentication. The generated assets command records this machine's checkout location.
+  - Kept the existing decision to leave cli.json unmanaged; no ignore rule was removed. Restoring this machine does not restore CLI preferences automatically on future machines.
+  - Kept Magic Context and did not install DCP or dcp-notify. Jev and Locu remain uninstalled because their required environment variables are absent. Other account-dependent optional integrations were not enabled.
+- Portability: Asset paths are resolved by the installer per machine. No credential or shared absolute checkout path was added.
+- Chezmoi: Updated only this changelog; assets remain installer-owned and cli.json remains intentionally ignored.
+- Verification: Installer exited successfully and saved the 27-asset lock and machine selection. Scoped chezmoi diff for opencode.json was empty after deployment. Restored cli.json uses LF only. Live plugin loading, model authentication, and keyboard behavior were not tested.
+
 ## 2026-10-05 - Disable native compaction for Magic Context
 
 - Status: Completed

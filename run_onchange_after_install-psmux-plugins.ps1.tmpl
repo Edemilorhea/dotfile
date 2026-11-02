@@ -1,0 +1,63 @@
+{{- if eq .chezmoi.os "windows" -}}
+# psmux.conf hash: {{ include "dot_config/psmux/psmux.conf" | sha256sum }}
+# Install PPM and every psmux-plugins/<name> declared in psmux.conf, so the
+# theme and other plugins work after the first apply without Prefix+I.
+$ErrorActionPreference = 'Stop'
+$monorepo = 'psmux/psmux-plugins'
+$pluginDir = Join-Path $env:USERPROFILE '.psmux\plugins'
+$confPath = Join-Path $env:USERPROFILE '.config\psmux\psmux.conf'
+
+$names = @('ppm')
+$others = @()
+if (Test-Path -LiteralPath $confPath) {
+    $content = Get-Content -LiteralPath $confPath -Raw
+    foreach ($m in [regex]::Matches($content, "(?m)^\s*set\s+-g\s+@plugin\s+['""]([^'""]+)['""]")) {
+        $spec = $m.Groups[1].Value.Trim()
+        if ($spec -match '^psmux-plugins/([^/#]+)$') {
+            if ($Matches[1] -notin $names) { $names += $Matches[1] }
+        } else {
+            $others += $spec
+        }
+    }
+}
+
+$missing = @($names | Where-Object { -not (Test-Path -LiteralPath (Join-Path $pluginDir $_)) })
+if ($missing.Count -eq 0) {
+    Write-Host '[psmux-plugins] All declared plugins are installed.'
+} else {
+    Write-Host "[psmux-plugins] Installing: $($missing -join ', ')"
+    $tmpDir = Join-Path $env:TEMP "psmux-plugins-bootstrap-$(Get-Random)"
+    $env:GIT_TERMINAL_PROMPT = '0'
+    try {
+        git -c credential.helper= clone --depth 1 --quiet "https://github.com/$monorepo.git" $tmpDir
+        if ($LASTEXITCODE -ne 0) { throw "git clone $monorepo failed" }
+        New-Item -ItemType Directory -Path $pluginDir -Force | Out-Null
+        foreach ($name in $missing) {
+            $src = Join-Path $tmpDir $name
+            if (-not (Test-Path -LiteralPath $src)) {
+                Write-Warning "[psmux-plugins] '$name' not found in $monorepo"
+                continue
+            }
+            $dest = Join-Path $pluginDir $name
+            Copy-Item -LiteralPath $src -Destination $dest -Recurse
+            if ($name -ne 'ppm') {
+                # Same marker PPM writes, so Prefix+U can update the plugin.
+                @{
+                    monorepo = $monorepo
+                    org      = 'psmux-plugins'
+                    name     = $name
+                    url      = "https://github.com/$monorepo.git"
+                    branch   = ''
+                } | ConvertTo-Json | Set-Content -LiteralPath (Join-Path $dest '.monorepo.json') -Encoding UTF8
+            }
+            Write-Host "[psmux-plugins] Installed $name"
+        }
+    } finally {
+        if (Test-Path -LiteralPath $tmpDir) { Remove-Item -LiteralPath $tmpDir -Recurse -Force }
+    }
+}
+
+if ($others.Count -gt 0) {
+    Write-Host "[psmux-plugins] Not psmux-plugins specs; install with Prefix+I: $($others -join ', ')"
+}
+{{- end -}}
