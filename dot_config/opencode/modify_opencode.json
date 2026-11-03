@@ -17,9 +17,9 @@
         "auto": false,
         "prune": false
     },
-    "instructions": [
-        "AGENTS.md"
-    ],
+    "experimental": {
+        "todo": true
+    },
     "default_agent": "plan",
     "disabled_providers": [
         "google",

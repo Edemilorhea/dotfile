@@ -28,6 +28,17 @@
 - Chezmoi: Updated only this changelog; assets remain installer-owned and cli.json remains intentionally ignored.
 - Verification: Installer exited successfully and saved the 27-asset lock and machine selection. Scoped chezmoi diff for opencode.json was empty after deployment. Restored cli.json uses LF only. Live plugin loading, model authentication, and keyboard behavior were not tested.
 
+## 2026-10-21 - Adopt OpenCode 2.1 todo list, drop ignored instructions
+
+- Status: Completed
+- Machine: TC-TSENG
+- Platform: Windows x64
+- Scope: `modify_opencode.json`
+- Summary: Added `experimental: { todo: true }` (OpenCode v2.1.0 restores `todowrite` and the TUI todo list). Removed `instructions: ["AGENTS.md"]` because V2 ignores that field and auto-loads AGENTS.md.
+- Portability: No machine-specific content.
+- Chezmoi: Updated the modify template and applied it.
+- Verification: Deployed `opencode.json` contains `experimental.todo` and no `instructions` key.
+
 ## 2026-10-05 - Disable native compaction for Magic Context
 
 - Status: Completed
