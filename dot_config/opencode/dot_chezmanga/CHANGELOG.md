@@ -1,5 +1,19 @@
 # OpenCode Chezmoi Changelog
 
+## 2026-11-03T15:06:51+08:00 - Manage cli.json keybinds and drop the Claude Code version override
+
+- Status: Completed
+- Machine: tc-tseng
+- Platform: Windows x64
+- Scope: `modify_cli.json`, `OWNERSHIP.md`, `../../.chezmoiignore`, `../../run_onchange_after_setup-opencode.ps1.tmpl`, `../../dot_zshrc.tmpl`
+- Summary: chezmoi again records the OpenCode keybinds. New `modify_cli.json` owns only `keybinds` in `cli.json` and copies every other key, so OpenCode's runtime writes to theme, thinking, and session state do not cause drift. The `ANTHROPIC_CLAUDE_CODE_VERSION=2.1.280` override is removed; the setup script now clears the user variable instead of setting it, and `.zshrc` no longer exports it.
+- Important records:
+  - 714ae54 (2026-10-07) ignored the whole `cli.json`, which dropped the keybinds from version control together with the runtime state.
+  - `@ex-machina/opencode-anthropic-auth@next` (2.0.0-next.6) bundles `CLAUDE_CODE_VERSION = '2.1.280'` in `dist/constants.js`, so the override is no longer needed and would only hold back later plugin updates. opencode-assets keeps `distTag: "next"` and dropped its workaround note.
+- Portability: The keybinds contain no paths or machine values.
+- Chezmoi: Added `modify_cli.json`; removed the `cli.json` ignore rule; updated the setup script, `.zshrc` template, and OWNERSHIP.
+- Verification: Scoped `chezmoi diff` for `cli.json` is empty on this machine (current file kept byte-for-byte). `execute-template` with empty stdin renders `$schema` plus the keybinds. The user variable was cleared on this machine directly; the setup script reruns on the next full apply. Live keyboard behavior was not tested.
+
 ## 2026-11-03T00:15:12+08:00 - Document snapshot ownership of cli.json and assets.json
 
 - Status: Completed

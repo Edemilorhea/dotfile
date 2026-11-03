@@ -1,0 +1,51 @@
+{{- /* chezmoi:modify-template */ -}}
+{{- /*
+  chezmoi owns only "keybinds" in ~/.config/opencode/cli.json. OpenCode writes
+  per-machine TUI state (thinking, theme, sidebar) back into the other keys,
+  so they are copied from the current file. See OWNERSHIP.md.
+
+  The template keeps the current file byte-for-byte when its keybinds already
+  match, so runtime rewrites of other keys do not show up as chezmoi drift.
+*/ -}}
+{{- $keybinds := `
+{
+    "leader": "alt+m",
+
+    "app.exit": "ctrl+d,<leader>q",
+
+    "session.rename": "none",
+    "session.child.next": "<leader>right",
+    "session.child.previous": "<leader>left",
+    "session.parent": "<leader>up",
+    "session.half.page.up": "alt+pageup",
+    "session.half.page.down": "alt+pagedown",
+    "session.messages_last_user": "none",
+    "messages.copy": "ctrl+shift+c,<leader>y",
+
+    "session.tab.next": "ctrl+pagedown,<leader>]",
+    "session.tab.previous": "ctrl+pageup,<leader>[",
+    "session.tab.reopen": "<leader>z",
+
+    "agent.cycle": "tab",
+    "agent.cycle.reverse": "shift+tab",
+
+    "prompt.clear": "<leader>d",
+
+    "input.undo": "ctrl+-,ctrl+z",
+    "input.redo": "ctrl+.,alt+z",
+    "input.buffer.home": "home",
+    "input.buffer.end": "end",
+
+    "terminal.suspend": "none"
+}
+` | fromJsonc -}}
+{{- $current := dict "$schema" "https://opencode.ai/v2/cli.json" -}}
+{{- if .chezmoi.stdin | trim -}}
+{{-   $current = .chezmoi.stdin | fromJsonc -}}
+{{- end -}}
+{{- if and (.chezmoi.stdin | trim) (eq (toJson $keybinds) (toJson (get $current "keybinds"))) -}}
+{{- .chezmoi.stdin -}}
+{{- else -}}
+{{- $_ := set $current "keybinds" $keybinds -}}
+{{- toPrettyJson $current }}
+{{ end -}}

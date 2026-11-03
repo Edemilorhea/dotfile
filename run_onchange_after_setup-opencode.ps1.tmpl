@@ -7,11 +7,6 @@ $ErrorActionPreference = 'Stop'
 # the binary: chezmoi reruns this script whenever its rendered content changes.
 $version = '2.0.15'
 
-# @ex-machina/opencode-anthropic-auth@next still reports Claude Code 2.1.275,
-# which Anthropic rejects for current models. Remove this override once the
-# plugin bundles 2.1.280 or newer.
-$claudeCodeVersion = '2.1.280'
-
 $binDir = [System.IO.Path]::GetFullPath((Join-Path $HOME '.opencode/bin'))
 $exe = Join-Path $binDir 'opencode.exe'
 $stamp = Join-Path $binDir '.version'
@@ -301,9 +296,11 @@ Remove-BunV1
 
 Set-UserPath -Add $binDir -Remove @($legacyRoot)
 
-if ([Environment]::GetEnvironmentVariable('ANTHROPIC_CLAUDE_CODE_VERSION', 'User') -ne $claudeCodeVersion) {
-    [Environment]::SetEnvironmentVariable('ANTHROPIC_CLAUDE_CODE_VERSION', $claudeCodeVersion, 'User')
-    Write-Host "[OpenCode] Set the user variable ANTHROPIC_CLAUDE_CODE_VERSION=$claudeCodeVersion"
+# The anthropic-auth plugin tracks npm dist-tag next and bundles its own Claude
+# Code version, so clear the override an earlier version of this script set.
+if ($null -ne [Environment]::GetEnvironmentVariable('ANTHROPIC_CLAUDE_CODE_VERSION', 'User')) {
+    [Environment]::SetEnvironmentVariable('ANTHROPIC_CLAUDE_CODE_VERSION', $null, 'User')
+    Write-Host "[OpenCode] Removed the user variable ANTHROPIC_CLAUDE_CODE_VERSION"
 }
 
 # Do not report success unless `opencode` in a new terminal is this binary.
