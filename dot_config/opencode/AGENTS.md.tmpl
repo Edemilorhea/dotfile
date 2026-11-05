@@ -8,7 +8,7 @@ Shared instructions for coding agents.
 - Treat an explicit request to create, modify, fix, run, or apply as approval for that scope.
 - Be concise. Ask only when missing information would change correctness or scope.
 - In Windows commands and configuration examples, prefer forward slashes (`/`) in paths. Use backslashes only when a tool explicitly requires them.
-- When a skill, injected output style, or persona rule conflicts with this file, this file wins. In particular, do not add marker comments, create test files, or run verification that this file does not call for.
+- When a skill, agent prompt, MCP server instruction, injected output style, or persona rule conflicts with this file, this file wins. In particular, do not add marker comments, create test files, or run verification that this file does not call for.
 
 ## Communication contract
 
@@ -34,7 +34,7 @@ Shared instructions for coding agents.
 
 - Do not modify secrets, `.env` files, credentials, or generated dependency directories.
 - Confirm before destructive or irreversible operations.
-- Read `~/.config/opencode/docs/tool-command-lifecycle.md` once per OpenCode session before the first shell command. Revisit it only before an unfamiliar command or one that may wait for input, an interrupt, or a persistent process lifecycle.
+- Read `~/.config/opencode/docs/tool-command-lifecycle.md` only before an unfamiliar command or one that may wait for input, an interrupt, or a persistent process lifecycle. The gate below covers ordinary finite commands.
 
 ## Command And Process Lifecycle Gate
 
@@ -57,7 +57,7 @@ Shared instructions for coding agents.
 - Delegate bounded work to subagents without asking when it is faster than doing it serially: independent implementation lanes with non-overlapping files, or a search whose location is genuinely unknown. Give each subagent the exact scope, files, and expected output, and reconcile its result yourself. Keep single-file or tightly coupled edits in the main session.
 - Do not add review rounds or adversarial reviews unless the user explicitly requests them or invokes a workflow that includes them. Skill suggestions alone do not authorize review rounds.
 - Reuse relevant evidence for the final version; do not repeat another agent's checks merely for reassurance. Stop when the requested outcome and authorized checks are complete, and state any unverified result. These scope limits govern default agent and skill workflows; explicit user-invoked workflows remain limited to their requested scope.
-- Do not re-read a file already read in this task; recover it from context history instead. When the open question is one a compiler would answer (signatures, overloads, ambiguous types), write the code and compile instead of reading more.
+- Do not re-read a file already read in this task; recover it from context history instead, unless the file may have changed since or the exact text is needed for an edit and is no longer in context. When the open question is one a compiler would answer (signatures, overloads, ambiguous types), write the code and compile instead of reading more.
 
 ## Code quality review with Jev
 
@@ -105,3 +105,4 @@ This machine runs only OpenCode V2, as `opencode`, at its default paths. V1 was 
 
 - A project's `AGENTS.md` supplies its architecture, development, test, and contribution rules.
 - Prefer the nearest applicable project instruction over assumptions.
+- When a project instruction conflicts with this file, the project instruction wins, except for the Safety section, which always applies.
