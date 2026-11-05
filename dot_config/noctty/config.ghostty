@@ -62,4 +62,6 @@ keybind = ctrl+f12=csi:24;5~
 keybind = ctrl+slash=text:\x1f
 # Preserve Control+H for Neovim instead of sending Backspace.
 keybind = ctrl+h=csi:104;5u
+# Ctrl+V: paste text, then send Ctrl+V so psmux can hand an image paste to OpenCode.
 keybind = ctrl+v=paste_from_clipboard
+keybind = chain=text:\x16
