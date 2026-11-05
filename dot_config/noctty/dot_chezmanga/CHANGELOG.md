@@ -30,3 +30,17 @@
 - Portability: Platform-neutral keybind; no paths.
 - Chezmoi: Updated the managed source and applied only the noctty targets.
 - Verification: Scoped apply and status only. Pasting in noctty was not performed by the agent.
+
+## 2026-11-05T10:40:19+08:00 - Keep text paste compacted in OpenCode through psmux
+
+- Status: Completed
+- Machine: TC-TSENG
+- Platform: windows/x64
+- Scope: `config.ghostty`
+- Summary: Reversed the Ctrl+V chain to send Ctrl+V first (`text:\x16`) and then paste the clipboard, so psmux paste detection wraps text as one bracketed paste.
+- Important records:
+  - With paste first and Ctrl+V after, the trailing Ctrl+V landed inside psmux's paste staging window and flushed the pending characters as keystrokes. Newlines became Enter, so OpenCode submitted the text and did not compact it into `[Pasted ~N lines]`. This cause is inferred from psmux docs and discussion #859, not from an input log.
+  - psmux treats a Ctrl+V press followed by characters as a paste; a Ctrl+V press with no characters runs the root `C-v` binding, which forwards Ctrl+V to OpenCode only when the clipboard has no text.
+- Portability: Platform-neutral keybind; no paths.
+- Chezmoi: Updated the managed source and applied only the noctty targets.
+- Verification: Scoped apply and status only. Pasting text and an image in noctty was not performed by the agent.
