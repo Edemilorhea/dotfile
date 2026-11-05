@@ -254,3 +254,20 @@
 - Portability: No new paths; uses `glazewm` on `PATH`.
 - Chezmoi: Updated managed source and applied the target.
 - Verification: Not run. The hotkey was not exercised.
+
+## 2026-11-03T11:02:09+08:00 - FancyZones conflict triage and hygiene fixes
+
+- Status: Completed
+- Machine: TC-TSENG
+- Platform: windows/x64
+- Scope: `config.yaml.tmpl`, `scripts/cycle-workspace-window.js`, `scripts/restart-glazewm.ps1`
+- Summary: Disabled the no-op `other_windows.transparency` effect, stopped the cycle script from deleting a lock it does not own, and made the full-restart path log its success.
+- Important records:
+  - Root cause of the growing layout drift: PowerToys FancyZones was enabled with `appLastZone_moveWindows`, `displayOrWorkAreaChange_moveWindows` and `overrideSnapHotkeys` on, so it re-placed windows on every Zebar AppBar change and on app launch. The user disabled FancyZones in PowerToys on 2026-11-03; no GlazeWM change was needed for that.
+  - `other_windows.transparency.enabled: true` with `100%` had no visual effect but made every unfocused window a layered window.
+  - The cycle script's `finally` unlinked the lock file even when `acquireLock` had failed, deleting the lock held by a concurrent run.
+  - Windows event log (14 days): ~20 `glazewm-watcher.exe` (combase.dll) and `zebar.exe` (ucrtbase.dll) APPCRASH entries per day, always at WM exit, same offsets every time. These are upstream shutdown crashes (glzr-io/glazewm#983), not caused by `restart-glazewm.ps1` (no full restart logged since 2026-09-21). Not actionable here.
+  - PowerToys Grab And Move is enabled with Alt as modifier; Alt+drag moves tiled windows behind GlazeWM's back. Left for the user to decide.
+- Portability: No new paths.
+- Chezmoi: Updated managed source and applied the three targets.
+- Verification: `node --check` and PowerShell AST parsing of the edited scripts; scoped `chezmoi status` clean; edited source files use LF. `wm-reload-config` was not run because GlazeWM is not running.

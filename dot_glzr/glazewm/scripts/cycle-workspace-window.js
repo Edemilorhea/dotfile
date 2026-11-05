@@ -116,9 +116,11 @@ try {
   console.error(error);
   exitCode = 1;
 } finally {
-  if (lockHandle !== undefined) fs.closeSync(lockHandle);
-  try {
-    fs.unlinkSync(lockPath);
-  } catch {}
+  if (lockHandle !== undefined) {
+    fs.closeSync(lockHandle);
+    try {
+      fs.unlinkSync(lockPath);
+    } catch {}
+  }
 }
 process.exitCode = exitCode;

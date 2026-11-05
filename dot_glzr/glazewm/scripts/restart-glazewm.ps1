@@ -446,6 +446,8 @@ try {
   if (-not $workAreaReserved) {
     throw 'Zebar did not reserve a top work area on every monitor after 3 repair attempts.'
   }
+
+  Write-RestartLog 'Full restart: GlazeWM and Zebar restarted; work areas reserved.'
 } catch {
   Write-RestartLog $_.Exception.Message
   exit 1
