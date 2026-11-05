@@ -37,6 +37,43 @@ local function choose_remembered_target(candidates)
     return best
 end
 
+-- Roslyn 載入 project 失敗時只送 window/logMessage，Neovim 預設只寫進 lsp.log，畫面不會提示。
+-- 這裡收集失敗的 project，等 workspace/projectInitializationComplete 時彙總通知一次。
+---@type table<integer, { projects: table<string, true>, reasons: table<string, true> }>
+local load_failures = {}
+
+---@param client_id integer
+---@param message string
+local function record_load_failure(client_id, message)
+    local project = message:match("Error while loading (.-%.csproj)")
+    if not project then
+        return
+    end
+    local reason = message:match("Detailed error: ([^\r\n]+)") or message:match("%.csproj: ([^\r\n]+)") or "unknown"
+    local failures = load_failures[client_id] or { projects = {}, reasons = {} }
+    failures.projects[project] = true
+    failures.reasons[reason:sub(1, 200)] = true
+    load_failures[client_id] = failures
+end
+
+---@param client_id integer
+local function report_load_failures(client_id)
+    local failures = load_failures[client_id]
+    load_failures[client_id] = nil
+    if not failures then
+        return
+    end
+    vim.notify(
+        string.format(
+            "%d 個 project 載入失敗，跨檔功能（定義、參考、實作）會不完整：\n- %s\n詳見 :LspLog",
+            vim.tbl_count(failures.projects),
+            table.concat(vim.tbl_keys(failures.reasons), "\n- ")
+        ),
+        vim.log.levels.ERROR,
+        { title = "roslyn.nvim" }
+    )
+end
+
 return {
     {
         "neovim/nvim-lspconfig",
@@ -74,7 +111,20 @@ return {
             filewatching = "off",
         },
         config = function(_, opts)
+            local roslyn_handlers = require("roslyn.lsp.handlers")
             vim.lsp.config("roslyn", {
+                handlers = {
+                    ["window/logMessage"] = function(err, params, ctx)
+                        if params.type == vim.lsp.protocol.MessageType.Error then
+                            record_load_failure(ctx.client_id, params.message)
+                        end
+                        return vim.lsp.handlers["window/logMessage"](err, params, ctx)
+                    end,
+                    ["workspace/projectInitializationComplete"] = function(err, res, ctx)
+                        report_load_failures(ctx.client_id)
+                        return roslyn_handlers["workspace/projectInitializationComplete"](err, res, ctx)
+                    end,
+                },
                 settings = {
                     ["csharp|background_analysis"] = {
                         ["background_analysis.dotnet_analyzer_diagnostics_scope"] = "openFiles",

@@ -494,3 +494,17 @@
 - Portability: No machine-specific paths; all changes are plugin options and buffer-local autocmds.
 - Chezmoi: Updated existing managed files; applied with scoped `chezmoi apply`.
 - Verification: Scoped `chezmoi status` empty after apply. Runtime behavior (save latency, cursor feel, semantic tokens / blink impact) not yet observed in a live session; user to test.
+## 2026-11-04T15:32:16+08:00 - Notify when Roslyn fails to load projects
+
+- Status: Completed
+- Machine: TC-TSENG
+- Platform: windows/x64
+- Scope: `lua/plugins/csharp.lua`
+- Summary: roslyn now shows one ERROR notification after project initialization when any csproj failed to load, with the failed project count and the distinct reasons (e.g. "A compatible .NET SDK was not found").
+- Important records:
+  - Roslyn reports load failures only through `window/logMessage` (type Error, "Error while loading <csproj>"); Neovim's default handler only writes them to lsp.log, so failures were silent.
+  - Custom `window/logMessage` and `workspace/projectInitializationComplete` handlers are set via `vim.lsp.config("roslyn", { handlers = ... })`; both still call the original handlers (Neovim default / `roslyn.lsp.handlers`).
+  - Trigger case: `src/global.json` required SDK 10.0.401 with `rollForward: latestFeature` while only 10.0.202 was installed.
+- Portability: No machine-specific paths.
+- Chezmoi: Updated existing managed file; applied with scoped `chezmoi apply`.
+- Verification: File loads without Lua syntax errors (`nvim --headless --clean` loadfile). Notification not yet observed in a live session.
