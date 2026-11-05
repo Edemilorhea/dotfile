@@ -44,3 +44,17 @@
 - Portability: Platform-neutral keybind; no paths.
 - Chezmoi: Updated the managed source and applied only the noctty targets.
 - Verification: Scoped apply and status only. Pasting text and an image in noctty was not performed by the agent.
+
+## 2026-11-05T14:33:48+08:00 - Let the shell receive Shift+Home/End
+
+- Status: Completed
+- Machine: TC-TSENG
+- Platform: windows/x64
+- Scope: `config.ghostty`
+- Summary: Unbound the default `shift+home=scroll_to_top` and `shift+end=scroll_to_bottom`, so nu.exe (reedline) receives Shift+Home/End and can select to line start or end.
+- Important records:
+  - Root cause: noctty consumed Shift+Home/End as scroll actions, confirmed with `noctty +list-keybinds`.
+  - Shift+Home/End no longer scroll the terminal to top or bottom.
+- Portability: Platform-neutral keybind; no paths.
+- Chezmoi: Updated the managed source and applied only the noctty targets.
+- Verification: `noctty +list-keybinds` check only. Selecting text in noctty was not performed by the agent.

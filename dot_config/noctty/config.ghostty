@@ -62,6 +62,9 @@ keybind = ctrl+f12=csi:24;5~
 keybind = ctrl+slash=text:\x1f
 # Preserve Control+H for Neovim instead of sending Backspace.
 keybind = ctrl+h=csi:104;5u
+# Let the shell receive Shift+Home/End for line selection instead of scrolling.
+keybind = shift+home=unbind
+keybind = shift+end=unbind
 # Ctrl+V: send Ctrl+V first, then paste text, so psmux treats the text as one paste
 # and can still hand an image paste to OpenCode.
 keybind = ctrl+v=text:\x16
