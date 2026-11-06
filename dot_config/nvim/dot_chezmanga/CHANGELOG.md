@@ -508,3 +508,16 @@
 - Portability: No machine-specific paths.
 - Chezmoi: Updated existing managed file; applied with scoped `chezmoi apply`.
 - Verification: File loads without Lua syntax errors (`nvim --headless --clean` loadfile). Notification not yet observed in a live session.
+## 2026-11-06T17:22:27+08:00 - Diffview close key, inline git blame, gitsigns which-key group
+
+- Status: Completed
+- Machine: TC-TSENG
+- Platform: windows/x64
+- Scope: `lua/plugins/git.lua`, `lua/plugins/which-key.lua`
+- Summary: `<leader>gq` closes Diffview. gitsigns shows the cursor line's blame at end of line by default; `<leader>ght` toggles it. which-key now labels the `<leader>gh` group "Hunk / Blame" with Chinese descriptions for LazyVim's gitsigns keys.
+- Important records:
+  - `<leader>gq` and `<leader>ght` were verified unused in LazyVim core and the enabled config.
+  - gitsigns cannot render blame on the line below; `eol` is used. Full blame popup stays on LazyVim's `<leader>ghb`.
+- Portability: No machine-specific paths.
+- Chezmoi: Updated existing managed files; source synced from target (diff was only this change).
+- Verification: Not run; user to test in a live session.

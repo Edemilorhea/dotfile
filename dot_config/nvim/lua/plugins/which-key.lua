@@ -91,6 +91,20 @@ return {
                 { "<leader>gS", desc = "Git stash" },
                 { "<leader>gv", desc = "Diffview：對比目前變更" },
                 { "<leader>gV", desc = "Diffview：目前檔案歷史" },
+                { "<leader>gq", desc = "Diffview：關閉" },
+                -- Hunk / Blame（gitsigns，LazyVim 內建 + plugins/git.lua）
+                { "<leader>gh", group = "Hunk / Blame" },
+                { "<leader>ghs", desc = "Stage hunk" },
+                { "<leader>ghr", desc = "還原 hunk" },
+                { "<leader>ghS", desc = "Stage 整個檔案" },
+                { "<leader>ghu", desc = "取消上次 stage hunk" },
+                { "<leader>ghR", desc = "還原整個檔案" },
+                { "<leader>ghp", desc = "行內預覽 hunk" },
+                { "<leader>ghb", desc = "Blame 目前行（浮動視窗）" },
+                { "<leader>ghB", desc = "Blame 整個檔案" },
+                { "<leader>ght", desc = "切換行尾 blame" },
+                { "<leader>ghd", desc = "對比目前檔案（index）" },
+                { "<leader>ghD", desc = "對比目前檔案（上一個 commit）" },
 
                 -- ── Markdown ──────────────────────────────────
                 { "<leader>mt", desc = "生成 Wiki 格式 TOC" },

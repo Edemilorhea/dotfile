@@ -189,3 +189,18 @@
 - Portability: No host-specific values.
 - Chezmoi: Managed source edited and applied with scoped `chezmoi apply`.
 - Verification: A new `nu` session started without the warning.
+
+## 2026-11-06T12:43:54+08:00 - Route psmux pane images through a newer ConPTY
+
+- Status: Completed
+- Machine: TC-TSENG
+- Platform: windows/x64
+- Scope: `env.nu`
+- Summary: Set `PSMUX_CONPTY_DIR` to noctty's bundled ConPTY and force `OPENTUI_IMAGE_PROTOCOL=kitty` so opencode image previews render inside psmux.
+- Important records:
+  - The inbox kernel32 ConPTY drops tmux passthrough / Kitty APC image bytes before psmux reads them.
+  - Requires the selfdev psmux build with working `allow-passthrough` (commit 61ec27e4); takes effect after the psmux server restarts.
+  - Windows Terminal supports sixel only; there use `with-env { OPENTUI_IMAGE_PROTOCOL: "sixel" } { opencode }`.
+- Portability: Windows-only block; path built from `USERPROFILE` and scoop's `current` link.
+- Chezmoi: Already managed; updated source and applied the single target.
+- Verification: Rendered target shows lines 51-54; a fresh `nu` sourcing env.nu resolves both values. Image rendering verified earlier with the debug build under `-L ptest`.

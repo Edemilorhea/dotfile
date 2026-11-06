@@ -8,6 +8,7 @@ return {
         keys = {
             { "<leader>gv", "<cmd>DiffviewOpen<cr>", desc = "Diffview：對比目前變更" },
             { "<leader>gV", "<cmd>DiffviewFileHistory %<cr>", desc = "Diffview：目前檔案歷史" },
+            { "<leader>gq", "<cmd>DiffviewClose<cr>", desc = "Diffview：關閉" },
         },
         -- opts 用 function 延遲 require，避免插件尚未安裝完成時 require 失敗。
         -- 按鍵（lhs）與動作（rhs）皆與官方預設相同，只把 desc 翻成中文，
@@ -149,5 +150,22 @@ return {
                 },
             }
         end,
+    },
+    -- gitsigns：游標所在行的行尾顯示 blame（作者、時間、訊息），\ght 開關。
+    {
+        "lewis6991/gitsigns.nvim",
+        opts = {
+            current_line_blame = true,
+            current_line_blame_opts = { virt_text_pos = "eol", delay = 300 },
+        },
+        keys = {
+            {
+                "<leader>ght",
+                function()
+                    require("gitsigns").toggle_current_line_blame()
+                end,
+                desc = "切換行尾 blame",
+            },
+        },
     },
 }
