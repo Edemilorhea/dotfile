@@ -51,3 +51,26 @@ if ($d.ShowDialog() -eq "OK") { $d.SelectedPath }
 def --wrapped pw [...args] { if $nu.os-info.name != "windows" { print "❌ pw 僅支援 Windows"; return }; ^pwsh -NoProfile -Command ($args | str join " ") }
 def --wrapped pwe [...args] { if $nu.os-info.name != "windows" { print "❌ pwe 僅支援 Windows"; return }; ^pwsh -NoProfile -Command ($args | str join " ") | lines | each { |l| $l } }
 def --wrapped bx [...args] { ^bash -c ($args | str join " ") }
+
+# OpenCode asset manager. Script lookup order: $env.OPENCODE_ASSETS_ROOT,
+# the repo path the installer renders into commands/selfmade/assets.md,
+# the current git repo, then an Everything (es) search.
+def "nu-complete oca action" [] { [list profiles plan apply status update-plugins remove doctor] }
+def oca-script [] {
+    let name = "opencode-assets.ps1"
+    let md = ($nu.home-dir | path join ".config" "opencode" "commands" "selfmade" "assets.md")
+    let git_root = (do -i { ^git rev-parse --show-toplevel } | complete | get stdout | str trim)
+    let candidates = [
+        (if ($env.OPENCODE_ASSETS_ROOT? | is-not-empty) { $env.OPENCODE_ASSETS_ROOT | path join $name })
+        (if ($md | path exists) { open --raw $md | parse --regex ('-File "(?<p>[^"]+' + $name + ')"') | get -o 0.p })
+        (if ($git_root | is-not-empty) { $git_root | path join $name })
+        (if (which es | is-not-empty) { ^es -n 1 -whole-word $name | lines | get -o 0 })
+    ]
+    $candidates | compact --empty | where { path exists } | get -o 0
+}
+def --wrapped oca [action?: string@"nu-complete oca action", ...rest] {
+    let script = (oca-script)
+    if ($script | is-empty) { print "? 找不到 opencode-assets.ps1：請先 clone repo 並 apply 一次，或設定 $env.OPENCODE_ASSETS_ROOT"; return }
+    let args = if $action == null { $rest } else { [$action ...$rest] }
+    ^pwsh -NoProfile -File $script ...$args
+}

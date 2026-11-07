@@ -204,3 +204,17 @@
 - Portability: Windows-only block; path built from `USERPROFILE` and scoop's `current` link.
 - Chezmoi: Already managed; updated source and applied the single target.
 - Verification: Rendered target shows lines 51-54; a fresh `nu` sourcing env.nu resolves both values. Image rendering verified earlier with the debug build under `-L ptest`.
+
+## 2026-11-07T19:59:10+08:00 - Add `oca` command for the OpenCode asset manager
+
+- Status: Completed
+- Machine: DESKTOP-3JHKCAP
+- Platform: windows/x64
+- Scope: `modules/commands.nu`
+- Summary: Added `oca [action] [...args]`, which forwards all arguments to `opencode-assets.ps1` through `pwsh -NoProfile -File`. With no arguments it opens the TUI. Tab completes the action names.
+- Important records:
+  - `oca-script` finds the script in this order: `$env.OPENCODE_ASSETS_ROOT`, the repo path the installer writes into `~/.config/opencode/commands/selfmade/assets.md`, the current git repo root, then an Everything (`es`) search.
+  - pwsh inherits the current directory, so project scope targets the directory where `oca` runs.
+- Portability: No hard-coded repo path. The path comes from per-machine installer output or a search.
+- Chezmoi: Already managed; updated source and applied the single target.
+- Verification: `oca-script` resolves `E:/Tools/opencode-assets/opencode-assets.ps1` from both the repo and `$HOME`. `oca profiles` and `oca status -Scope global -Json` exit 0.
