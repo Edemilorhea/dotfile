@@ -521,3 +521,16 @@
 - Portability: No machine-specific paths.
 - Chezmoi: Updated existing managed files; source synced from target (diff was only this change).
 - Verification: Not run; user to test in a live session.
+## 2026-11-06T17:45:00+08:00 - Chinese which-key descriptions for all keys; split non-leader spec
+
+- Status: Completed
+- Machine: TC-TSENG
+- Platform: windows/x64
+- Scope: `lua/plugins/which-key.lua`, `lua/config/which-key-builtin.lua` (new)
+- Summary: Every key with an English description now has a Chinese which-key label (LazyVim tabs/buffer/UI/search/Git/GitHub/translator, yanky, surround, mini.ai, mini.pairs, marks, Ctrl/Alt keys). Non-leader labels moved to `config/which-key-builtin.lua`; `plugins/which-key.lua` keeps leader labels and merges the builtin file before dedupe. No keymaps changed.
+- Important records:
+  - Missing labels were found by dumping `nvim_get_keymap` for n/x/o/i/t in a headless session and diffing against the spec.
+  - `<leader>gb` relabelled "目前行的 commit 歷史" to distinguish it from `<leader>ghb` (gitsigns blame popup).
+- Portability: No machine-specific paths.
+- Chezmoi: `which-key-builtin.lua` added; `which-key.lua` updated.
+- Verification: Headless load OK (builtin spec 248 entries). Display not yet observed in a live session.
