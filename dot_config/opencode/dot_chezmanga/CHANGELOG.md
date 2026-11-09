@@ -1,5 +1,32 @@
 # OpenCode Chezmoi Changelog
 
+## 2026-11-09T16:20:00+08:00 - Drop global ask rules so background sessions do not stall
+
+- Status: Completed
+- Machine: tc-tseng
+- Platform: Windows x64
+- Scope: `modify_opencode.json` (top-level `permissions`)
+- Summary: Removed `edit * ask` and `shell * ask`. Background sessions showed a yellow `!` and paused until selected, because `ask` waits for a client reply and the TUI `autoaccept` answers only the visible session. The base policy already allows every action, and all deny rules and the plan allowlist are unchanged.
+- Important records:
+  - If `cli.json` `session.permissions` is switched back to `prompt` for manual review, re-add the `ask` rules.
+- Portability: No paths or machine values.
+- Chezmoi: Updated an already managed target.
+- Verification: Rendered `opencode.json` has 0 `ask` rules, 20 top-level rules, 180 plan rules; applied, `chezmoi status` clean. Live multi-session behavior not yet tested.
+
+## 2026-11-09T15:30:00+08:00 - Mirror plan shell allows for rtk-rewritten commands
+
+- Status: Completed
+- Machine: tc-tseng
+- Platform: Windows x64
+- Scope: `modify_opencode.json` (`agents.plan.permissions`)
+- Summary: Plan denied `git status` and `git log` because the rtk plugin rewrites them to `rtk git ...` before permission matching. The template now appends `rtk <rule>` for every plan shell allow, so the allowlist is maintained once. Adds `git --version` and `rtk lint *` (rtk rewrites `npm run lint`/`pnpm run lint` to `rtk lint`).
+- Important records:
+  - Mirrors every allow instead of only the commands rtk rewrites today, so a future rtk rewrite rule cannot silently break plan. `rtk *` stays denied because rtk can wrap any command.
+  - The learning agents in opencode-assets (V1 frontmatter, no template) got the same mirror by hand in commit 0bbef76.
+- Portability: No paths or machine values.
+- Chezmoi: Updated an already managed target.
+- Verification: Scoped `chezmoi diff` showed 89 added `rtk` rules; rendered plan permissions total 180; applied. Live Plan-mode behavior not yet tested.
+
 ## 2026-11-09T11:00:24+08:00 - Route file work to built-in tools and unblock plan pipelines
 
 - Status: Completed

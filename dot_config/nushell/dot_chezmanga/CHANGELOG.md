@@ -218,3 +218,17 @@
 - Portability: No hard-coded repo path. The path comes from per-machine installer output or a search.
 - Chezmoi: Already managed; updated source and applied the single target.
 - Verification: `oca-script` resolves `E:/Tools/opencode-assets/opencode-assets.ps1` from both the repo and `$HOME`. `oca profiles` and `oca status -Scope global -Json` exit 0.
+## 2026-11-09T11:45:00+08:00 - Stop pinning psmux to noctty's ConPTY
+
+- Status: Completed
+- Machine: TC-TSENG
+- Platform: windows/x64
+- Scope: `env.nu`
+- Summary: Commented out `PSMUX_CONPTY_DIR`. The Scoop package `tcmux` bundles `conpty/` beside `psmux.exe` and uses it when the variable is unset.
+- Important records:
+  - `PSMUX_CONPTY_DIR=off` forces the system ConPTY; a path overrides the bundled one.
+  - `OPENTUI_IMAGE_PROTOCOL=kitty` is unchanged.
+  - Takes effect in a new Nushell session and a new psmux server.
+- Portability: Windows-only block; no host-specific values added.
+- Chezmoi: Already managed; updated source and applied the single target.
+- Verification: Applied target has no uncommented `PSMUX_CONPTY_DIR`; file is LF only. Runtime behavior not yet tested.

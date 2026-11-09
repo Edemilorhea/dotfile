@@ -113,13 +113,11 @@
     },
     "lsp": true,
     // V2 ordered rules; the last match wins. The base policy already allows
-    // every action, so only overrides are listed. cli.json runs with
-    // session.permissions "autoaccept", which turns every "ask" into "allow";
-    // "deny" is the only effect the server enforces on its own, so the build
-    // agent relies on the deny list and the plan agent on a shell allowlist.
+    // every action, so only overrides are listed. Avoid "ask": the TUI's
+    // session.permissions "autoaccept" answers only the session on screen, so
+    // background sessions stall until you switch to them. The build agent
+    // relies on the deny list and the plan agent on a shell allowlist.
     "permissions": [
-        { "action": "edit", "resource": "*", "effect": "ask" },
-        { "action": "shell", "resource": "*", "effect": "ask" },
         { "action": "shell", "resource": "rm -rf /*", "effect": "deny" },
         { "action": "shell", "resource": "sudo *", "effect": "deny" },
         { "action": "shell", "resource": "su *", "effect": "deny" },
@@ -176,6 +174,7 @@
                 { "action": "shell", "resource": "git ls-files *", "effect": "allow" },
                 { "action": "shell", "resource": "git rev-parse *", "effect": "allow" },
                 { "action": "shell", "resource": "git stash list *", "effect": "allow" },
+                { "action": "shell", "resource": "git --version", "effect": "allow" },
                 { "action": "shell", "resource": "chezmoi source-path *", "effect": "allow" },
                 { "action": "shell", "resource": "chezmoi status *", "effect": "allow" },
                 { "action": "shell", "resource": "chezmoi diff *", "effect": "allow" },
@@ -243,7 +242,9 @@
                 { "action": "shell", "resource": "cargo --version", "effect": "allow" },
                 { "action": "shell", "resource": "docker ps *", "effect": "allow" },
                 { "action": "shell", "resource": "docker images *", "effect": "allow" },
-                { "action": "shell", "resource": "docker inspect *", "effect": "allow" }
+                { "action": "shell", "resource": "docker inspect *", "effect": "allow" },
+                // rtk rewrites "npm run lint" and "pnpm run lint" to this form.
+                { "action": "shell", "resource": "rtk lint *", "effect": "allow" }
             ]
         },
         "general": {
@@ -284,6 +285,14 @@
 }
 ` | fromJsonc -}}
 {{- $_ := set $base.providers.omniroute.settings "baseURL" (get . "omnirouteBaseURL" | default "http://127.0.0.1:20128/v1") -}}
+{{- /* The rtk plugin rewrites "X" to "rtk X" before permission matching, so mirror every plan shell allow. */ -}}
+{{- $plan := $base.agents.plan.permissions -}}
+{{- range $r := $base.agents.plan.permissions -}}
+{{-   if and (eq $r.action "shell") (eq $r.effect "allow") (not (hasPrefix "rtk " $r.resource)) -}}
+{{-     $plan = append $plan (dict "action" "shell" "effect" "allow" "resource" (printf "rtk %s" $r.resource)) -}}
+{{-   end -}}
+{{- end -}}
+{{- $_ := set $base.agents.plan "permissions" $plan -}}
 {{- $current := dict -}}
 {{- if .chezmoi.stdin | trim -}}
 {{-   $current = .chezmoi.stdin | fromJsonc -}}

@@ -49,7 +49,8 @@ if $nu.os-info.name == "windows" {
     # Avoid the OpenTUI alternate-screen exit path that crashes Windows ConPTY.
     $env.OTUI_USE_ALTERNATE_SCREEN = "false"
     # psmux pane 改用較新的 ConPTY（系統內建版會丟掉圖片序列），讓 opencode 圖片能傳到終端機
-    $env.PSMUX_CONPTY_DIR = $"($env.USERPROFILE)/scoop/apps/noctty/current"
+    # 已停用：tcmux 隨附 conpty/，未設定時自動使用；設為 "off" 可強制用系統內建版
+    # $env.PSMUX_CONPTY_DIR = $"($env.USERPROFILE)/scoop/apps/noctty/current"
     # psmux 會設定 TMUX，OpenTUI 因此不偵測圖片能力；強制用 kitty（noctty 適用，Windows Terminal 需改 sixel）
     $env.OPENTUI_IMAGE_PROTOCOL = "kitty"
 }
