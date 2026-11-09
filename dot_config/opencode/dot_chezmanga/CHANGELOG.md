@@ -1,5 +1,20 @@
 # OpenCode Chezmoi Changelog
 
+## 2026-11-09T11:00:24+08:00 - Route file work to built-in tools and unblock plan pipelines
+
+- Status: Completed
+- Machine: tc-tseng
+- Platform: Windows x64
+- Scope: `AGENTS.md.tmpl`, `modify_opencode.json` (`agents.plan.permissions`)
+- Summary: `AGENTS.md` gains a "Tool selection" section: `read`, `grep`, and `glob` for file work; `shell` only for what they cannot do. The `plan` shell allowlist drops the file-reading and searching commands (`rg`, `grep`, `Select-String`, `findstr`, `ls`, `dir`, `tree`, `cat`, `head`, `tail`, `wc`, `Get-Content`, `Get-ChildItem`, `where.exe`, `which`, `jq`, `yq`) and adds the output-shaping cmdlets a pipeline needs (`Select-Object`, `Sort-Object`, `Where-Object`, `Group-Object`, `Measure-Object`, `Out-String`, `Format-Table`, `Format-List`, `ConvertFrom-Json`, `ConvertTo-Json`, plus their aliases) and `git rev-parse`, `git stash list`, `chezmoi cat`, `chezmoi execute-template`.
+- Important records:
+  - The model was replacing `read`/`grep`/`glob` with shell commands in every agent. No instruction asked for that; shell simply had no friction under `autoaccept`. The AGENTS.md rule is the only lever for the `build` agent; removing the read commands from the `plan` allowlist makes that agent unable to take the shell path at all.
+  - OpenCode matches every pipeline segment separately, so `Get-Item x | Select-Object Length` was denied in `plan` because `Select-Object` was not listed. `ForEach-Object` and `Invoke-Expression` stay out because their script blocks run arbitrary code.
+  - `dotnet build`, `dotnet test`, `npm test`, and the lint/check/typecheck scripts remain allowed as before.
+- Portability: No paths or machine values; the Unix aliases were removed together with the pwsh ones because the rule is platform-independent.
+- Chezmoi: Updated two already managed targets.
+- Verification: `chezmoi execute-template` rendered `opencode.json` as valid JSON with 90 plan permission rules; scoped `chezmoi diff` showed only the intended changes; both targets applied. Live permission behavior was not tested.
+
 ## 2026-11-03T15:06:51+08:00 - Manage cli.json keybinds and drop the Claude Code version override
 
 - Status: Completed
