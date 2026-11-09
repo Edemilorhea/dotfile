@@ -182,8 +182,13 @@ function Invoke-LegacyMigration {
     if (-not (Test-Path -LiteralPath $legacyRoot) -and -not (Test-Path -LiteralPath $legacyConfigHome)) { return }
 
     # Only moving the database, credentials, and service state needs exclusive
-    # access. A rerun after a partial migration skips this gate.
-    $pendingData = @('data', 'state', 'cache' | Where-Object { Test-Path -LiteralPath (Join-Path $legacyRoot "xdg/$_/opencode") })
+    # access. A rerun after a partial migration skips this gate. Data is pending
+    # only while the legacy database exists: a stray process can recreate empty
+    # xdg/ directories, and moving those would retire the live default database.
+    $pendingData = @()
+    if (Test-Path -LiteralPath (Join-Path $legacyRoot 'xdg/data/opencode/opencode.db')) {
+        $pendingData = @('data', 'state', 'cache' | Where-Object { Test-Path -LiteralPath (Join-Path $legacyRoot "xdg/$_/opencode") })
+    }
     $legacyExe = Join-Path $legacyRoot 'bin/opencode.exe'
     if ($pendingData.Count -and (Test-Path -LiteralPath $legacyExe)) {
         $saved = @{}
@@ -212,9 +217,10 @@ function Invoke-LegacyMigration {
 
     # 1. Runtime data, including credentials in the database, moves to the
     #    default XDG paths. Other tools' state under xdg/ stays in the retired copy.
-    Move-RuntimeDirectory (Join-Path $legacyRoot 'xdg/data/opencode') (Join-Path $HOME '.local/share/opencode') $suffix
-    Move-RuntimeDirectory (Join-Path $legacyRoot 'xdg/state/opencode') (Join-Path $HOME '.local/state/opencode') $suffix
-    Move-RuntimeDirectory (Join-Path $legacyRoot 'xdg/cache/opencode') (Join-Path $HOME '.cache/opencode') $suffix
+    $defaultDirs = @{ data = '.local/share'; state = '.local/state'; cache = '.cache' }
+    foreach ($kind in $pendingData) {
+        Move-RuntimeDirectory (Join-Path $legacyRoot "xdg/$kind/opencode") (Join-Path $HOME "$($defaultDirs[$kind])/opencode") $suffix
+    }
 
     # 2. The service password is per machine and not managed by chezmoi.
     $legacyService = Join-Path $legacyConfigHome 'opencode/service.json'
