@@ -1,0 +1,12 @@
+{
+  // Slim's V2 defaults make subagents ask for paths outside the project and for .env reads.
+  // A background subagent has no one to answer, so it waits forever. Decide here instead.
+  "agents": {
+    // Exploration and implementation run on Sonnet; the orchestrator (Opus) plans and reviews the diff.
+    "explorer": { "model": "omniroute/claude-sonnet", "variant": "low", "permission": { "external_directory": "allow", "read": { "*.env": "deny", "*.env.*": "deny", "*.env.example": "allow" } } },
+    "designer": { "permission": { "external_directory": "allow", "read": { "*.env": "deny", "*.env.*": "deny", "*.env.example": "allow" } } },
+    "fixer": { "model": "omniroute/claude-sonnet", "variant": "medium", "permission": { "external_directory": "allow", "read": { "*.env": "deny", "*.env.*": "deny", "*.env.example": "allow" } } },
+    "oracle": { "permission": { "external_directory": "allow", "read": { "*.env": "deny", "*.env.*": "deny", "*.env.example": "allow" } } },
+    "observer": { "permission": { "external_directory": "allow", "read": { "*.env": "deny", "*.env.*": "deny", "*.env.example": "allow" } } }
+  }
+}

@@ -1,5 +1,44 @@
 # OpenCode Chezmoi Changelog
 
+## 2026-11-11T16:00:00+08:00 - Move oh-my-opencode-slim delegation names out of global AGENTS.md
+
+- Status: Completed
+- Machine: tc-tseng
+- Platform: Windows x64
+- Scope: `AGENTS.md.tmpl` (default implementation flow)
+- Summary: The default flow now names only `explore` and `selfmade/subagents/Implementer`. Slim-specific routing (`explorer`/`fixer`, implementation brief) lives in opencode-assets overlays (`orchestrator-implementation-brief`, commit `09c5465`), so it applies only to projects that enable it.
+- Portability: No paths or machine values.
+- Chezmoi: Edited existing source file.
+- Verification: Applied; LF only.
+
+## 2026-11-11T15:00:00+08:00 - Route exploration and implementation to Sonnet subagents
+
+- Status: Completed
+- Machine: tc-tseng
+- Platform: Windows x64
+- Scope: `oh-my-opencode-slim.jsonc`, `AGENTS.md.tmpl` (Scope And Verification delegation rule)
+- Summary: Session history (09-17 to 11-11) showed `Implementer` used twice in total, 118 editing sessions with only 16 using any subagent, and Slim `fixer` inheriting Opus. Slim `explorer` now uses `omniroute/claude-sonnet` variant `low` and `fixer` uses `omniroute/claude-sonnet` variant `medium`. AGENTS.md replaces "keep single-file or tightly coupled edits in the main session" with a default flow: Sonnet explore, handoff with files/evidence/exact change to a Sonnet implementer (`selfmade/subagents/Implementer` or Slim `fixer`), parallel lanes for independent files, primary reviews the diff only. Direct primary edits stay allowed for a few already-located lines.
+- Important records:
+  - opencode-assets `Implementer.md` (description widened, variant `high` -> `medium`, handoff-only reading) and `CodeInvestigator.md` (prefer Implementer over `general`) changed in the same task.
+  - Kratos agents intentionally unchanged.
+- Portability: No paths or machine values.
+- Chezmoi: Edited existing source files.
+- Verification: Applied; live routing not yet tested (needs an OpenCode restart and a real implementation session).
+
+## 2026-11-10T10:03:56+08:00 - Stop Slim subagents from waiting on external-directory and .env prompts
+
+- Status: Completed
+- Machine: tc-tseng
+- Platform: Windows x64
+- Scope: `oh-my-opencode-slim.jsonc` (new)
+- Summary: A background designer waited 8 hours on one `read` of a Temp file. oh-my-opencode-slim's V2 base policy adds `external_directory * ask` and `.env` read `ask`, and the V2 host does not wake the orchestrator for a child permission request. The new user config sets `external_directory: allow` and `.env`/`.env.*` reads to `deny` (`.env.example` allow) for explorer, designer, fixer, oracle, and observer, so they never wait for a reply.
+- Important records:
+  - Slim appends agent `permission` after its base rules, and V2 uses the last matching rule.
+  - Subagent `question` is already `deny` by Slim default. Council and councillors are read-only synthesis agents and were left unchanged.
+- Portability: No paths or machine values.
+- Chezmoi: Added a new plain target.
+- Verification: Applied; `chezmoi status` clean; LF only. Live subagent behavior not yet tested (needs an OpenCode restart).
+
 ## 2026-11-09T16:20:00+08:00 - Drop global ask rules so background sessions do not stall
 
 - Status: Completed
