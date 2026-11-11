@@ -82,7 +82,7 @@ Shared instructions for coding agents.
 ## Configuration maintenance
 
 - The source of truth is chezmoi. Locate a file with `chezmoi source-path <target>`, update the source first, then apply it to runtime. Do not write the resolved source directory into a shared file: it differs per runtime.
-- OpenCode assets are the exception. The private `opencode-assets` repository owns agents, commands, plugins, skills in `~/.agents/skills`, the Fable payloads, and the `plugins` and `mcp` keys of `opencode.json`. Its local path is written in `~/.config/opencode/commands/selfmade/assets.md`. Edit the repository, commit, and deploy with `/selfmade/assets apply`. Never edit a deployed copy, and never add these files back to chezmoi.
+- OpenCode assets are the exception. The private `opencode-assets` repository owns agents, commands, plugins and their config files (for example `oh-my-opencode-slim.jsonc`), skills in `~/.agents/skills`, the Fable payloads, and the `plugins` and `mcp` keys of `opencode.json`. Its local path is written in `~/.config/opencode/commands/selfmade/assets.md`. Edit the repository, commit, and deploy with `/selfmade/assets apply`. Never edit a deployed copy, and never add these files back to chezmoi.
 - Restart OpenCode after changing its configuration, agents, commands, skills, or this file.
 
 ## OpenCode layout

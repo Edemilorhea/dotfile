@@ -1,5 +1,18 @@
 # OpenCode Chezmoi Changelog
 
+## 2026-11-11T16:30:00+08:00 - Hand oh-my-opencode-slim.jsonc to opencode-assets
+
+- Status: Completed
+- Machine: tc-tseng
+- Platform: Windows x64
+- Scope: `oh-my-opencode-slim.jsonc` (forgotten), `AGENTS.md.tmpl` (Configuration maintenance)
+- Summary: The Slim plugin config belongs with the plugin in opencode-assets. `chezmoi forget` removed it from source state (commit `7df22ea`); opencode-assets now deploys it as global asset `oh-my-opencode-slim-config` with identical content. AGENTS.md now lists plugin config files among opencode-assets responsibilities.
+- Important records:
+  - The global `apply -Scope global` earlier today ran without arguments and rewrote `config/assets.json` to profile `base` only, dropping `opencode-magic-context` from the selection (the plugin entry stayed in `opencode.json`). Re-applied with `-Profiles base -Assets opencode-magic-context,oh-my-opencode-slim-config`.
+- Portability: No paths or machine values.
+- Chezmoi: Removed one target; edited AGENTS.md.tmpl.
+- Verification: Applied; target file unchanged.
+
 ## 2026-11-11T16:00:00+08:00 - Move oh-my-opencode-slim delegation names out of global AGENTS.md
 
 - Status: Completed
