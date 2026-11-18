@@ -1,8 +1,8 @@
 general:
   # Commands to run when the WM has started. This is useful for running a
   # script or launching another application.
-  # Example: The below command launches Zebar.
-  startup_commands: ['shell-exec zebar']
+  # Example: The below command launches Zebar and restarts it if it crashes.
+  startup_commands: ['shell-exec --hide-window cmd.exe /d /c "{{ .chezmoi.homeDir | replace "/" "\\" }}\.glzr\glazewm\scripts\zebar-supervisor.cmd"']
 
   # Commands to run just before the WM is shutdown.
   # Example: The below command kills Zebar.

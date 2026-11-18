@@ -8,6 +8,7 @@ Helper scripts for `../config.yaml`. Paths in the config are rendered from
 | `cycle-workspace-window.js` | `Alt+[` / `Alt+]` | Focus the previous or next window in the focused workspace. |
 | `cycle-workspace-window.config.json` | `cycle-workspace-window.js` | `scope` (`same-state` or `workspace`) and `minimizedPolicy` (`exclude`, `fullscreen-only`, or `include`). |
 | `restart-glazewm.ps1` | `Alt+Shift+W` | Re-seat Zebar's dock reservation in place; fall back to a full GlazeWM and Zebar restart. Failures go to `%LOCALAPPDATA%\glazewm\restart.log`. |
+| `zebar-supervisor.cmd` | `startup_commands` | Start Zebar and restart it 5 seconds after it exits (for example a crash after sleep). Stops when GlazeWM is gone. One instance only, guarded by `%LOCALAPPDATA%\glazewm\zebar-supervisor.lock`. |
 | `inspect-window.ps1` | Manual | Print the focused window's properties and a `window_rules` snippet. |
 
 Run the manual tool from PowerShell, then focus the target window within the delay:
