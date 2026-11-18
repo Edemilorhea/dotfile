@@ -1493,3 +1493,48 @@
 - Verification: Rendered `opencode.json` parses and lists the six models;
   scoped `chezmoi diff` is empty. Requests through the combos and variant
   pass-through were not exercised.
+
+## 2026-11-17T11:02:38+08:00 - Stop double paste outside psmux
+
+- Status: Completed
+- Machine: TC-TSENG
+- Platform: windows/x64
+- Scope: `cli.json` (`modify_cli.json` keybinds)
+- Summary: Rebound `prompt.paste` from the default `ctrl+v` to `ctrl+alt+v`, so the raw Ctrl+V that noctty sends before its bracketed paste no longer makes OpenCode read the clipboard a second time.
+- Important records:
+  - Root cause: noctty `ctrl+v=text:\x16` + `chain=paste_from_clipboard`. Outside psmux, OpenCode received both the Ctrl+V key (`prompt.paste` reads clipboard) and the bracketed paste (`onPaste`), so text pasted twice.
+  - Image paste outside psmux still works: OpenCode `onPaste` dispatches `prompt.paste` when a bracketed paste is empty (image-only clipboard).
+  - Inside psmux, the root `C-v` binding now sends `C-M-v` for image-only clipboards (see psmux changelog).
+- Portability: Platform-neutral keybind; no paths.
+- Chezmoi: Updated the managed source and applied only `cli.json`.
+- Verification: Scoped apply only. Pasting text and an image in OpenCode was not performed by the agent.
+
+## 2026-11-18T09:21:12+08:00 - Restore the default Ctrl+V paste binding
+
+- Status: Completed
+- Machine: TC-TSENG
+- Platform: windows/x64
+- Scope: `cli.json` (`modify_cli.json` keybinds)
+- Summary: Removed `prompt.paste = ctrl+alt+v`, so OpenCode binds `prompt.paste` to its default Ctrl+V again.
+- Important records:
+  - The 2026-11-17 rebind broke image paste inside psmux: psmux passes noctty's raw `\x16` to the pane for an image-only clipboard, and that key was the only thing that made OpenCode read the image.
+  - The double text paste outside psmux is fixed in noctty instead, which no longer sends `\x16` (see the noctty changelog).
+- Portability: Platform-neutral keybind; no paths.
+- Chezmoi: Updated the managed source and applied only `cli.json`.
+- Verification: Scoped apply only. Pasting text and an image in OpenCode was not performed by the agent.
+
+## 2026-11-18T15:21:56+08:00 - Reload skills whose text a Magic Context fold removed
+
+- Status: Completed
+- Machine: TC-TSENG
+- Platform: windows/x64
+- Scope: `AGENTS.md` (`AGENTS.md.tmpl`)
+- Summary: Added the section "Loaded skills and context folding". Before a reply that continues a skill workflow, the agent checks that the skill's rule text is still in context and loads the skill again when only a summary remains.
+- Important records:
+  - Evidence: session `ses_e1881ff2affePwqtMKr5JyaFwK` loaded 6 skills at 13:38. A Magic Context `pressure_refold` at 14:38:27 had its baseline end at the last skill-load message. The reply generated in that request walked 6 declarations with 5 code segments, against the skill's limit of 3. The prompt recorded at 14:54:25 contained none of the 6 skill texts.
+  - The rule is in `AGENTS.md` because the system prompt is not folded. The same rule inside a skill is removed together with the skill.
+  - Not chosen: Magic Context `protected_tools` for the `skill` tool. Its schema text says the raw result leaves at the next fold. This was not tested.
+  - The related skill edits (declaration cap, reference placement, one term per concept, shorter checklist) are in the `opencode-assets` repository changelog.
+- Portability: Text only; no paths.
+- Chezmoi: Updated the managed source and applied only `AGENTS.md` and this changelog.
+- Verification: Scoped apply and `chezmoi status` only. No session was run across a fold to confirm that the agent reloads the skill.

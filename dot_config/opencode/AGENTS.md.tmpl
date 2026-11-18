@@ -36,6 +36,12 @@ Shared instructions for coding agents.
 - When a complex beginner-facing explanation needs all layers, use `iso-24495-plain-language` for information design, `asd-ste100` for direct sentences, and `eli5-explainer` for the intuition layer. Use `wait-what` only for a failed explanation.
 - Use ASCII diagrams when they help explain relationships or flow.
 
+## Loaded skills and context folding
+
+- Magic Context folds older turns into a summary. A fold removes the text of every skill that was loaded in those turns. Only a note that the skill was loaded remains.
+- Before each reply that continues a skill workflow, check that the rule text of the skill is still in your context. If you find only a summary or a mention that the skill was loaded, load the skill again with the `skill` tool before you answer. Also reload the supporting skills that it tells you to load.
+- Do not continue a skill workflow from memory or by imitating the format of your earlier replies.
+
 ## Safety
 
 - Do not modify secrets, `.env` files, credentials, or generated dependency directories.
