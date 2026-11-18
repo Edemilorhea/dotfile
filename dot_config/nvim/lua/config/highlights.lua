@@ -194,6 +194,9 @@ local function set_lang_hl()
         ["@lsp.type.function.typescriptreact"] = { fg = "#39CC9B" },
         ["@function.call.tsx"] = { fg = "#39CC9B" },
         ["@tag.attribute.tsx"] = { fg = "#6C95EB" },
+        -- 一般變數：rose-pine 的 @variable 與 Normal 同為白色，JSX 文字中難以分辨
+        ["@variable.tsx"] = { fg = "#EA9A97" },
+        ["@variable.typescript"] = { fg = "#EA9A97" },
         ["@tag.tsx"] = { fg = "#4EC9B0" },
         ["@tag.builtin.tsx"] = { fg = "#4EC9B0" },
         ["@comment"] = { fg = "#85BA59", italic = true },

@@ -534,3 +534,32 @@
 - Portability: No machine-specific paths.
 - Chezmoi: `which-key-builtin.lua` added; `which-key.lua` updated.
 - Verification: Headless load OK (builtin spec 248 entries). Display not yet observed in a live session.
+
+## 2026-11-18T13:59:30+08:00 - which-key 繁中 i18n 翻譯層
+
+- Status: Completed
+- Machine: TC-TSENG
+- Platform: windows/x64
+- Scope: `lua/plugins/which-key.lua`, `lua/config/which-key-i18n/zh_TW.lua`
+- Summary: which-key 顯示時把英文 desc 換成繁體中文，涵蓋 which-key 內建（運算子、移動、文字物件、z、g、[ ]、視窗）、LazyVim mini.ai 文字物件、LazyVim 與外掛的英文說明。
+- Important records:
+  - 英文原文不改；翻譯經 which-key `opts.replace.desc` 在顯示時查表，查不到就顯示原文。
+  - which-key 以 `tbl_deep_extend` 依索引合併清單，因此 `replace.desc` 連同預設規則一起寫；翻譯函式放在頭尾，分別比對原文與去除 `<Plug>`、`+` 後的文字。
+  - 翻譯表的 key 由 headless Neovim 列出實際載入的英文 desc 產生。
+- Portability: 無機器路徑。
+- Chezmoi: 更新 `which-key.lua`，新增 `which-key-i18n/zh_TW.lua`。
+- Verification: headless 呼叫 `require('which-key.view').replace('desc', ...)`，`Create fold`、`Around textobject`、`<Plug>(MatchitOperationBackward)`、`:next`、`Toggle Wrap` 都輸出中文；未列入的字串維持原文。
+
+## 2026-11-18T15:48:21+08:00 - Color TS/TSX local variables
+
+- Status: Completed
+- Machine: TC-TSENG
+- Platform: windows/x64
+- Scope: `lua/config/highlights.lua`
+- Summary: TS/TSX 一般變數改為 rose-pine rose 色 `#EA9A97`，避免與 JSX 文字同為白色。
+- Important records:
+  - rose-pine 的 `@variable` 與 `Normal` 同色，`@lsp.type.variable` 未設色，所以一般變數看起來和文字一樣。
+  - 只覆寫 `@variable.tsx` 與 `@variable.typescript`；元件名稱由 `@tag.tsx` 覆蓋，props 仍是 LSP `parameter` 紫色。
+- Portability: 無機器路徑。
+- Chezmoi: 更新 `highlights.lua`。
+- Verification: headless Neovim 以 `vim.inspect_pos` 檢查 TSX 變數的 highlight group。

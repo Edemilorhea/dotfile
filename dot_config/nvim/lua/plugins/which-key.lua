@@ -288,6 +288,27 @@ return {
             end
             opts.spec = deduped
 
+            -- i18n：顯示時把英文 desc 換成繁中（config/which-key-i18n/zh_TW.lua），英文原文不改。
+            -- which-key 以 tbl_deep_extend 依索引合併清單，所以要連同它的預設規則一起寫。
+            -- 翻譯放頭尾兩次：頭先比對原文（如 ":next"），尾再比對去掉 <Plug>、+ 之後的文字。
+            local zh = require("config.which-key-i18n.zh_TW")
+            local function translate(desc)
+                return zh[desc] or desc
+            end
+            opts.replace = opts.replace or {}
+            opts.replace.desc = {
+                translate,
+                { "<Plug>%(?(.*)%)?", "%1" },
+                { "^%+", "" },
+                { "<[cC]md>", "" },
+                { "<[cC][rR]>", "" },
+                { "<[sS]ilent>", "" },
+                { "^lua%s+", "" },
+                { "^call%s+", "" },
+                { "^:%s*", "" },
+                translate,
+            }
+
             return opts
         end,
     },
