@@ -181,3 +181,33 @@
 - Portability: Windows only (`.chezmoi.os` guard). Uses `$env:USERPROFILE`, no hard-coded paths.
 - Chezmoi: Updated `psmux.conf` and applied it. Added the script; removed the old run_once PPM script from source.
 - Verification: Template renders. Script not run on this machine (all plugins already exist); reload psmux config to see the status bar on top.
+
+## 2026-11-17T11:02:38+08:00 - Forward image paste to OpenCode as Ctrl+Alt+V
+
+- Status: Completed
+- Machine: TC-TSENG
+- Platform: windows/x64
+- Scope: `psmux.conf`
+- Summary: The root `C-v` binding now sends `C-M-v` instead of `C-v` to OpenCode panes when the clipboard has no text, matching OpenCode `prompt.paste = ctrl+alt+v`.
+- Important records:
+  - OpenCode no longer binds Ctrl+V, so noctty's raw Ctrl+V outside psmux does not paste twice.
+  - Whether `C-M-v` reaches OpenCode as `ctrl+alt+v` through ConPTY is not verified.
+- Portability: Windows-specific scope unchanged; no paths.
+- Chezmoi: Updated the managed source and applied only `psmux.conf`.
+- Verification: Scoped apply only. Image paste inside psmux was not performed by the agent.
+
+## 2026-11-18T09:21:12+08:00 - Bind the image-paste forward to Ctrl+Alt+F12
+
+- Status: Completed
+- Machine: TC-TSENG
+- Platform: windows/x64
+- Scope: `psmux.conf`
+- Summary: The image-paste forward moved from root `C-v` to root `C-M-F12`, the marker key noctty now sends before it pastes. It sends `C-v` again, not `C-M-v`.
+- Important records:
+  - The 2026-11-17 change broke image paste inside psmux. With an image-only clipboard, noctty sent `\x16` plus an empty bracketed paste; psmux dropped the empty paste, did not run the `C-v` binding, and passed `\x16` to the pane. OpenCode no longer bound Ctrl+V, so nothing happened.
+  - Evidence: a debug `bind -n C-v display-message` fired for text and did not fire for an image; an input logger inside psmux received only `16`.
+  - The binding command itself works: run by hand with a bitmap on the clipboard, it attached `[Image 1]` in OpenCode 2.3.0.
+  - psmux 3.4.0 rejects `F20` (`unknown key`); `C-M-F12` binds.
+- Portability: Windows-specific scope unchanged; no paths.
+- Chezmoi: Updated the managed source and applied only `psmux.conf`.
+- Verification: Scoped apply, `source-file`, and `list-keys` only. A physical Ctrl+V press in noctty was not performed by the agent.

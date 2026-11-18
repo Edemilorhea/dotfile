@@ -65,7 +65,8 @@ keybind = ctrl+h=csi:104;5u
 # Let the shell receive Shift+Home/End for line selection instead of scrolling.
 keybind = shift+home=unbind
 keybind = shift+end=unbind
-# Ctrl+V: send Ctrl+V first, then paste text, so psmux treats the text as one paste
-# and can still hand an image paste to OpenCode.
-keybind = ctrl+v=text:\x16
+# Ctrl+V: send Ctrl+Alt+F12 as a marker key, then paste the clipboard.
+# psmux binds the marker and forwards Ctrl+V to OpenCode for an image-only clipboard.
+# Outside psmux nothing binds the marker, so text pastes once.
+keybind = ctrl+v=csi:24;7~
 keybind = chain=paste_from_clipboard

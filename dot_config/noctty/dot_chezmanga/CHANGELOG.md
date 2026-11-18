@@ -58,3 +58,19 @@
 - Portability: Platform-neutral keybind; no paths.
 - Chezmoi: Updated the managed source and applied only the noctty targets.
 - Verification: `noctty +list-keybinds` check only. Selecting text in noctty was not performed by the agent.
+
+## 2026-11-18T09:21:12+08:00 - Send a marker key instead of Ctrl+V before pasting
+
+- Status: Completed
+- Machine: TC-TSENG
+- Platform: windows/x64
+- Scope: `config.ghostty`
+- Summary: Ctrl+V now sends Ctrl+Alt+F12 (`csi:24;7~`) and then pastes the clipboard. The raw `\x16` is gone, so OpenCode outside psmux no longer pastes text twice.
+- Important records:
+  - Root cause of the double paste: outside psmux, OpenCode received `\x16` (`prompt.paste` reads the clipboard) and the bracketed paste, so text landed twice.
+  - Measured with an input logger and an image-only clipboard: outside psmux the pane received `16 1b[200~ 1b[201~`; inside psmux it received only `16`, and the root `C-v` binding did not fire. psmux paste detection drops the empty paste and passes `\x16` straight to the pane.
+  - A marker key that paste detection does not handle is therefore required. psmux 3.4.0 rejects `F20` as an unknown key, so Ctrl+Alt+F12 is used.
+  - Rebinding OpenCode `prompt.paste` to `ctrl+alt+v` (2026-11-17) was reverted: it broke image paste inside psmux.
+- Portability: Platform-neutral keybind; no paths.
+- Chezmoi: Updated the managed source and applied only the noctty targets.
+- Verification: Scoped apply only. Pasting text and an image in noctty was not performed by the agent.
