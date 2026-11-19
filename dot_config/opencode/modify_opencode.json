@@ -51,6 +51,7 @@
                 "claude-opus": {
                     "name": "Claude Opus 5.5 (fallback Codex Sol)",
                     "modelID": "Claude-Opus",
+                    "limit": { "context": 872000, "output": 128000 },
                     "variants": [
                         { "id": "low", "settings": { "reasoningEffort": "low" } },
                         { "id": "medium", "settings": { "reasoningEffort": "medium" } },
@@ -61,6 +62,7 @@
                 "claude-fable": {
                     "name": "Claude Fable 5.1 (fallback Codex Sol)",
                     "modelID": "Claude-Fable",
+                    "limit": { "context": 872000, "output": 128000 },
                     "variants": [
                         { "id": "low", "settings": { "reasoningEffort": "low" } },
                         { "id": "medium", "settings": { "reasoningEffort": "medium" } },
@@ -71,6 +73,7 @@
                 "claude-sonnet": {
                     "name": "Claude Sonnet 5.5 (fallback Codex Luna)",
                     "modelID": "Claude-Sonnet",
+                    "limit": { "context": 872000, "output": 128000 },
                     "variants": [
                         { "id": "low", "settings": { "reasoningEffort": "low" } },
                         { "id": "medium", "settings": { "reasoningEffort": "medium" } },
@@ -81,6 +84,7 @@
                 "codex-sol": {
                     "name": "GPT-6 Sol (fallback Claude Opus)",
                     "modelID": "Codex-Sol",
+                    "limit": { "context": 872000, "output": 128000 },
                     "variants": [
                         { "id": "low", "settings": { "reasoningEffort": "low" } },
                         { "id": "medium", "settings": { "reasoningEffort": "medium" } },
@@ -91,6 +95,7 @@
                 "codex-astra": {
                     "name": "GPT-6 Astra (fallback Claude Opus)",
                     "modelID": "Codex-Astra",
+                    "limit": { "context": 872000, "output": 128000 },
                     "variants": [
                         { "id": "low", "settings": { "reasoningEffort": "low" } },
                         { "id": "medium", "settings": { "reasoningEffort": "medium" } },
@@ -101,6 +106,7 @@
                 "codex-luna": {
                     "name": "GPT-6 Luna (fallback Claude Sonnet)",
                     "modelID": "Codex-luna",
+                    "limit": { "context": 872000, "output": 128000 },
                     "variants": [
                         { "id": "low", "settings": { "reasoningEffort": "low" } },
                         { "id": "medium", "settings": { "reasoningEffort": "medium" } },

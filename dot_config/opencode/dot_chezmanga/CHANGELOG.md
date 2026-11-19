@@ -1538,3 +1538,17 @@
 - Portability: Text only; no paths.
 - Chezmoi: Updated the managed source and applied only `AGENTS.md` and this changelog.
 - Verification: Scoped apply and `chezmoi status` only. No session was run across a fold to confirm that the agent reloads the skill.
+
+## 2026-11-19T17:05:16+08:00 - Declare the real context limits of the OmniRoute models
+
+- Status: Completed
+- Machine: TC-TSENG
+- Platform: windows/x64
+- Scope: `opencode.json` (`modify_opencode.json`)
+- Summary: Added `limit: { context: 872000, output: 128000 }` to the six `omniroute` models. Without it OpenCode assumes 200,000 / 32,000 for a model that is not in its catalog.
+- Important records:
+  - Source of the values: the OmniRoute `/v1/models` endpoint reports `context_length=872000`, `max_input_tokens=872000`, `max_output_tokens=128000` for all six combos.
+  - Reason: Magic Context derived a 168k limit from the fallback and folded at about 109k. A Code-Mentor session folded 18 times in 22 minutes. The fold threshold itself is set in the cortexkit changelog of the same date.
+- Portability: The values describe the OmniRoute combos, not the machine. A machine whose `omnirouteBaseURL` points to a different OmniRoute instance must report the same limits.
+- Chezmoi: Updated the managed source and applied only `opencode.json` and this changelog.
+- Verification: Scoped apply and `chezmoi status` only. The rendered file contains six `"context": 872000` entries. No session was run after an OpenCode restart.

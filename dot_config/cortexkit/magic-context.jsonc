@@ -1,4 +1,6 @@
 {
   "historian": { "opencode": { "model": "omniroute/claude-sonnet" } },
-  "dreamer": { "opencode": { "model": "omniroute/claude-sonnet" } }
+  "dreamer": { "opencode": { "model": "omniroute/claude-sonnet" } },
+  // Fold when the context passes 250k tokens. The default (65% of the limit) would wait until about 480k.
+  "execute_threshold_tokens": { "default": 250000 }
 }
