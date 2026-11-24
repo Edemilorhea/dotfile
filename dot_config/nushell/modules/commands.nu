@@ -50,6 +50,7 @@ if ($d.ShowDialog() -eq "OK") { $d.SelectedPath }
 }
 def --wrapped pw [...args] { if $nu.os-info.name != "windows" { print "❌ pw 僅支援 Windows"; return }; ^pwsh -NoProfile -Command ($args | str join " ") }
 def --wrapped pwe [...args] { if $nu.os-info.name != "windows" { print "❌ pwe 僅支援 Windows"; return }; ^pwsh -NoProfile -Command ($args | str join " ") | lines | each { |l| $l } }
+def --wrapped pwshc [...args] { ^pwsh -NoLogo -Command ($args | str join " ") }
 def --wrapped bx [...args] { ^bash -c ($args | str join " ") }
 
 # OpenCode asset manager. Script lookup order: $env.OPENCODE_ASSETS_ROOT,

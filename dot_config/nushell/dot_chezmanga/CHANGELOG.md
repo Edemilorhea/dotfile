@@ -232,3 +232,17 @@
 - Portability: Windows-only block; no host-specific values added.
 - Chezmoi: Already managed; updated source and applied the single target.
 - Verification: Applied target has no uncommented `PSMUX_CONPTY_DIR`; file is LF only. Runtime behavior not yet tested.
+
+## 2026-11-23T16:43:53+08:00 - Add pwshc command
+
+- Status: Completed
+- Machine: tc-tseng
+- Platform: Windows x64
+- Scope: modules/commands.nu
+- Summary: Added `pwshc [...args]`, which joins its arguments and runs them through `pwsh -NoLogo -Command`. Plain `pwsh` still starts the PowerShell 7 shell.
+- Important records:
+  - Fixes calls such as `pwsh -File ./script.ps1` typed in nushell being passed oddly; use `pwshc ./script.ps1` instead.
+  - Unlike `pw`, `pwshc` loads the PowerShell profile (no `-NoProfile`).
+- Portability: No paths; requires pwsh on PATH.
+- Chezmoi: Already managed; source updated and applied.
+- Verification: Not run (edit inspected only).
