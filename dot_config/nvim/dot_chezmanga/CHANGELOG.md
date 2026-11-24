@@ -563,3 +563,17 @@
 - Portability: 無機器路徑。
 - Chezmoi: 更新 `highlights.lua`。
 - Verification: headless Neovim 以 `vim.inspect_pos` 檢查 TSX 變數的 highlight group。
+
+## 2026-11-23T14:16:10+08:00 - Swallow the noctty paste marker key
+
+- Status: Completed
+- Machine: TC-TSENG
+- Platform: windows/x64
+- Scope: `lua/config/keymaps.lua`
+- Summary: `<M-C-F12>` 在 n/i/c/x/o/t 模式對應到 `<Nop>`。用 Ctrl+V 在 `/` 搜尋列貼上時，不再插入字面的 `<M-C-F12>`。
+- Important records:
+  - noctty 的 `ctrl+v` 先送 Ctrl+Alt+F12 標記鍵（`csi:24;7~`），再貼上剪貼簿（`~/.config/noctty/config.ghostty`）。psmux 的 root `C-M-F12` binding 只服務 OpenCode 圖片貼上，但這個標記鍵仍會進到 nvim pane。
+  - 修在 nvim 端，不動 noctty 和 psmux，避免影響 OpenCode 的圖片貼上。psmux 為什麼沒有攔下這個鍵，目前只是推測（可能是 paste-detection），尚未以 input log 證實。
+- Portability: 無機器路徑；在不送這個鍵的終端機上也不會造成影響。
+- Chezmoi: 更新 `keymaps.lua`。
+- Verification: headless Neovim 觸發 VeryLazy 後，`maparg('<M-C-F12>', 'c'/'i')` 回傳 `<Nop>`，`<C-v>` 在 c 模式仍是 `<C-R>+`。尚未在 noctty + psmux 裡實際按鍵測試。

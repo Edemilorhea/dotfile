@@ -11,6 +11,8 @@ local map = vim.keymap.set
 -- ── 編輯與剪貼簿 ───────────────────────────────
 map({ "n", "x" }, "<C-q>", "<C-v>", { desc = "區塊選取（取代 <C-v>）" })
 map({ "i", "c" }, "<C-v>", "<C-r>+", { desc = "貼上系統剪貼簿" })
+-- noctty 的 Ctrl+V 會先送 Ctrl+Alt+F12 標記鍵給 psmux（OpenCode 圖片貼上用），漏進 nvim 時吞掉。
+map({ "n", "i", "c", "x", "o", "t" }, "<M-C-F12>", "<Nop>", { desc = "忽略 noctty 貼上標記鍵" })
 
 -- <C-/> 改為註解（LazyVim 預設是開終端機）。<C-_> 是部分終端機送出的 <C-/>。
 for _, lhs in ipairs({ "<C-/>", "<C-_>" }) do
