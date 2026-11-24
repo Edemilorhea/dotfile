@@ -115,3 +115,90 @@
 - Portability: The path uses `~` and contains no machine-specific value.
 - Chezmoi: Updated the existing managed source and applied it.
 - Verification: Scoped `chezmoi status` is clean; the source uses LF.
+
+## 2026-11-18T17:12:00+08:00 - Stop maximized windows from covering the bar
+
+- Status: Completed
+- Machine: tc-tseng
+- Platform: windows/x64
+- Scope: `zpack.json`
+- Summary: Raised the main widget's `dockToEdge.windowMargin` from 2px to 8px so the top reservation grows from 40px to 46px.
+- Important records:
+  - A maximized window's frame extends about 8px past the work area, so with only a 2px margin it covered the bottom 5-6px of the 36px bar.
+  - Measured before the change: DataGrip window top at y=32 while the work area started at y=40.
+- Portability: The setting is machine-neutral; the 8px frame extension is a Windows constant.
+- Chezmoi: Updated the existing managed source and applied it.
+- Verification: After a Zebar restart, DISPLAY8 and DISPLAY7 reported a 46px reservation and a pixel scan showed the bar ending at y=38 with the window content starting at y=39. DISPLAY6 lost its reservation after the restart (see the unresolved appbar registration failure above) and needs `Alt+Shift+W`.
+
+## 2026-11-18T17:20:00+08:00 - Revert windowMargin to 2px
+
+- Status: Completed
+- Machine: tc-tseng
+- Platform: windows/x64
+- Scope: `zpack.json`
+- Summary: Reverted `dockToEdge.windowMargin` from 8px back to 2px, undoing the previous entry.
+- Important records:
+  - The 8px margin raised the top reservation to 46px and pushed window content down to y=39, which the user reported as taking more space, not less.
+  - The earlier diagnosis (maximized window frame covers the bar) was a guess about what the user meant by "too much distance" and was not confirmed.
+- Portability: The setting is machine-neutral.
+- Chezmoi: Updated the existing managed source and applied it.
+- Verification: After a Zebar restart, DISPLAY8 and DISPLAY7 reported a 40px reservation and window content started at y=33 again. DISPLAY6 still reports 0 (appbar registration failure).
+
+## 2026-11-19T09:30:00+08:00 - Make the main bar top-most
+
+- Status: Partial
+- Machine: tc-tseng
+- Platform: windows/x64
+- Scope: `zpack.json`
+- Summary: Changed the main widget `zOrder` from `normal` to `top_most` so the invisible frame of a maximized window cannot cover the bar.
+- Important records:
+  - A maximized window's frame starts about 8px (scaled by DPI) above the visible edge, so it extends into the bar area. Windows decides this position; GlazeWM cannot change it because `maximize()` clamps the window back.
+  - The 2026-08-26 entry moved the bar from top-most to normal because it covered maximized content while the work-area reservation was missing (`reserved=0`). That case still exists on DISPLAY6.
+  - Side effect observed: a window GlazeWM treats as fullscreen (`y=0`) is drawn under the bar, so the bar covers its top 38px.
+- Portability: The setting is machine-neutral.
+- Chezmoi: Updated the existing managed source and applied it.
+- Verification: After a Zebar restart all three bars report top-most. No window was maximized during the check, so the white strip fix is not yet confirmed.
+
+## 2026-11-19T09:55:00+08:00 - Remove the 2px gap under the main bar
+
+- Status: Partial
+- Machine: tc-tseng
+- Platform: windows/x64
+- Scope: `zpack.json`
+- Summary: Changed the main widget `dockToEdge.windowMargin` from `2px` to `0px`; `zOrder` stays `top_most`.
+- Important records:
+  - With `top_most` alone, DataGrip maximized on DISPLAY7 still showed `243,243,243` at y=615–616. The bar window ends at y=615 but the reservation was 40px, so a 2px band of DataGrip's invisible frame showed between the bar and the work area.
+  - With `0px` the reservation equals the 38px bar height and the top-most bar covers the frame above the work area.
+- Portability: The setting is machine-neutral.
+- Chezmoi: Updated the existing managed source and applied it.
+- Verification: After a Zebar restart DISPLAY8 and DISPLAY7 report `reserved=38` and the bar is the top window down to y=614 on DISPLAY7. DataGrip was not in front at the time, so the strip fix still needs a visual check.
+
+## 2026-11-19T10:05:00+08:00 - Grow the main bar to fill the reserved area
+
+- Status: Partial
+- Machine: tc-tseng
+- Platform: windows/x64
+- Scope: `zpack.json`
+- Summary: Changed the main widget preset `height` from `36px` to `38px`; `windowMargin` stays `0px` and `zOrder` stays `top_most`.
+- Important records:
+  - User confirmed DataGrip had no white strip with `0px`, but Zen's maximized title bar lost its top rows: the 38px reservation moved every maximized window up 2px against the 40px it had before.
+  - The reservation is `offsetY + height + windowMargin`. With `2px + 38px + 2px` it became 42px, so `windowMargin` must stay `0px` to keep the original 40px.
+  - With `2px + 38px + 0px` the reservation is 40px again and the bar window ends exactly at the work-area top, so no gap shows a maximized window's frame.
+- Portability: The setting is machine-neutral.
+- Chezmoi: Updated the existing managed source and applied it.
+- Verification: After a Zebar restart DISPLAY8 and DISPLAY7 report `reserved=40`, each bar window spans y=0–40 relative to its monitor, and maximized Zen's visible top is at y=40 as before the margin change. DISPLAY6 still reports `reserved=0` from the separate AppBar registration failure.
+
+## 2026-11-19T11:30:00+08:00 - Revert the main bar to its original geometry and z-order
+
+- Status: Completed
+- Machine: tc-tseng
+- Platform: windows/x64
+- Scope: `zpack.json`
+- Summary: Restored the main widget to the committed values `zOrder: normal`, `height: 36px`, `dockToEdge.windowMargin: 2px`, undoing the three 2026-11-19 entries above.
+- Important records:
+  - Settings in use before this revert: `zOrder: top_most`, `offsetY: 2px`, `height: 38px`, `dockToEdge.windowMargin: 0px` (reservation 40px). With them DataGrip showed no light strip, but every maximized window lost its top rows to the bar.
+  - Measured cause: a natively maximized window's top 8 rows (at 100% scale) sit above the work-area top and overlap the bar. With normal z-order those rows show the window: 8 rows for a stock WinForms window and Zen on DISPLAY8, and 7 rows for noctty on DISPLAY7. With `top_most` the bar covers them instead, so the maximized title bar shrinks from 31px to 23px.
+  - Changing z-order only decides which side is covered. Removing the overlap needs a non-native maximize in GlazeWM, which is not implemented.
+- Portability: The setting is machine-neutral.
+- Chezmoi: Restored the managed source from git and applied it.
+- Verification: The managed source matches git HEAD. After a Zebar restart all three bars are not top-most and span 38px from their monitor top. DISPLAY8 and DISPLAY7 report `reserved=40`; DISPLAY6 reports `reserved=0` from the separate AppBar registration issue.
